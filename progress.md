@@ -18,9 +18,9 @@
 - Business/procurement/logistics policy documents for RAG completed.
 - `core/forecasting.py` completed with LightGBM forecasting, time-based evaluation, baseline comparison, leakage checks, feature importance, and tests.
 - Completed work is available in the shared GitHub repository and should be pulled from `main`.
+- `core/inventory_risk.py` completed: rule-based stockout/overstock detection with feature-importance-style contributing-factor explainability, 9 tests passing.
 
 ### Currently In Progress
-- `core/inventory_risk.py`
 - `db/models.py` + `db/connection.py`
 
 *(Task ownership is coordinated in WhatsApp/team chat. No permanent roles are assigned in `progress.md`.)*
@@ -480,7 +480,7 @@ uv run pytest
 - [ ] `db/models.py`, `db/connection.py` — Neon Postgres schema created and connected
 - [ ] `data_pipeline/` scripts: source data → Neon Postgres
 - [x] `core/forecasting.py` — LightGBM, time-based split, baseline comparison, 12 tests passing
-- [ ] `core/inventory_risk.py` — stockout/overstock logic, tested standalone
+- [x] `core/inventory_risk.py` — stockout/overstock logic, tested standalone
 - [ ] `core/delivery_risk.py` — delivery risk classifier, time-based split, baseline comparison
 - [ ] `core/logistics_optimizer.py` — OR-Tools VRP, tested standalone
 - [x] `ml/evaluation.py` — split/leakage-check/baseline-comparison utilities, 13 tests passing
@@ -608,7 +608,7 @@ The developer name and local branch are intentionally not stored here. GitHub br
 | `db/models.py`, `db/connection.py` | IN PROGRESS | Neon provisioning |
 | `data_pipeline/` (load data → Neon) | TODO | `db/models.py` |
 | `core/forecasting.py` | DONE | data ingestion |
-| `core/inventory_risk.py` | IN PROGRESS | `forecasting.py` |
+| `core/inventory_risk.py` | DONE | `forecasting.py` |
 | `core/delivery_risk.py` | TODO | `data_pipeline/` |
 | `core/logistics_optimizer.py` | TODO | `data_pipeline/` |
 | `ml/evaluation.py` | DONE | — |

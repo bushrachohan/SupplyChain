@@ -19,4 +19,4 @@ An end-to-end AI-powered supply-chain decision intelligence platform.
 4. Run `uv run streamlit run app.py`
 
 ## Team
-- Bushra (Team Leader), Maryam, Shreeya, Samiya
+- Bushra(Team Leader), Maryam, Shreeya, Samiya

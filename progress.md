@@ -7,38 +7,44 @@
 
 ## Current Project State
 
-*(This section must always reflect the CURRENT REAL STATE of the repository. Update it after every meaningful session — see Section 15.13. Never mark something done unless it's actually been verified and committed.)*
+*(This section reflects the CURRENT REAL STATE of the shared repository. It is updated after work is verified and merged. Do not mark unmerged work as completed.)*
 
 ### Completed
-- Project scope, tech stack, folder structure, ML engineering rules, RAG design, AI Decision Agent design, evaluation methodology, data ingestion strategy, and MVP prioritization — all finalized as written specification (see Sections 2–4 and 13).
-- **Phase 0 — Setup:** repo initialized, uv + all dependencies installed, full folder structure created, .gitignore in place, pushed to GitHub. *(Bushra, 2026-09-02)*
-- **`ml/evaluation.py`** — time-based split, leakage check, regression/classification metrics, naive + majority-class baselines, compare_to_baseline. 13 tests passing. *(Bushra, 2026-09-02)*
-- **`data_ingestion/base.py`, `csv_source.py`, `excel_source.py`, `db_source.py`, `api_source.py`** — full pluggable DataSource layer. *(Maryam, 2026-09-02)*
-- **`data_pipeline/generate_seed_data.py`** — synthetic seed data generator. *(Maryam, 2026-09-02)*
-- **`data/historical_demand.csv`, `data/deliveries.csv`, `data/inventory_snapshot.csv`** — synthetic seed data files. *(Maryam, 2026-09-02)*
-- **`policies/inventory_policy.md`, `policies/logistics_policy.md`, `policies/procurement_policy.md`** — real business policy documents for RAG. *(Maryam, 2026-09-02)*
-- **`core/forecasting.py`** — LightGBM demand forecasting, time-based split, leakage check, baseline comparison, feature importance. 12 tests passing. *(Bushra, 2026-09-02)*
+- Project scope, architecture, MVP prioritization, ML engineering rules, RAG design, AI Decision Agent design, evaluation methodology, and data-ingestion strategy finalized.
+- Phase 0 setup completed: repository, `uv`, dependencies, folder structure, `.gitignore`, and GitHub setup.
+- `ml/evaluation.py` completed with time-based split, leakage checks, metrics, naive/majority baselines, and comparison utilities.
+- Data ingestion layer completed: `data_ingestion/base.py`, `csv_source.py`, `excel_source.py`, `db_source.py`, `api_source.py`.
+- Synthetic seed data generator and seed CSV datasets completed.
+- Business/procurement/logistics policy documents for RAG completed.
+- `core/forecasting.py` completed with LightGBM forecasting, time-based evaluation, baseline comparison, leakage checks, feature importance, and tests.
+- Completed work is available in the shared GitHub repository and should be pulled from `main`.
 
-### In Progress
-- `core/inventory_risk.py` — Maryam (branch: feature/inventory-risk)
-- `core/delivery_risk.py` — Samiya (branch: to be created)
-- `db/models.py` + `db/connection.py` — Shreeya (branch: to be created)
+### Currently In Progress
+- `core/inventory_risk.py`
+- `db/models.py` + `db/connection.py`
+
+*(Task ownership is coordinated in WhatsApp/team chat. No permanent roles are assigned in `progress.md`.)*
 
 ### Blocked
 - None.
 
 ### Next Available Tasks
-- `core/logistics_optimizer.py` — depends on `data_pipeline/` ✅ (available now)
-- `core/rag.py` — depends on `policies/` ✅ (available now — Maryam's policies are done)
-- `ml/explainability.py` — depends on `core/delivery_risk.py`
-- `llm/explainer.py` — depends on Groq key ✅
+- `core/rag.py` — policies are already available.
+- `llm/explainer.py` — Groq setup is already available.
+- `core/delivery_risk.py` — available once its dependency requirements are satisfied.
+- `core/logistics_optimizer.py` — available once its data-pipeline dependency is satisfied.
+- `data_pipeline/` — available after the database layer is ready.
+
+### How Task Selection Works
+The team chooses the next task through WhatsApp/team chat based on the current repository state.
+
+Only selected active tasks are marked **IN PROGRESS** in the task board. All other unfinished tasks remain **TODO**.
+
+Developer names and local folder paths are intentionally not stored in the shared task board. GitHub branches/PRs and WhatsApp coordination identify who is working on a task.
 
 ### Last Updated
-- **Date:** 2026-09-02
-- **Developer:** Bushra
-- **Commit:** merge in progress
+- Update this section after a task PR is merged and verified.
 
----
 
 ## Why each section matters
 | Section | Why it's here |
@@ -542,105 +548,84 @@ Before starting a task, a member must:
 
 ### 15.2 Task Status System — Live Task Board
 
+Every task has one of: **TODO · IN PROGRESS · BLOCKED · REVIEW · DONE**.
+
+**Dynamic task rule:** The team does not permanently assign roles. The team selects tasks through WhatsApp/team chat based on what is currently completed and what is available next. Only selected active tasks are marked `IN PROGRESS` so every AI coding assistant can see which tasks are already being worked on.
+
+The developer name and local branch are intentionally not stored here. GitHub branches/PRs and team chat provide that coordination.
+
 **Phase 0 — Setup**
-| Task | Status | Developer | Branch | Dependency |
-|---|---|---|---|---|
-| Repo structure + `uv init` | DONE | Bushra | main | — |
-| Neon Postgres provisioning | DONE | Bushra | main | — |
-| Groq API key setup | DONE | Bushra | main | — |
-| Claude Project setup | DONE | Bushra | main | — |
+| Task | Status | Dependency |
+|---|---|---|
+| Repo structure + `uv init` | DONE | — |
+| Neon Postgres provisioning | DONE | — |
+| Groq API key setup | DONE | — |
+| Claude Project setup | DONE | — |
 
 **Phase 1 — Data Layer & Core ML Logic**
-| Task | Status | Developer | Branch | Dependency |
-|---|---|---|---|---|
-| `data_ingestion/base.py` + `csv_source.py` | DONE | Maryam | Maryam | repo structure |
-| `data_ingestion/excel_source.py`, `db_source.py` | DONE | Maryam | Maryam | `base.py` |
-| `data_ingestion/api_source.py` | DONE | Maryam | Maryam | `base.py` |
-| `db/models.py`, `db/connection.py` | IN PROGRESS | Shreeya | feature/database | Neon provisioning |
-| `data_pipeline/` (load data → Neon) | TODO | — | — | `db/models.py` |
-| `core/forecasting.py` | DONE | Bushra | feature/forecasting | `data_pipeline/` |
-| `core/inventory_risk.py` | IN PROGRESS | Maryam | feature/inventory-risk | `forecasting.py` |
-| `core/delivery_risk.py` | IN PROGRESS | Samiya | feature/delivery-risk | `data_pipeline/` |
-| `core/logistics_optimizer.py` | TODO | — | — | `data_pipeline/` |
-| `ml/evaluation.py` | DONE | Bushra | feature/ml-evaluation | — |
-| `ml/explainability.py` | TODO | — | — | `delivery_risk.py` |
-| Tests for all of the above | IN PROGRESS | — | — | respective modules |
+| Task | Status | Dependency |
+|---|---|---|
+| `data_ingestion/base.py` + `csv_source.py` | DONE | repo structure |
+| `data_ingestion/excel_source.py`, `db_source.py` | DONE | `base.py` |
+| `data_ingestion/api_source.py` | DONE | `base.py` |
+| `db/models.py`, `db/connection.py` | IN PROGRESS | Neon provisioning |
+| `data_pipeline/` (load data → Neon) | TODO | `db/models.py` |
+| `core/forecasting.py` | DONE | data ingestion |
+| `core/inventory_risk.py` | IN PROGRESS | `forecasting.py` |
+| `core/delivery_risk.py` | TODO | `data_pipeline/` |
+| `core/logistics_optimizer.py` | TODO | `data_pipeline/` |
+| `ml/evaluation.py` | DONE | — |
+| `ml/explainability.py` | TODO | `delivery_risk.py` |
+| Tests for all of the above | TODO | respective modules |
 
 **Phase 2 — RAG, Agent, Decision Trace**
-| Task | Status | Developer | Branch | Dependency |
-|---|---|---|---|---|
-| `policies/*.md` (real policy docs) | DONE | Maryam | Maryam | — |
-| `core/rag.py` | TODO | — | — | `policies/` |
-| `llm/explainer.py` | TODO | — | — | Groq key |
-| `agent/tools.py` | TODO | — | — | `core/*` modules |
-| `agent/orchestrator.py` | TODO | — | — | `agent/tools.py` |
-| `agent/decision_trace.py` | TODO | — | — | orchestrator, `db/models.py` |
-| Tests for all of the above | TODO | — | — | respective modules |
+| Task | Status | Dependency |
+|---|---|---|
+| `policies/*.md` (real policy docs) | DONE | — |
+| `core/rag.py` | TODO | `policies/` |
+| `llm/explainer.py` | TODO | Groq key |
+| `agent/tools.py` | TODO | `core/*` modules |
+| `agent/orchestrator.py` | TODO | `agent/tools.py` |
+| `agent/decision_trace.py` | TODO | orchestrator, `db/models.py` |
+| Tests for all of the above | TODO | respective modules |
 
 **Phase 3 — Human-in-the-Loop UI**
-| Task | Status | Developer | Branch | Dependency |
-|---|---|---|---|---|
-| `api/main.py` | TODO | — | — | `agent/`, `core/` |
-| `app.py` (Streamlit + approval UI) | TODO | — | — | `agent/`, `decision_trace.py` |
+| Task | Status | Dependency |
+|---|---|---|
+| `api/main.py` | TODO | `agent/`, `core/` |
+| `app.py` (Streamlit + approval UI) | TODO | `agent/`, `decision_trace.py` |
 
 **Phase 4 — Deploy**
-| Task | Status | Developer | Branch | Dependency |
-|---|---|---|---|---|
-| Finalize `pyproject.toml`/`uv.lock` | TODO | — | — | all above |
-| Streamlit Cloud deploy + secrets | TODO | — | — | `app.py` |
-| Full `pytest` suite passing | TODO | — | — | all modules |
+| Task | Status | Dependency |
+|---|---|---|
+| Finalize `pyproject.toml`/`uv.lock` | TODO | all above |
+| Streamlit Cloud deploy + secrets | TODO | `app.py` |
+| Full `pytest` suite passing | TODO | all modules |
 
-### 15.3 Session Handoff
+### 15.3 Merge / Progress Update Workflow
 
----
+The team uses WhatsApp/team chat for coordination and GitHub for implementation history.
 
-#### Session Handoff — Maryam, 2026-09-02
+When a developer finishes a task:
+1. Verify the implementation locally.
+2. Run the relevant tests.
+3. Push the feature branch and open/update the Pull Request.
+4. Share in the team WhatsApp:
+   - PR link
+   - what changed
+   - files/modules changed
+   - tests run and result
+   - any issue that needs attention
+5. The Team Leader reviews and merges the PR.
+6. **After the PR is merged**, the Team Leader updates `progress.md`:
+   - change the task to `DONE`
+   - update Current Project State
+   - update the Build Checklist if applicable
+   - mark any newly available task(s) as TODO/available
+7. Push the updated `progress.md` to `main`.
+8. All members pull the latest `main` before choosing the next task.
 
-Date: 2026-09-02
-Developer: Maryam
-Branch: `Maryam`
-Task: Data Ingestion layer + Policy documents
-Status: DONE
-
-What was completed:
-- `data_ingestion/base.py`, `csv_source.py`, `excel_source.py`, `db_source.py`, `api_source.py`
-- `data_pipeline/generate_seed_data.py`
-- `data/historical_demand.csv`, `data/deliveries.csv`, `data/inventory_snapshot.csv`
-- `policies/inventory_policy.md`, `policies/logistics_policy.md`, `policies/procurement_policy.md`
-- `tests/test_data_ingestion.py`, `tests/test_additional_sources.py`, `tests/test_policies.py`
-
-Tests run: `python -m pytest`
-Test results: 23 passed
-Commit: Maryam branch → merged to main
-Known issues: None
-Blocked by: None
-Recommended next task: `core/inventory_risk.py`
-
----
-
-#### Session Handoff — Bushra, 2026-09-02
-
-Date: 2026-09-02
-Developer: Bushra
-Branch: `feature/ml-evaluation`, `feature/forecasting`
-Task: Phase 0 setup + `ml/evaluation.py` + `core/forecasting.py`
-Status: DONE
-
-What was completed:
-- Full Phase 0 setup (repo, uv, dependencies, folder structure, .gitignore, GitHub)
-- `ml/evaluation.py` — time-based split, leakage check, metrics, baselines
-- `core/forecasting.py` — LightGBM, time-based split, leakage check, baseline comparison, feature importance, predict_demand
-- `tests/test_evaluation.py` — 13 tests passing
-- `tests/test_forecasting.py` — 12 tests passing
-
-Tests run: `uv run pytest -v`
-Test results: 25 passed
-Commit: merged to main
-Known issues: Fixed multi-SKU date boundary overlap in leakage check
-Blocked by: None
-Recommended next task: `core/logistics_optimizer.py` or `core/rag.py`
-
----
+`progress.md` records the shared repository state and active tasks; detailed developer ownership is coordinated through WhatsApp and GitHub.
 
 ### 15.4 GitHub Branching
 
@@ -709,21 +694,59 @@ Never modify datasets or models merely to make metrics look better. Synthetic da
 
 ### 15.13 Current State Update Protocol
 
-At the end of every meaningful session:
-1. Verify the work.
-2. Run relevant tests.
-3. Update `progress.md` — Current Project State, Build Checklist, task board, Session Handoff.
-4. Commit and push.
-5. Identify next available tasks.
+**While working:**
+1. The developer works on the selected task branch.
+2. Tests are run locally.
+3. The developer pushes the branch and opens a PR.
+4. The developer shares the PR and changes in WhatsApp.
+
+**After merge:**
+1. The Team Leader updates `progress.md` to reflect the merged repository state.
+2. Completed task → `DONE`.
+3. Newly available tasks → remain `TODO` until selected.
+4. Selected next tasks → `IN PROGRESS`.
+5. Push updated `progress.md` to `main`.
+
+**When starting a new task:**
+1. Pull latest `main`.
+2. Read `progress.md`.
+3. Check which tasks are `IN PROGRESS` and avoid them.
+4. Choose an available `TODO` task through team coordination.
+5. Start work on a task branch.
 
 ### 15.14 AI Coding Agent Rule
 
-Read `progress.md` before making changes. Never silently change architecture or expand scope. Run tests after changes. Never expose secrets. Report exactly what was changed and verified.
+This project may be developed using Claude, Google Antigravity, or another AI coding assistant.
+
+The assistant must:
+- Read the latest `progress.md` before starting.
+- Treat the latest merged `progress.md` on `main` as the project source of truth.
+- Check the live task board before choosing work.
+- Never take a task already marked `IN PROGRESS` unless explicitly handed off.
+- Never silently change architecture, dependencies, or MVP scope.
+- Preserve existing working functionality.
+- Run relevant tests after changes.
+- Never expose or commit secrets.
+- Report exactly what was changed and verified.
+- After completing a task, prepare a concise status/PR summary for the developer to share in WhatsApp.
+- Do not mark a task `DONE` in the shared progress until its PR is merged and verified.
 
 ### 15.15 Claude Account Handoff
 
-GitHub is the authoritative source. Pull latest `main` and read `progress.md` before every session. Latest verified GitHub version always takes priority over any local Claude Project copy.
+- GitHub `main` is authoritative.
+- Each member may use a different Claude account/Project or Antigravity workspace.
+- Before each session, pull the latest `main` and read `progress.md`.
+- If the local AI Project copy is older than GitHub, GitHub takes priority.
+- Local folder paths are never stored in shared project documentation.
 
 ### 15.16 progress.md Merge Rule
 
-Never overwrite newer progress with an older branch's copy. Synchronize with latest `main` before merging. Resolve conflicts carefully.
+`main` is the authoritative project state.
+
+- Never overwrite newer progress with an older branch copy.
+- Do not mark work `DONE` before its PR is merged.
+- The Team Leader updates the shared task status after merge.
+- Resolve `progress.md` conflicts by preserving the actual latest merged state.
+- After the update, push `progress.md` to `main`.
+- All teammates pull the latest `main` before continuing.
+

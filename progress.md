@@ -20,6 +20,7 @@
 - Completed work is available in the shared GitHub repository and should be pulled from `main`.
 - `core/inventory_risk.py` completed: rule-based stockout/overstock detection with feature-importance-style contributing-factor explainability, 9 tests passing.
 - `core/rag.py` completed: ChromaDB + sentence-transformers RAG over `policies/*.md`, section-aware markdown chunking, verified against real policy documents (safety-stock query correctly retrieves the safety-stock policy section, ranked above unrelated sections). 7 tests passing. Merged via PR to `main`.
+- `llm/explainer.py` completed: Groq API wrapper for the LLM Grounding Constraint layer — `explain_recommendation()` and `summarize_text()`, both strictly narration-only with an injectable client for testing. Fixed deprecated `llama-3.3-70b-versatile` model, now uses `openai/gpt-oss-120b`. 9 tests passing. Pushed to `main`.
 ### Currently In Progress
 - `db/models.py` + `db/connection.py`
 
@@ -29,7 +30,7 @@
 - None.
 
 ### Next Available Tasks
-- `llm/explainer.py` — Groq setup is already available.
+- `agent/tools.py` — tool wrappers around `core/forecasting.py`, `core/inventory_risk.py`, and `core/rag.py` can be built now; wrappers for `get_delivery_risk` and `optimize_routes` remain blocked until `core/delivery_risk.py` and `core/logistics_optimizer.py` are done.
 - `core/delivery_risk.py` — available once its dependency requirements are satisfied.
 - `core/logistics_optimizer.py` — available once its data-pipeline dependency is satisfied.
 - `data_pipeline/` — available after the database layer is ready.
@@ -488,7 +489,7 @@ uv run pytest
 ### Phase 2 — RAG, Agent, and Decision Trace
 - [x] Real business/procurement/inventory policy documents written and placed in `policies/`
 - [x] `core/rag.py` — ChromaDB + sentence-transformers, tested with real policy queries
-- [ ] `llm/explainer.py` — Groq API wrapper, tested standalone
+- [x] `llm/explainer.py` — Groq API wrapper, tested standalone
 - [ ] `agent/tools.py` — tool wrappers around `core/*`, with schemas
 - [ ] `agent/orchestrator.py` — real Groq tool-calling agent loop
 - [ ] `agent/decision_trace.py` — trace built and persisted to `decision_traces` table
@@ -618,7 +619,7 @@ The developer name and local branch are intentionally not stored here. GitHub br
 |---|---|---|
 | `policies/*.md` (real policy docs) | DONE | — |
 | `core/rag.py` | DONE | `policies/` |
-| `llm/explainer.py` | TODO | Groq key |
+| `llm/explainer.py` | DONE | Groq key |
 | `agent/tools.py` | TODO | `core/*` modules |
 | `agent/orchestrator.py` | TODO | `agent/tools.py` |
 | `agent/decision_trace.py` | TODO | orchestrator, `db/models.py` |

@@ -18,9 +18,10 @@
 - Business/procurement/logistics policy documents for RAG completed.
 - `core/forecasting.py` completed with LightGBM forecasting, time-based evaluation, baseline comparison, leakage checks, feature importance, and tests.
 - Completed work is available in the shared GitHub repository and should be pulled from `main`.
-
+- `core/inventory_risk.py` completed: rule-based stockout/overstock detection with feature-importance-style contributing-factor explainability, 9 tests passing.
+- `core/rag.py` completed: ChromaDB + sentence-transformers RAG over `policies/*.md`, section-aware markdown chunking, verified against real policy documents (safety-stock query correctly retrieves the safety-stock policy section, ranked above unrelated sections). 7 tests passing. Merged via PR to `main`.
+- `llm/explainer.py` completed: Groq API wrapper for the LLM Grounding Constraint layer — `explain_recommendation()` and `summarize_text()`, both strictly narration-only with an injectable client for testing. Fixed deprecated `llama-3.3-70b-versatile` model, now uses `openai/gpt-oss-120b`. 9 tests passing. Pushed to `main`.
 ### Currently In Progress
-- `core/inventory_risk.py`
 - `db/models.py` + `db/connection.py`
 
 *(Task ownership is coordinated in WhatsApp/team chat. No permanent roles are assigned in `progress.md`.)*
@@ -29,8 +30,7 @@
 - None.
 
 ### Next Available Tasks
-- `core/rag.py` — policies are already available.
-- `llm/explainer.py` — Groq setup is already available.
+- `agent/tools.py` — tool wrappers around `core/forecasting.py`, `core/inventory_risk.py`, and `core/rag.py` can be built now; wrappers for `get_delivery_risk` and `optimize_routes` remain blocked until `core/delivery_risk.py` and `core/logistics_optimizer.py` are done.
 - `core/delivery_risk.py` — available once its dependency requirements are satisfied.
 - `core/logistics_optimizer.py` — available once its data-pipeline dependency is satisfied.
 - `data_pipeline/` — available after the database layer is ready.
@@ -44,7 +44,6 @@ Developer names and local folder paths are intentionally not stored in the share
 
 ### Last Updated
 - Update this section after a task PR is merged and verified.
-
 
 ## Why each section matters
 | Section | Why it's here |
@@ -480,7 +479,7 @@ uv run pytest
 - [ ] `db/models.py`, `db/connection.py` — Neon Postgres schema created and connected
 - [ ] `data_pipeline/` scripts: source data → Neon Postgres
 - [x] `core/forecasting.py` — LightGBM, time-based split, baseline comparison, 12 tests passing
-- [ ] `core/inventory_risk.py` — stockout/overstock logic, tested standalone
+- [x] `core/inventory_risk.py` — stockout/overstock logic, tested standalone
 - [ ] `core/delivery_risk.py` — delivery risk classifier, time-based split, baseline comparison
 - [ ] `core/logistics_optimizer.py` — OR-Tools VRP, tested standalone
 - [x] `ml/evaluation.py` — split/leakage-check/baseline-comparison utilities, 13 tests passing
@@ -489,8 +488,8 @@ uv run pytest
 
 ### Phase 2 — RAG, Agent, and Decision Trace
 - [x] Real business/procurement/inventory policy documents written and placed in `policies/`
-- [ ] `core/rag.py` — ChromaDB + sentence-transformers, tested with real policy queries
-- [ ] `llm/explainer.py` — Groq API wrapper, tested standalone
+- [x] `core/rag.py` — ChromaDB + sentence-transformers, tested with real policy queries
+- [x] `llm/explainer.py` — Groq API wrapper, tested standalone
 - [ ] `agent/tools.py` — tool wrappers around `core/*`, with schemas
 - [ ] `agent/orchestrator.py` — real Groq tool-calling agent loop
 - [ ] `agent/decision_trace.py` — trace built and persisted to `decision_traces` table
@@ -608,7 +607,7 @@ The developer name and local branch are intentionally not stored here. GitHub br
 | `db/models.py`, `db/connection.py` | IN PROGRESS | Neon provisioning |
 | `data_pipeline/` (load data → Neon) | TODO | `db/models.py` |
 | `core/forecasting.py` | DONE | data ingestion |
-| `core/inventory_risk.py` | IN PROGRESS | `forecasting.py` |
+| `core/inventory_risk.py` | DONE | `forecasting.py` |
 | `core/delivery_risk.py` | TODO | `data_pipeline/` |
 | `core/logistics_optimizer.py` | TODO | `data_pipeline/` |
 | `ml/evaluation.py` | DONE | — |
@@ -619,8 +618,8 @@ The developer name and local branch are intentionally not stored here. GitHub br
 | Task | Status | Dependency |
 |---|---|---|
 | `policies/*.md` (real policy docs) | DONE | — |
-| `core/rag.py` | TODO | `policies/` |
-| `llm/explainer.py` | TODO | Groq key |
+| `core/rag.py` | DONE | `policies/` |
+| `llm/explainer.py` | DONE | Groq key |
 | `agent/tools.py` | TODO | `core/*` modules |
 | `agent/orchestrator.py` | TODO | `agent/tools.py` |
 | `agent/decision_trace.py` | TODO | orchestrator, `db/models.py` |

@@ -1,0 +1,6 @@
+sku_id,current_stock,reorder_point,safety_stock,unit_cost,lead_time_days,location_id
+SKU_101,150,200,100,45.0,7,LOC_NORTH
+SKU_102,50,120,60,120.0,10,LOC_NORTH
+SKU_103,400,300,150,15.0,5,LOC_SOUTH
+SKU_104,20,80,40,250.0,14,LOC_SOUTH
+SKU_105,600,400,200,8.5,3,LOC_NORTH

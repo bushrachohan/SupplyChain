@@ -13,13 +13,14 @@
 - Project scope, tech stack, folder structure, ML engineering rules, RAG design, AI Decision Agent design, evaluation methodology, data ingestion strategy, and MVP prioritization — all finalized as written specification (see Sections 2–4 and 13).
 - **Phase 0 — Setup:** repo initialized, uv + all dependencies installed, full folder structure created, .gitignore in place, pushed to GitHub. *(Bushra, 2026-09-02)*
 - **`ml/evaluation.py`** — time-based split, leakage check, regression/classification metrics, naive + majority-class baselines, compare_to_baseline. 13 tests passing. *(Bushra, 2026-09-02)*
-- **`data_ingestion/base.py` + `csv_source.py`** — abstract DataSource interface + CSV implementation. *(Maryam, 2026-09-02)*
+- **`data_ingestion/base.py`, `csv_source.py`, `excel_source.py`, `db_source.py`, `api_source.py`** — full pluggable DataSource layer. *(Maryam, 2026-09-02)*
 - **`data_pipeline/generate_seed_data.py`** — synthetic seed data generator. *(Maryam, 2026-09-02)*
 - **`data/historical_demand.csv`, `data/deliveries.csv`, `data/inventory_snapshot.csv`** — synthetic seed data files. *(Maryam, 2026-09-02)*
-- **`core/forecasting.py`** — LightGBM demand forecasting, time-based split, leakage check, baseline comparison, feature importance, predict_demand. 12 tests passing. *(Bushra, 2026-09-02)*
+- **`policies/inventory_policy.md`, `policies/logistics_policy.md`, `policies/procurement_policy.md`** — real business policy documents for RAG. *(Maryam, 2026-09-02)*
+- **`core/forecasting.py`** — LightGBM demand forecasting, time-based split, leakage check, baseline comparison, feature importance. 12 tests passing. *(Bushra, 2026-09-02)*
 
 ### In Progress
-- `core/inventory_risk.py` — Maryam (branch: to be created)
+- `core/inventory_risk.py` — Maryam (branch: feature/inventory-risk)
 - `core/delivery_risk.py` — Samiya (branch: to be created)
 - `db/models.py` + `db/connection.py` — Shreeya (branch: to be created)
 
@@ -27,38 +28,15 @@
 - None.
 
 ### Next Available Tasks
-- `ml/explainability.py` — depends on `core/delivery_risk.py` (Samiya's task)
 - `core/logistics_optimizer.py` — depends on `data_pipeline/` ✅ (available now)
-- `policies/*.md` — real business policy documents (available now, no dependencies)
-- `core/rag.py` — depends on `policies/`
-- `data_ingestion/excel_source.py`, `db_source.py` — depends on `db/models.py`
+- `core/rag.py` — depends on `policies/` ✅ (available now — Maryam's policies are done)
+- `ml/explainability.py` — depends on `core/delivery_risk.py`
+- `llm/explainer.py` — depends on Groq key ✅
 
 ### Last Updated
 - **Date:** 2026-09-02
 - **Developer:** Bushra
-- **Commit:** 2efb632 (main)
-
-### Completed
-- Project scope, tech stack, folder structure, ML engineering rules, RAG design, AI Decision Agent design, evaluation methodology, data ingestion strategy, and MVP prioritization — all finalized as written specification (see Sections 2–4 and 13). **No code has been written yet** — this is a planning-stage completion only, not an implementation completion.
-
-### In Progress
-- None yet.
-
-### Blocked
-- None yet.
-
-### Next Available Tasks
-*(Pulled from the Build Checklist, Section 10, Phase 0 — Setup. See Section 15.2 for the full live task board.)*
-- Repository structure + `uv init` / initial dependency setup
-- Neon Postgres database provisioning
-- Groq API key setup
-- Git repo init + GitHub remote + `.gitignore`
-- Claude Project setup (Section 7)
-
-### Last Updated
-- **Date:** 2026-09-02
-- **Developer:** — (pre-development; not yet started)
-- **Commit:** — (no commits yet)
+- **Commit:** merge in progress
 
 ---
 
@@ -188,86 +166,71 @@ An end-to-end AI-powered supply-chain **decision intelligence** platform. Pipeli
 | **Total cost** | | **$0** |
 
 ### Folder Structure
-```
+
 supplychain-sentinel-ai/
-├── core/                        # domain logic — no FastAPI/Streamlit/agent imports here
-│   ├── forecasting.py
-│   ├── inventory_risk.py
-│   ├── delivery_risk.py
-│   ├── logistics_optimizer.py
-│   └── rag.py
+├── core/
+│ ├── forecasting.py
+│ ├── inventory_risk.py
+│ ├── delivery_risk.py
+│ ├── logistics_optimizer.py
+│ └── rag.py
 ├── ml/
-│   ├── evaluation.py             # time-based split, leakage checks, baseline comparison, metrics
-│   └── explainability.py         # SHAP / feature importance helpers
+│ ├── evaluation.py
+│ └── explainability.py
 ├── agent/
-│   ├── tools.py                  # tool definitions/wrappers around core/* functions, exposed to the LLM
-│   ├── orchestrator.py           # the real tool-using agent (Groq tool calling loop)
-│   └── decision_trace.py         # builds and persists the input→...→outcome trace
+│ ├── tools.py
+│ ├── orchestrator.py
+│ └── decision_trace.py
 ├── llm/
-│   └── explainer.py              # Groq API wrapper — narration/summarization only
-├── data_ingestion/                # pluggable data source interfaces
-│   ├── base.py                   # abstract DataSource interface
-│   ├── csv_source.py
-│   ├── excel_source.py
-│   ├── db_source.py              # reads from Neon Postgres
-│   └── api_source.py             # stub for future real company API ingestion
+│ └── explainer.py
+├── data_ingestion/
+│ ├── base.py
+│ ├── csv_source.py
+│ ├── excel_source.py
+│ ├── db_source.py
+│ └── api_source.py
 ├── db/
-│   ├── models.py                  # SQLAlchemy models (Postgres/Neon)
-│   └── connection.py
-├── policies/                      # real business/procurement/inventory policy docs (markdown)
+│ ├── models.py
+│ └── connection.py
+├── policies/
 ├── api/
-│   └── main.py                    # FastAPI app — routes call agent/core (local dev/testing)
-├── app.py                         # Streamlit app — human-approval UI, calls agent/core directly (this is what deploys)
-├── data_pipeline/                 # loads synthetic/dev data into Neon Postgres
-├── data/                          # synthetic seed data — DEV/TEST ONLY, never treated as production data
+│ └── main.py
+├── app.py
+├── data_pipeline/
+├── data/
 ├── tests/
-│   ├── test_forecasting.py
-│   ├── test_inventory_risk.py
-│   ├── test_delivery_risk.py
-│   ├── test_logistics_optimizer.py
-│   ├── test_rag.py
-│   ├── test_agent_tools.py
-│   └── test_decision_trace.py
 ├── pyproject.toml
 ├── uv.lock
-├── .env                            # local secrets (Neon connection string, Groq key) — NEVER committed
+├── .env
 ├── .gitignore
 └── README.md
-```
+
 
 ### Deployment Architecture (recap)
 Streamlit Community Cloud only runs one process — it can't also host a separate FastAPI server. So: `core/`, `agent/`, `ml/`, `llm/`, and `data_ingestion/` hold all logic with zero web-framework dependencies. FastAPI (`api/main.py`) imports from these for local dev/testing. Streamlit (`app.py`) *also* imports from them directly — that's what actually runs in production. One codebase, two front doors, nothing duplicated.
 
-**Known caveats:** Neon Postgres is persistent (unlike the old SQLite-on-ephemeral-disk setup), so data survives redeploys — this is one of the reasons for the switch. ChromaDB's local index still needs rebuilding on cold start unless persisted separately. Groq API key and Neon connection string go in Streamlit's Secrets manager, never hardcoded.
+**Known caveats:** Neon Postgres is persistent, so data survives redeploys. ChromaDB's local index still needs rebuilding on cold start unless persisted separately. Groq API key and Neon connection string go in Streamlit's Secrets manager, never hardcoded.
 
 ### Database Schema (Postgres/Neon, draft)
-`skus`, `historical_demand`, `inventory_snapshots`, `forecast_results`, `inventory_risk`, `deliveries`, `delivery_risk_predictions`, `vehicles`, `routes`/`route_stops`, `policies`, `recommendations`, `impact_simulations`, **`decision_traces`** (see Section 3), **`approvals`** (human-in-the-loop decisions)
+`skus`, `historical_demand`, `inventory_snapshots`, `forecast_results`, `inventory_risk`, `deliveries`, `delivery_risk_predictions`, `vehicles`, `routes`/`route_stops`, `policies`, `recommendations`, `impact_simulations`, **`decision_traces`**, **`approvals`**
 
-### Data Ingestion Strategy — designed for real data, not just synthetic
-The data layer is built behind a `DataSource` interface (`data_ingestion/base.py`) with methods like `load_historical_demand()`, `load_inventory_snapshot()`, `load_deliveries()`. Each concrete source (`csv_source.py`, `excel_source.py`, `db_source.py`, `api_source.py`) implements the same interface.
-- **CSV** is the main MVP working source — this is what development and testing are actually run against.
-- **Excel** and **Neon DB** sources have working sample implementations (real, not empty stubs) exercised with small sample inputs, so the interface is proven but not the primary path.
-- **API** source is an extensible interface/example only — it demonstrates the shape a future real company API integration would take, and is **not** a production connector.
-
-This means plugging in a real company's data later means writing one new implementation of the interface, not rearchitecting the ML/agent layers.
+### Data Ingestion Strategy
+The data layer is built behind a `DataSource` interface (`data_ingestion/base.py`). CSV is the main MVP working source. Excel and Neon DB sources have working sample implementations. API source is an extensible interface/example only.
 
 ### Evaluation Methodology
 | Component | Metric |
 |---|---|
-| Forecasting | MAPE / RMSE on a **time-based holdout window**, compared against a naive baseline (see Section 4) |
+| Forecasting | MAPE / RMSE on a **time-based holdout window**, compared against a naive baseline |
 | Delivery risk | AUC / precision-recall, compared against a majority-class baseline |
 | Inventory risk | Precision/recall vs. simulated ground-truth stockouts |
 | Logistics optimization | % cost/distance reduction vs. naive routing |
-| Agent + business impact | Before/after KPI deltas (headline demo number) |
+| Agent + business impact | Before/after KPI deltas |
 
 ---
 
 ## 3. AI Decision Agent Design (genuine tool-using agent)
 
-This section exists because "AI agent" is the most commonly faked component in student projects — it's easy to hardcode a sequence of function calls and call it an agent. Here's what makes ours real, and how it stays buildable in a month.
-
 ### Tools exposed to the agent (`agent/tools.py`)
-Each tool is a thin wrapper around a `core/*` function, with a clear name, description, and input/output schema — this is what the LLM sees when deciding what to call:
 - `get_demand_forecast(sku_id)` → wraps `core/forecasting.py`
 - `get_inventory_risk(sku_id)` → wraps `core/inventory_risk.py`
 - `get_delivery_risk(delivery_id)` → wraps `core/delivery_risk.py`
@@ -275,170 +238,123 @@ Each tool is a thin wrapper around a `core/*` function, with a clear name, descr
 - `retrieve_policies(query)` → wraps `core/rag.py`
 
 ### How the agent loop works (`agent/orchestrator.py`)
-1. The agent receives a situation (e.g. "SKU X inventory looks low, 3 deliveries are flagged").
-2. The Groq LLM, given the tool list and the situation, **decides which tool(s) to call** — it does not follow a fixed hardcoded order. For a pure logistics issue with no inventory concern, it may skip forecasting/inventory tools entirely.
+1. The agent receives a situation.
+2. The Groq LLM decides which tool(s) to call — not a fixed hardcoded order.
 3. Each tool call returns real, code-computed data (never LLM-invented).
-4. The agent may call `retrieve_policies()` and must apply what comes back — e.g., if a policy caps overtime shipping cost, that constraint has to show up in which options are considered feasible.
-5. Once enough tool results are gathered, the code (not the LLM) assembles a structured **options table** (each option with its concrete predicted numbers and which policies it satisfies/violates).
-6. The LLM is given that options table and asked only to **narrate and justify** the recommended option in plain English, citing the relevant policy.
-7. The recommendation + full trace is written to `decision_traces` (Section above) and surfaced to a human for approval — nothing is auto-executed.
+4. Retrieved policies must genuinely constrain options considered.
+5. Code (not LLM) assembles a structured options table.
+6. LLM narrates and justifies the recommended option in plain English.
+7. Recommendation + full trace written to `decision_traces` and surfaced for human approval.
 
-### Why this satisfies both requirements at once
-"Genuine tool-calling agent" and "LLM never computes numbers" are not in tension: the LLM's job is *deciding which tools to call and narrating results*, never *doing the arithmetic*. Every number in the final recommendation traces back to a tool call, and every tool call traces back to `core/*` code.
+### Decision Trace schema
 
-### Decision Trace schema (`decision_trace.py` / `decision_traces` table)
-```
-trace_id
-timestamp
-inputs               # situation description, relevant SKU/delivery IDs
-predictions           # forecast values, risk scores, route costs — as returned by tools
-policies_retrieved    # which policy documents/snippets were retrieved and used
-tools_used            # ordered list of tool calls made, with arguments and results
-options_considered     # structured table of candidate actions with their tradeoffs
-recommendation         # the agent's chosen option + LLM narration/justification
-human_approval         # status (pending/approved/rejected), approver, timestamp, notes
-outcome                # post-action result / simulated business impact, filled in after approval
-```
+trace_id, timestamp, inputs, predictions, policies_retrieved,
+tools_used, options_considered, recommendation, human_approval, outcome
+
 
 ### Human-in-the-Loop Approval Gate
-Any recommendation that implies a real action (create a purchase order, reroute a delivery, expedite shipping) is written to `decision_traces` with `human_approval.status = "pending"` and surfaced in the Streamlit UI with **Approve** / **Reject** buttons. Only on approval does the system simulate/mark the action as executed and populate `outcome`. The agent never calls a "create purchase order" tool that actually executes anything — for the MVP, "execution" is simulated (its business-impact effect is calculated), and the gate is a real, working control, not a UI decoration.
+Any recommendation implying a real action is written with `human_approval.status = "pending"` and surfaced in Streamlit with **Approve / Reject** buttons. The agent never auto-executes.
 
 ---
 
 ## 4. ML Engineering Rules
 
-These apply to every predictive model in the project (forecasting, delivery risk, and any inventory-risk ML if used beyond rules).
-
 ### Time-based train/validation/test split
-Never randomly shuffle time-series data into train/test. Split strictly by time: train on the earliest period, validate on the next period, test on the most recent period. This mirrors how the model will actually be used (predicting the future from the past).
+Never randomly shuffle time-series data into train/test. Split strictly by time.
 
 ### No data leakage
-No feature may be computed using information that wouldn't have been available at prediction time. Common leakage traps to check explicitly: rolling averages/aggregates computed over a window that includes future dates, using a delivery's actual outcome to help predict its own risk, or joining tables in a way that pulls in later-dated records.
+No feature may be computed using information not available at prediction time.
 
-### Baseline comparison (mandatory, not optional)
-Every model must be compared against a simple, explainable baseline before it's considered "done":
-- Forecasting baseline: naive forecast (last observed value) or seasonal naive (same period last cycle)
-- Delivery risk baseline: majority-class predictor / simple rule (e.g. "flag if past deliveries to this carrier were late")
-If your trained model doesn't clearly beat the baseline on the test set, that's a real finding to report, not a failure to hide — and it changes what you can honestly claim in the demo.
+### Baseline comparison (mandatory)
+Every model must be compared against a simple baseline before considered "done."
 
-### Evaluation metrics (see Section 2 table)
-Report metrics on the **test** split only — validation metrics are for model selection/tuning, not final claims.
+### Evaluation metrics
+Report metrics on the **test** split only.
 
 ### Explainability
-- Forecasting: report which features (seasonality, recent trend, promotions if modeled) drive predictions, using the model's built-in feature importance where available (e.g. LightGBM).
-- Delivery risk classifier: use SHAP (or built-in feature importance if SHAP proves too heavy for the timeline) to identify which features drove each high-risk flag.
-- This output feeds directly into the LLM's explanation step (Section 3) so explanations are grounded in the model's actual reasoning, not a plausible-sounding guess.
+Use SHAP or built-in feature importance. Output feeds directly into the LLM's explanation step.
 
 ---
 
 ## 5. VS Code Setup
 
 ### Extensions to install
-- **Python** (Microsoft) — core language support, linting, debugging
-- **Pylance** — fast type-checking and IntelliSense
-- **Jupyter** (optional, for prototyping models before moving to `.py` files)
-- **GitLens** — see git history/blame inline
-- **Even Better TOML** — syntax highlighting for `pyproject.toml`
-- **DotENV** — syntax highlighting for `.env`
+- **Python** (Microsoft), **Pylance**, **Jupyter** (optional), **GitLens**, **Even Better TOML**, **DotENV**
 
 ### Environment setup with `uv`
-Install `uv` once (see uv's official install instructions for your OS), then in the project root:
-```
+
 uv init
-```
-This creates `pyproject.toml`. Add dependencies as you need them, e.g.:
-```
 uv add fastapi uvicorn streamlit scikit-learn lightgbm chromadb sentence-transformers ortools groq sqlalchemy psycopg2-binary shap pytest python-dotenv
-```
-This updates `pyproject.toml` **and** `uv.lock` automatically. To install everything from an existing lockfile (e.g. after cloning the repo):
-```
 uv sync
-```
-Run any script or tool inside the managed environment with:
-```
 uv run python core/forecasting.py
 uv run pytest
 uv run uvicorn api.main:app --reload
 uv run streamlit run app.py
-```
-No manual `venv` activation needed — `uv run` handles it. `uv` creates a `.venv/` folder automatically; it's listed in `.gitignore` (Section 8) just like the old `venv/` was.
 
-### Integrated terminal rules — read this before you type anything
-1. **Never chain commands with `&&`.** On Windows PowerShell this silently breaks or behaves inconsistently, and it hides *which* command actually failed. Run one command, read its output, then run the next.
-2. **Prefix Python/tool commands with `uv run`** so you're always in the managed environment — no separate activation step to forget.
-3. **One terminal tab per long-running process.** Keep Uvicorn (or Streamlit) running in one tab; use a separate tab for git commands / `uv add`.
-4. **Read the actual error, top to bottom, before asking Claude about it.** Often the real error is the *first* line, not the last.
+
+### Integrated terminal rules
+1. Never chain commands with `&&`.
+2. Prefix Python/tool commands with `uv run`.
+3. One terminal tab per long-running process.
+4. Read the actual error, top to bottom, before asking Claude about it.
 
 ---
 
 ## 6. Groq API Setup (free LLM + tool calling)
 
-1. Go to **console.groq.com**.
-2. Sign up (free, no credit card required).
-3. Navigate to **API Keys** in the left sidebar.
-4. Click **Create API Key**, name it (e.g. `supplychain-sentinel-dev`), copy it immediately — it's only shown once.
-5. Locally: create a `.env` file in the project root (never commit this — see `.gitignore` in Section 8):
-   ```
-   GROQ_API_KEY=your_key_here
-   NEON_DATABASE_URL=your_neon_connection_string_here
-   ```
-6. In `llm/explainer.py` and `agent/orchestrator.py`, load it with `python-dotenv`:
-   ```python
-   from dotenv import load_dotenv
-   import os
-   load_dotenv()
-   api_key = os.getenv("GROQ_API_KEY")
-   ```
-7. Use a Groq model that supports **tool/function calling** (check Groq's current model list at console.groq.com for the latest tool-calling-capable model) — this is required for the real agent design in Section 3, not just plain chat completion.
-8. For the deployed app: add the same keys in **Streamlit Cloud → App settings → Secrets**, and read them via `st.secrets["GROQ_API_KEY"]` / `st.secrets["NEON_DATABASE_URL"]` instead of `.env`.
+1. Go to **console.groq.com**, sign up free.
+2. Navigate to **API Keys** → **Create API Key**, copy immediately.
+3. Add to `.env`: `GROQ_API_KEY=your_key_here` and `NEON_DATABASE_URL=your_neon_connection_string_here`
+4. Load with `python-dotenv` in `llm/explainer.py` and `agent/orchestrator.py`.
+5. Use a Groq model that supports **tool/function calling**.
+6. For deploy: add keys in **Streamlit Cloud → App settings → Secrets**.
 
 ---
 
 ## 7. Claude Project Setup — the handoff
-
-This is where responsibility shifts from "your mentor explains everything" to "you build session by session with Claude as your pair programmer." Follow these steps exactly:
 
 1. Go to claude.ai → **Projects** → **Create Project**.
 2. Name it: `SupplyChain Sentinel AI`.
 3. Upload this file (`progress.md`) into the Project's knowledge/files.
 4. Paste the following into the Project's **custom instructions** field:
 
-   ```
-   You are my AI/ML mentor, software architect, backend engineer, data scientist,
-   and AI-agent engineer for my capstone project "SupplyChain Sentinel AI."
+You are my AI/ML mentor, software architect, backend engineer, data scientist,
+and AI-agent engineer for my capstone project "SupplyChain Sentinel AI."
 
-   Read progress.md (uploaded to this project) as the single source of truth for
-   scope, architecture, tech stack, and current progress before answering anything.
+Read progress.md (uploaded to this project) as the single source of truth for
+scope, architecture, tech stack, and current progress before answering anything.
 
-   Rules:
-   - Build incrementally, one file/component at a time. Never generate the whole
-     project at once.
-   - Before writing code, tell me which file we're building and why, tied to the
-     Build Checklist in progress.md.
-   - After giving me a file, tell me exactly how to test it in the terminal
-     (including relevant pytest commands) and what output confirms it's working,
-     before I move to the next file.
-   - If I propose something unnecessary, overly complex, or risky for a 1-month
-     timeline, tell me clearly and suggest a simpler alternative.
-   - The AI Decision Agent must be a genuine tool-calling agent (Groq tool/function
-     calling) that decides which tools to invoke based on the situation. Never
-     implement it as a hardcoded sequential pipeline disguised as an agent.
-   - The LLM layer must never invent or calculate numerical predictions, risks,
-     costs, or optimization results — it only explains, summarizes, and reasons
-     about which tools to call.
-   - RAG must use real, written business/procurement/inventory policies, and
-     retrieved policies must actually constrain the recommendation, not just be
-     mentioned.
-   - Any ML model must use a time-based train/validation/test split, must be
-     checked for data leakage, and must be compared against a simple baseline
-     before being considered done.
-   - Any action with real business consequence must go through a human-approval
-     gate before being marked as executed — never auto-execute.
-   - Use `uv` (not pip/venv) and pytest for all environment and testing commands.
-   - Never use `&&` in terminal commands — one command at a time.
-   - After we finish a file, remind me to update progress.md's Build Checklist
-     and Learning Log, and to commit to GitHub using the workflow in progress.md.
-   ```
+Rules:
+
+Build incrementally, one file/component at a time. Never generate the whole
+project at once.
+Before writing code, tell me which file we're building and why, tied to the
+Build Checklist in progress.md.
+After giving me a file, tell me exactly how to test it in the terminal
+(including relevant pytest commands) and what output confirms it's working,
+before I move to the next file.
+If I propose something unnecessary, overly complex, or risky for a 1-month
+timeline, tell me clearly and suggest a simpler alternative.
+The AI Decision Agent must be a genuine tool-calling agent (Groq tool/function
+calling) that decides which tools to invoke based on the situation. Never
+implement it as a hardcoded sequential pipeline disguised as an agent.
+The LLM layer must never invent or calculate numerical predictions, risks,
+costs, or optimization results — it only explains, summarizes, and reasons
+about which tools to call.
+RAG must use real, written business/procurement/inventory policies, and
+retrieved policies must actually constrain the recommendation, not just be
+mentioned.
+Any ML model must use a time-based train/validation/test split, must be
+checked for data leakage, and must be compared against a simple baseline
+before being considered done.
+Any action with real business consequence must go through a human-approval
+gate before being marked as executed — never auto-execute.
+Use uv (not pip/venv) and pytest for all environment and testing commands.
+Never use && in terminal commands — one command at a time.
+After we finish every file, YOU must provide the exact text to paste into
+progress.md — updated Current Project State, Build Checklist tick, task
+board status change, and Session Handoff entry. Never just remind me —
+always give me the exact content ready to copy-paste and commit.
 
 5. Start a new conversation inside the Project and say: *"Let's start Phase 0 (Setup) from the Build Checklist."*
 6. Every future session: open the Project (not a fresh unrelated chat), so the file context persists.
@@ -448,149 +364,134 @@ This is where responsibility shifts from "your mentor explains everything" to "y
 ## 8. GitHub Workflow
 
 ### One-time setup
-```
+
 git init
-```
-Create `.gitignore` in the project root with at least:
-```
+
+Create `.gitignore` with at least:
+
 .venv/
+venv/
 .env
-__pycache__/
+pycache/
 *.pyc
 .DS_Store
 .streamlit/secrets.toml
 chroma_db/
 .pytest_cache/
-```
+*.egg-info/
+
 Then:
-```
+
 git add .
 git commit -m "Initial commit: project structure"
-```
-Create the repo on GitHub (empty, no README/license — you already have files locally), then:
-```
-git remote add origin https://github.com/your-username/supplychain-sentinel-ai.git
+git remote add origin https://github.com/bushrachohan/SupplyChain.git
 git branch -M main
 git push -u origin main
-```
 
-### After every file you build (the loop you'll repeat constantly)
-1. Test the file in the terminal — confirm the expected output.
+
+### After every file you build
+1. Test in terminal — confirm expected output.
 2. Run `uv run pytest` — confirm all relevant tests pass.
-3. `git add <filename>` (or `git add .` if multiple related files changed)
-4. `git commit -m "Add: <short description of what this file does>"`
+3. `git add <filename>`
+4. `git commit -m "Add: <short description>"`
 5. `git push`
 
-**Commit message convention:** `Add: ...` for new files, `Fix: ...` for bug fixes, `Update: ...` for changes to existing logic. Small, frequent, descriptive commits — not one giant commit at the end of the week.
+**Commit message convention:** `Add:` for new files, `Fix:` for bug fixes, `Update:` for changes.
 
 ---
 
 ## 9. Testing Strategy (pytest)
 
-Every `core/`, `ml/`, and `agent/` module needs a corresponding test file in `tests/`. Minimum expectations:
+- **`core/forecasting.py`** — correct shape/columns, baseline comparison runs, metrics returned.
+- **`core/inventory_risk.py`** — known input produces expected risk flag.
+- **`core/delivery_risk.py`** — valid probabilities (0–1), baseline comparison present.
+- **`core/logistics_optimizer.py`** — solution respects vehicle capacity constraints.
+- **`core/rag.py`** — safety stock query retrieves safety-stock policy document.
+- **`agent/tools.py`** — each tool returns correct schema.
+- **`agent/orchestrator.py`** — no delivery risk → does NOT call `optimize_routes`; flagged delivery → does call it.
+- **`agent/decision_trace.py`** — trace has all required fields; `human_approval.status` starts as `"pending"`.
 
-- **`core/forecasting.py`** — on a small known sample, output has the right shape/columns and reasonable value ranges; baseline comparison logic runs and returns both model and baseline metrics.
-- **`core/inventory_risk.py`** — known input (e.g. stock=10, forecast demand=5/week) produces the expected days-remaining and correct risk flag.
-- **`core/delivery_risk.py`** — model outputs are valid probabilities (0–1); baseline comparison present.
-- **`core/logistics_optimizer.py`** — solution respects vehicle capacity constraints on a small hand-built test case.
-- **`core/rag.py`** — a query about safety stock retrieves the safety-stock policy document (relevance check on known content, not just "returns something").
-- **`agent/tools.py`** — each tool function returns the correct schema for a given input.
-- **`agent/orchestrator.py`** — for a scenario with no delivery risk, confirm the agent does *not* call `optimize_routes`; for a scenario with a flagged high-risk delivery, confirm it does. This is the test that actually proves it's a real agent, not a fixed pipeline.
-- **`agent/decision_trace.py`** — a completed run produces a trace with all required fields populated; `human_approval.status` starts as `"pending"` and only changes via an explicit approval call.
-
-Run all tests with:
-```
 uv run pytest
-```
+
 **No file is committed without its tests passing.**
 
 ---
 
 ## 10. Build Checklist
 
-Every phase requires **confirming terminal output and passing tests before committing** — don't commit code you haven't actually run and tested.
-
 ### Phase 0 — Setup
-- [ ] VS Code + extensions installed
-- [ ] `uv init` run, `pyproject.toml` created
-- [ ] Initial dependencies added via `uv add ...`, `uv.lock` generated
-- [ ] Groq API key obtained, Neon Postgres database created, both stored in `.env`
-- [ ] Folder structure created (`core/`, `agent/`, `ml/`, `llm/`, `data_ingestion/`, `db/`, `policies/`, `api/`, `tests/`, `data/`)
-- [ ] Git repo initialized, `.gitignore` in place, first commit pushed to GitHub
-- [ ] Claude Project created, this file uploaded, custom instructions pasted
-- [ ] **Confirm:** `git log` shows initial commit; `git remote -v` shows GitHub origin; `uv run python -c "print('ok')"` runs cleanly
+- [x] VS Code + extensions installed
+- [x] `uv init` run, `pyproject.toml` created
+- [x] Initial dependencies added via `uv add ...`, `uv.lock` generated
+- [x] Groq API key obtained, Neon Postgres database created, both stored in `.env`
+- [x] Folder structure created (`core/`, `agent/`, `ml/`, `llm/`, `data_ingestion/`, `db/`, `policies/`, `api/`, `tests/`, `data/`)
+- [x] Git repo initialized, `.gitignore` in place, first commit pushed to GitHub
+- [x] Claude Project created, this file uploaded, custom instructions pasted
+- [x] **Confirmed:** `git log` shows commits; `git remote -v` shows GitHub origin
 
 ### Phase 1 — Data Layer & Core ML Logic
-- [ ] `data_ingestion/base.py` — abstract `DataSource` interface defined
-- [ ] `data_ingestion/csv_source.py` — synthetic dataset loaded via this interface (dev/test only)
-- [ ] `data_ingestion/excel_source.py`, `db_source.py` — working sample implementations (small sample inputs)
-- [ ] `data_ingestion/api_source.py` — extensible interface/example only (not a production connector)
+- [x] `data_ingestion/base.py` — abstract `DataSource` interface defined
+- [x] `data_ingestion/csv_source.py` — synthetic dataset loaded via this interface
+- [x] `data_ingestion/excel_source.py`, `db_source.py` — working sample implementations
+- [x] `data_ingestion/api_source.py` — extensible interface/example only
 - [ ] `db/models.py`, `db/connection.py` — Neon Postgres schema created and connected
 - [ ] `data_pipeline/` scripts: source data → Neon Postgres
-- [ ] `core/forecasting.py` — demand forecasting model, time-based split, baseline comparison, tested standalone
+- [x] `core/forecasting.py` — LightGBM, time-based split, baseline comparison, 12 tests passing
 - [ ] `core/inventory_risk.py` — stockout/overstock logic, tested standalone
-- [ ] `core/delivery_risk.py` — delivery risk classifier, time-based split, baseline comparison, tested standalone
+- [ ] `core/delivery_risk.py` — delivery risk classifier, time-based split, baseline comparison
 - [ ] `core/logistics_optimizer.py` — OR-Tools VRP, tested standalone
-- [ ] `ml/evaluation.py` — split/leakage-check/baseline-comparison utilities, used by the above
-- [ ] `ml/explainability.py` — SHAP/feature importance for delivery risk (and forecasting where practical)
-- [ ] `tests/test_*.py` for each module above — passing
-- [ ] **Confirm:** each module runs independently, terminal output shows expected results, `uv run pytest` is green, before committing
+- [x] `ml/evaluation.py` — split/leakage-check/baseline-comparison utilities, 13 tests passing
+- [ ] `ml/explainability.py` — SHAP/feature importance for delivery risk
+- [x] `tests/test_evaluation.py`, `tests/test_forecasting.py`, `tests/test_data_ingestion.py` — passing
 
 ### Phase 2 — RAG, Agent, and Decision Trace
-- [ ] Real business/procurement/inventory policy documents written (markdown) and placed in `policies/`
-- [ ] `core/rag.py` — ChromaDB + sentence-transformers embedding + retrieval, tested standalone with real policy queries
-- [ ] `llm/explainer.py` — Groq API call, tested standalone with a hardcoded example (confirm no invented numbers)
+- [x] Real business/procurement/inventory policy documents written and placed in `policies/`
+- [ ] `core/rag.py` — ChromaDB + sentence-transformers, tested with real policy queries
+- [ ] `llm/explainer.py` — Groq API wrapper, tested standalone
 - [ ] `agent/tools.py` — tool wrappers around `core/*`, with schemas
-- [ ] `agent/orchestrator.py` — real Groq tool-calling agent loop, tested for at least two different scenarios that call *different* tool subsets
+- [ ] `agent/orchestrator.py` — real Groq tool-calling agent loop
 - [ ] `agent/decision_trace.py` — trace built and persisted to `decision_traces` table
 - [ ] `tests/test_rag.py`, `test_agent_tools.py`, `test_decision_trace.py` — passing
-- [ ] **Confirm:** orchestrator run end-to-end from the terminal produces a full trace (inputs → predictions → policies → tools used → options → recommendation) for at least two distinct test scenarios
 
 ### Phase 3 — Human-in-the-Loop UI
-- [ ] `api/main.py` — FastAPI endpoints wired to `agent/`/`core/`, tested locally via `uv run uvicorn api.main:app --reload` and the `/docs` page
-- [ ] `app.py` — Streamlit dashboard: shows pending recommendations with full decision trace, **Approve/Reject** buttons, and business-impact simulation after approval
-- [ ] **Confirm:** both the FastAPI docs page and the Streamlit dashboard show correct results for the same test case; rejecting a recommendation does not mark it executed; approving does
+- [ ] `api/main.py` — FastAPI endpoints wired to `agent/`/`core/`
+- [ ] `app.py` — Streamlit dashboard with Approve/Reject buttons and business-impact simulation
 
 ### Phase 4 — Deploy
-- [ ] `pyproject.toml` / `uv.lock` finalized and confirmed to install cleanly via `uv sync` in a fresh clone
-- [ ] Repo pushed to GitHub, up to date
-- [ ] Neon Postgres production database confirmed reachable from the deploy environment
-- [ ] Streamlit Cloud app created, connected to repo, entry point set to `app.py`
-- [ ] `GROQ_API_KEY` and `NEON_DATABASE_URL` added to Streamlit Cloud Secrets
-- [ ] Startup logic confirmed working (ChromaDB index rebuild on cold start if needed; Neon connection tested)
+- [ ] `pyproject.toml` / `uv.lock` finalized
+- [ ] Streamlit Cloud app created, connected to repo, secrets added
 - [ ] Full `uv run pytest` suite passing before final deploy
-- [ ] **Confirm:** deployed app loads, runs a full demo scenario end-to-end including human approval, matches local behavior
+- [ ] **Confirmed:** deployed app loads, runs full demo scenario end-to-end
 
 ---
 
 ## 11. Learning Log
 
-Fill this in **after every session** — non-negotiable. Copy the template below for each entry.
+Fill this in **after every session** — non-negotiable.
+Session: [date]
 
-```
-### Session: [date]
-**What I built:** 
-**What broke (and how I fixed it, or didn't yet):** 
-**What I actually learned (not just "it works now"):** 
-**Questions for next session:** 
-```
+What I built:
+What broke (and how I fixed it, or didn't yet):
+What I actually learned (not just "it works now"):
+Questions for next session:
+
 
 ---
 
 ## 12. Common Mistakes (read before you make them)
 
-- **Chaining commands with `&&`** — breaks silently on Windows PowerShell. One command at a time.
-- **Committing `.env`, `.venv/`, or database credentials to GitHub** — check `.gitignore` is in place *before* your first commit.
-- **Letting the LLM "help" by generating a number** (a forecast, a cost, a risk score) instead of only narrating one you computed — always check the LLM's output doesn't contain a figure that isn't in its input/tool results.
-- **Building a hardcoded pipeline and calling it an agent** — if your "agent" always calls every tool in the same fixed order regardless of the situation, it's not a tool-using agent. Test with scenarios that should skip tools.
-- **Random train/test splits on time-series data** — always split by time, never shuffle.
-- **Skipping the baseline comparison** because the trained model "obviously" works better — measure it, don't assume it.
-- **Letting the agent auto-execute a real action** (e.g. a purchase order) without human approval — the approval gate is a hard requirement, not optional polish.
-- **Skipping standalone testing** and jumping straight to integrating a new module into the agent — if it breaks, you won't know which of the 5 things you just wired together is the problem.
-- **Building the whole project in one Claude session** instead of one file/phase at a time.
-- **Treating the synthetic dataset as if it were real company data** in any claim you make about results — be explicit that it's dev/test data.
-- **Forgetting to run `uv add` when you import a new package** — if it's not in `pyproject.toml`, a fresh clone/deploy will fail.
-- **Committing code with failing tests** — tests must pass before every commit, not "mostly pass."
+- **Chaining commands with `&&`** — breaks silently on Windows PowerShell.
+- **Committing `.env`, `.venv/`, or database credentials to GitHub.**
+- **Letting the LLM generate a number** instead of only narrating one you computed.
+- **Building a hardcoded pipeline and calling it an agent.**
+- **Random train/test splits on time-series data** — always split by time.
+- **Skipping the baseline comparison.**
+- **Letting the agent auto-execute a real action** without human approval.
+- **Skipping standalone testing** before integrating into the agent.
+- **Building the whole project in one Claude session.**
+- **Treating synthetic data as real company data.**
+- **Forgetting to run `uv add`** when importing a new package.
+- **Committing code with failing tests.**
 
 ---
 
@@ -601,8 +502,6 @@ Fill this in **after every session** — non-negotiable. Copy the template below
 | **Primary MVP** | Project 17 — Inventory Forecasting (demand forecasting + inventory risk + replenishment) | In scope now |
 | **Secondary MVP** | Project 18 — Logistics/Delivery (delivery risk prediction + route optimization) | In scope now, built after primary MVP is solid |
 | **Phase 2 (later)** | Project 10 — Supplier-Risk Monitoring & external disruption intelligence | Explicitly out of scope for the 1-month MVP |
-
-**Discipline rule:** the AI Decision Agent, RAG, decision trace, and human-approval layers are built to serve Project 17 first, then extended to cover Project 18. Project 10 is not touched until both are working end-to-end and deployed. If a build session starts drifting toward Project 10 features, stop and re-check this table.
 
 ---
 
@@ -622,9 +521,7 @@ Fill this in **after every session** — non-negotiable. Copy the template below
 
 ## 15. Team of 4 — Parallel Development Workflow
 
-This is a 4-person team. **All members may work simultaneously. There are no permanent roles.** Members choose tasks dynamically from the current Build Checklist (Section 10) and the live task board / GitHub issues below — a member may work on ML, backend, data, agent, RAG, UI, testing, deployment, or documentation depending on what's currently available and what someone else is already doing. The priority is maximum parallel progress with minimum duplicated work and minimum merge conflicts.
-
-Nothing in Sections 1–14 (scope, architecture, ML rules, RAG design, agent design, evaluation methodology, MVP prioritization) changes because of this section — this section only adds *how the team coordinates* around that existing plan.
+This is a 4-person team. **All members may work simultaneously. There are no permanent roles.**
 
 ### 15.0 Team
 
@@ -632,58 +529,47 @@ Nothing in Sections 1–14 (scope, architecture, ML rules, RAG design, agent des
 - **Members:** Maryam, Shreeya, Samiya
 - **Shared GitHub repository:** https://github.com/bushrachohan/SupplyChain
 
-All members work against this same shared repository. Each member's local folder/clone path is machine-specific and is **not** recorded in `progress.md` — only branch names, commits, and task status belong here (see Section 15.2–15.4).
-
 ### 15.1 Task Ownership Rule
 
 Before starting a task, a member must:
-1. Read the latest `progress.md` (especially **Current Project State**, above).
+1. Read the latest `progress.md`.
 2. Check the GitHub repository for active branches/issues/PRs.
-3. Choose a task marked **TODO** and available (no unresolved dependency).
+3. Choose a task marked **TODO** and available.
 4. Mark the task **IN PROGRESS** in the live task board (Section 15.2).
-5. Add their name/identifier and branch name.
-6. Confirm the task's dependencies are actually finished (see the Dependency column).
-7. Start implementation only after confirming it does not duplicate another active task.
-
-**Ownership is per TASK, not per DOMAIN.** No one reserves "all of ML" or "all of the frontend" permanently. Example:
-```
-Task: core/forecasting.py
-Status: IN PROGRESS — <developer name> — feature/forecasting
-```
-Another member must not independently implement the same task unless explicitly coordinated (e.g. <developer name> is blocked and hands it off).
+5. Add their name and branch name.
+6. Confirm dependencies are finished.
+7. Start only after confirming no duplication.
 
 ### 15.2 Task Status System — Live Task Board
-
-Every meaningful task has one of: **TODO · IN PROGRESS · BLOCKED · REVIEW · DONE**. Update the status the moment it changes — this board (derived from the Build Checklist, Section 10) is what lets a teammate see, at a glance, what's safe to pick up.
 
 **Phase 0 — Setup**
 | Task | Status | Developer | Branch | Dependency |
 |---|---|---|---|---|
-| Repo structure + `uv init` | TODO | — | — | — |
-| Neon Postgres provisioning | TODO | — | — | — |
-| Groq API key setup | TODO | — | — | — |
-| Claude Project setup | TODO | — | — | — |
+| Repo structure + `uv init` | DONE | Bushra | main | — |
+| Neon Postgres provisioning | DONE | Bushra | main | — |
+| Groq API key setup | DONE | Bushra | main | — |
+| Claude Project setup | DONE | Bushra | main | — |
 
 **Phase 1 — Data Layer & Core ML Logic**
 | Task | Status | Developer | Branch | Dependency |
 |---|---|---|---|---|
-| `data_ingestion/base.py` + `csv_source.py` | TODO | — | — | repo structure |
-| `data_ingestion/excel_source.py`, `db_source.py` (working sample implementations) | TODO | — | — | `base.py` |
-| `data_ingestion/api_source.py` (extensible interface/example, not production) | TODO | — | — | `base.py` |
-| `db/models.py`, `db/connection.py` | TODO | — | — | Neon provisioning |
+| `data_ingestion/base.py` + `csv_source.py` | DONE | Maryam | Maryam | repo structure |
+| `data_ingestion/excel_source.py`, `db_source.py` | DONE | Maryam | Maryam | `base.py` |
+| `data_ingestion/api_source.py` | DONE | Maryam | Maryam | `base.py` |
+| `db/models.py`, `db/connection.py` | IN PROGRESS | Shreeya | feature/database | Neon provisioning |
 | `data_pipeline/` (load data → Neon) | TODO | — | — | `db/models.py` |
-| `core/forecasting.py` | TODO | — | — | `data_pipeline/` |
-| `core/inventory_risk.py` | TODO | — | — | `forecasting.py` |
-| `core/delivery_risk.py` | TODO | — | — | `data_pipeline/` |
+| `core/forecasting.py` | DONE | Bushra | feature/forecasting | `data_pipeline/` |
+| `core/inventory_risk.py` | IN PROGRESS | Maryam | feature/inventory-risk | `forecasting.py` |
+| `core/delivery_risk.py` | IN PROGRESS | Samiya | feature/delivery-risk | `data_pipeline/` |
 | `core/logistics_optimizer.py` | TODO | — | — | `data_pipeline/` |
-| `ml/evaluation.py` | TODO | — | — | — |
+| `ml/evaluation.py` | DONE | Bushra | feature/ml-evaluation | — |
 | `ml/explainability.py` | TODO | — | — | `delivery_risk.py` |
-| Tests for all of the above | TODO | — | — | respective modules |
+| Tests for all of the above | IN PROGRESS | — | — | respective modules |
 
 **Phase 2 — RAG, Agent, Decision Trace**
 | Task | Status | Developer | Branch | Dependency |
 |---|---|---|---|---|
-| `policies/*.md` (real policy docs) | TODO | — | — | — |
+| `policies/*.md` (real policy docs) | DONE | Maryam | Maryam | — |
 | `core/rag.py` | TODO | — | — | `policies/` |
 | `llm/explainer.py` | TODO | — | — | Groq key |
 | `agent/tools.py` | TODO | — | — | `core/*` modules |
@@ -706,32 +592,60 @@ Every meaningful task has one of: **TODO · IN PROGRESS · BLOCKED · REVIEW · 
 
 ### 15.3 Session Handoff
 
-After every meaningful development session, update the project state with an entry like this (append new entries, don't overwrite old ones — this becomes a running log):
+---
 
-```
-## Session Handoff
+#### Session Handoff — Maryam, 2026-09-02
 
-Date:
-Developer:
-Branch:
-Task:
-Status:
+Date: 2026-09-02
+Developer: Maryam
+Branch: `Maryam`
+Task: Data Ingestion layer + Policy documents
+Status: DONE
 
 What was completed:
-Files created/modified:
-Tests run:
-Test results:
-Commit:
-Known issues:
-Blocked by:
-Recommended next task:
-```
-The purpose: another team member can continue from exactly where the previous one stopped, without a sync call.
+- `data_ingestion/base.py`, `csv_source.py`, `excel_source.py`, `db_source.py`, `api_source.py`
+- `data_pipeline/generate_seed_data.py`
+- `data/historical_demand.csv`, `data/deliveries.csv`, `data/inventory_snapshot.csv`
+- `policies/inventory_policy.md`, `policies/logistics_policy.md`, `policies/procurement_policy.md`
+- `tests/test_data_ingestion.py`, `tests/test_additional_sources.py`, `tests/test_policies.py`
+
+Tests run: `python -m pytest`
+Test results: 23 passed
+Commit: Maryam branch → merged to main
+Known issues: None
+Blocked by: None
+Recommended next task: `core/inventory_risk.py`
+
+---
+
+#### Session Handoff — Bushra, 2026-09-02
+
+Date: 2026-09-02
+Developer: Bushra
+Branch: `feature/ml-evaluation`, `feature/forecasting`
+Task: Phase 0 setup + `ml/evaluation.py` + `core/forecasting.py`
+Status: DONE
+
+What was completed:
+- Full Phase 0 setup (repo, uv, dependencies, folder structure, .gitignore, GitHub)
+- `ml/evaluation.py` — time-based split, leakage check, metrics, baselines
+- `core/forecasting.py` — LightGBM, time-based split, leakage check, baseline comparison, feature importance, predict_demand
+- `tests/test_evaluation.py` — 13 tests passing
+- `tests/test_forecasting.py` — 12 tests passing
+
+Tests run: `uv run pytest -v`
+Test results: 25 passed
+Commit: merged to main
+Known issues: Fixed multi-SKU date boundary overlap in leakage check
+Blocked by: None
+Recommended next task: `core/logistics_optimizer.py` or `core/rag.py`
+
+---
 
 ### 15.4 GitHub Branching
 
-`main` = stable, tested, demo-ready branch. **Never develop directly on `main`.** Each task gets its own branch, named for the task, not the person:
-```
+`main` = stable, tested, demo-ready. **Never develop directly on `main`.** Branch names:
+
 feature/forecasting
 feature/inventory-risk
 feature/delivery-risk
@@ -740,125 +654,76 @@ feature/rag
 feature/agent-tools
 feature/decision-trace
 feature/dashboard
-```
-Workflow: (1) pull latest `main` → (2) create a focused task branch → (3) implement one coherent task → (4) run relevant tests → (5) update `progress.md`/task status → (6) commit → (7) push branch → (8) open a Pull Request → (9) review/test → (10) merge only after tests pass. No large unreviewed merges.
+feature/database
+
 
 ### 15.5 Parallel Development
 
-Independent workstreams proceed at the same time whenever interfaces/contracts are already defined (Section 15.7):
-- One member works on forecasting while another builds route optimization.
-- One member works on RAG while another builds database models.
-- One member builds the Streamlit UI against an agreed mock interface while another builds the real backend behind it.
-- One member writes tests while another implements the feature.
-
-**If two tasks would modify the same shared file, coordinate before editing** — see Section 15.6.
+Independent workstreams proceed simultaneously when interfaces are defined. If two tasks modify the same shared file, coordinate first.
 
 ### 15.6 Shared / High-Conflict Files
 
-Treat these as shared/high-conflict — do not casually modify them from multiple branches at the same time:
 - `progress.md`
-- `pyproject.toml`
-- `uv.lock`
-- Database schema (`db/models.py`)
-- API contracts (`api/main.py` route signatures, `agent/tools.py` tool schemas)
-- Shared configuration
-- Core interfaces (`data_ingestion/base.py`)
-
-When a shared file must change: (1) coordinate with the team, (2) make the smallest required change, (3) explain the change, (4) run relevant tests, (5) update `progress.md`.
+- `pyproject.toml` / `uv.lock`
+- `db/models.py`
+- `api/main.py` route signatures
+- `agent/tools.py` tool schemas
+- `data_ingestion/base.py`
 
 ### 15.7 Interface-First Development
 
-Parallel development depends on stable interfaces. Before implementing components that depend on each other, define: function name, inputs, output schema, types, errors, and expected behavior. Example — `get_demand_forecast(sku_id)` must have a known input/output schema *before* the AI Decision Agent depends on it. This lets one member implement the consumer while another implements the provider. Use mocks/stubs only temporarily when needed for parallel work, and replace them with the real implementation before integration.
+Define function name, inputs, output schema, types, errors before implementing dependent components.
 
 ### 15.8 Integration Rule
 
-Integration happens frequently — don't wait until the final week to merge everything. Recommended cycle:
-```
 Individual task → local tests → Pull Request → review → integration → full test suite → main
-```
-Tag a stable version after major milestones: `v0.1-foundation`, `v0.2-ml`, `v0.3-agent`, `v0.4-mvp`.
+
+Tag stable versions: `v0.1-foundation`, `v0.2-ml`, `v0.3-agent`, `v0.4-mvp`.
 
 ### 15.9 progress.md Is the Handoff Source of Truth
 
-`progress.md` must always describe the **current real state** of the repository:
-- After a feature is completed and verified → mark it **DONE**, record developer, branch/commit, tests, and update Current Project State (top of this file).
-- If partially completed → mark **IN PROGRESS**, record what remains.
-- If blocked → mark **BLOCKED**, explain the dependency/reason.
-
-**Never mark a feature complete merely because code was written.** It's DONE only when the Definition of Done (15.10) is satisfied.
+Never mark a feature complete merely because code was written. DONE only when Definition of Done (15.10) is satisfied.
 
 ### 15.10 Definition of Done
 
 A task is DONE only when **all** of the following are true:
 1. Code is implemented.
 2. Real test input has been used.
-3. Relevant automated tests pass (Section 9).
+3. Relevant automated tests pass.
 4. Errors/invalid inputs are handled.
 5. Output is correct and explainable where applicable.
 6. Existing functionality still works (no regressions).
-7. `progress.md` is updated (task status + Current Project State).
+7. `progress.md` is updated.
 8. Changes are committed and pushed.
 9. Pull Request is merged successfully.
 
 ### 15.11 ML Integrity
 
-Never modify datasets, features, thresholds, or models merely to make metrics look better. All reported ML and business metrics must come from reproducible experiments using the evaluation methodology already defined in Section 4. Synthetic data must always be identified as synthetic — never presented as if it were real company data (this reinforces the rule already stated in Section 2's Data Ingestion Strategy).
+Never modify datasets or models merely to make metrics look better. Synthetic data must always be identified as synthetic.
 
-### 15.12 One-Month Scope Control (Team Version)
+### 15.12 One-Month Scope Control
 
-Priorities are unchanged from Section 13:
 - **PRIMARY:** Project 17 — Inventory Forecasting / Stockout Prevention
 - **SECONDARY:** Project 18 — Logistics / Delivery Risk / Route Optimization
-- **FUTURE (Phase 2):** Project 10 — Supplier Risk Monitoring / External Disruption Intelligence
-
-No team member should begin Phase 2 supplier-risk features merely because they're interesting if the primary MVP is incomplete. If anyone proposes a new feature, it must be classified as **MVP**, **Phase 2**, or **Phase 3** before implementation — check it against Section 13's table first.
+- **FUTURE:** Project 10 — Supplier Risk Monitoring / External Disruption Intelligence
 
 ### 15.13 Current State Update Protocol
 
-At the end of **every** meaningful Claude/AI coding session:
+At the end of every meaningful session:
 1. Verify the work.
 2. Run relevant tests.
-3. Update `progress.md`.
-4. Update **Current Project State** (top of this file).
-5. Update the **Build Checklist** (Section 10) and **live task board** (Section 15.2).
-6. Add a **Session Handoff** entry (Section 15.3).
-7. Record branch and commit.
-8. Identify the next available tasks.
-
-When a new team member starts (or an existing member starts a new session), their first action must be:
-1. Pull latest `main`.
-2. Read `progress.md`.
-3. Check **Current Project State**.
-4. Check active branches/PRs/issues on GitHub.
-5. Choose an available TODO task.
-6. Update its status to IN PROGRESS (Section 15.2), with name and branch.
-7. Begin work.
+3. Update `progress.md` — Current Project State, Build Checklist, task board, Session Handoff.
+4. Commit and push.
+5. Identify next available tasks.
 
 ### 15.14 AI Coding Agent Rule
 
-This project may be developed using Claude, Google Antigravity, or another AI coding assistant. The assistant must:
-- Read `progress.md` before making architectural changes.
-- Treat `progress.md` as the project source of truth.
-- Never silently change architecture.
-- Never silently expand scope (check Section 15.12 / Section 13 before adding anything new).
-- Preserve existing working functionality.
-- Run tests after relevant changes.
-- Never expose or commit secrets.
-- Avoid destructive operations unless explicitly approved.
-- Update `progress.md` after meaningful work.
-- Report exactly what was changed and verified.
+Read `progress.md` before making changes. Never silently change architecture or expand scope. Run tests after changes. Never expose secrets. Report exactly what was changed and verified.
 
 ### 15.15 Claude Account Handoff
 
-Members may use different Claude accounts/Projects, so:
-- **GitHub is the authoritative source of project state** — not any individual's Claude Project.
-- Each member may use a different Claude account/Claude Project.
-- Before starting a session, pull the latest state from GitHub and read the latest `progress.md` on `main`.
-- If the local Claude Project's copy of `progress.md` differs from the latest verified GitHub version, **the latest verified GitHub version always takes priority.**
+GitHub is the authoritative source. Pull latest `main` and read `progress.md` before every session. Latest verified GitHub version always takes priority over any local Claude Project copy.
 
 ### 15.16 progress.md Merge Rule
 
-To reduce merge conflicts on `progress.md` (see also Section 15.6):
-- Do not overwrite newer progress with an older branch's copy of `progress.md`.
-- Synchronize `progress.md` with the latest `main` before merging.
-- Resolve `progress.md` conflicts carefully — merge the actual status/content changes rather than blindly accepting one side.
+Never overwrite newer progress with an older branch's copy. Synchronize with latest `main` before merging. Resolve conflicts carefully.

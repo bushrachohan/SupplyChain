@@ -19,7 +19,7 @@
 - `core/forecasting.py` completed with LightGBM forecasting, time-based evaluation, baseline comparison, leakage checks, feature importance, and tests.
 - Completed work is available in the shared GitHub repository and should be pulled from `main`.
 - `core/inventory_risk.py` completed: rule-based stockout/overstock detection with feature-importance-style contributing-factor explainability, 9 tests passing.
-
+- `core/rag.py` completed: ChromaDB + sentence-transformers RAG over `policies/*.md`, section-aware markdown chunking, verified against real policy documents (safety-stock query correctly retrieves the safety-stock policy section, ranked above unrelated sections). 7 tests passing. Merged via PR to `main`.
 ### Currently In Progress
 - `db/models.py` + `db/connection.py`
 
@@ -29,7 +29,6 @@
 - None.
 
 ### Next Available Tasks
-- `core/rag.py` — policies are already available.
 - `llm/explainer.py` — Groq setup is already available.
 - `core/delivery_risk.py` — available once its dependency requirements are satisfied.
 - `core/logistics_optimizer.py` — available once its data-pipeline dependency is satisfied.
@@ -44,7 +43,6 @@ Developer names and local folder paths are intentionally not stored in the share
 
 ### Last Updated
 - Update this section after a task PR is merged and verified.
-
 
 ## Why each section matters
 | Section | Why it's here |
@@ -489,7 +487,7 @@ uv run pytest
 
 ### Phase 2 — RAG, Agent, and Decision Trace
 - [x] Real business/procurement/inventory policy documents written and placed in `policies/`
-- [ ] `core/rag.py` — ChromaDB + sentence-transformers, tested with real policy queries
+- [x] `core/rag.py` — ChromaDB + sentence-transformers, tested with real policy queries
 - [ ] `llm/explainer.py` — Groq API wrapper, tested standalone
 - [ ] `agent/tools.py` — tool wrappers around `core/*`, with schemas
 - [ ] `agent/orchestrator.py` — real Groq tool-calling agent loop
@@ -619,7 +617,7 @@ The developer name and local branch are intentionally not stored here. GitHub br
 | Task | Status | Dependency |
 |---|---|---|
 | `policies/*.md` (real policy docs) | DONE | — |
-| `core/rag.py` | TODO | `policies/` |
+| `core/rag.py` | DONE | `policies/` |
 | `llm/explainer.py` | TODO | Groq key |
 | `agent/tools.py` | TODO | `core/*` modules |
 | `agent/orchestrator.py` | TODO | `agent/tools.py` |

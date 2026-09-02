@@ -1,125 +1,185 @@
 """
-ML Evaluation utilities for SupplyChain Sentinel AI.
-Provides time-based train/val/test splitting, leakage verification,
-baseline models, and metric evaluations (MAPE, RMSE, Precision, Recall, AUC).
+ml/evaluation.py
+Reusable evaluation utilities for all ML models in SupplyChain Sentinel AI.
+Provides: time-based train/val/test splitting, leakage checks, baseline
+comparison, and standard metrics. Every predictive model must use these.
 """
 
-from typing import Tuple, Dict, Any
 import numpy as np
 import pandas as pd
-from sklearn.metrics import mean_squared_error, mean_absolute_error, accuracy_score, precision_score, recall_score, f1_score, roc_auc_score
+from typing import Tuple, Dict
+from sklearn.metrics import (
+    mean_absolute_percentage_error,
+    root_mean_squared_error,
+    roc_auc_score,
+    precision_score,
+    recall_score,
+    f1_score,
+)
 
+
+# ---------------------------------------------------------------------------
+# 1. Time-based splitting
+# ---------------------------------------------------------------------------
 
 def time_based_split(
     df: pd.DataFrame,
-    time_column: str,
-    train_ratio: float = 0.7,
-    val_ratio: float = 0.15
+    date_col: str,
+    train_frac: float = 0.7,
+    val_frac: float = 0.15,
 ) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     """
-    Strict time-based split into train, validation, and test sets.
-    Preserves chronological order without shuffling.
+    Split a DataFrame into train / validation / test by time order.
+    Never shuffles — always splits on sorted date values.
+
+    Args:
+        df:         DataFrame with a date/datetime column.
+        date_col:   Name of the date column to sort by.
+        train_frac: Fraction of data for training (default 70%).
+        val_frac:   Fraction of data for validation (default 15%).
+                    Remaining fraction goes to test.
+
+    Returns:
+        (train_df, val_df, test_df) — non-overlapping, time-ordered.
     """
-    df_sorted = df.sort_values(by=time_column).reset_index(drop=True)
+    if train_frac + val_frac >= 1.0:
+        raise ValueError("train_frac + val_frac must be less than 1.0")
+
+    df_sorted = df.sort_values(date_col).reset_index(drop=True)
     n = len(df_sorted)
-    
-    train_end = int(n * train_ratio)
-    val_end = int(n * (train_ratio + val_ratio))
-    
-    train_df = df_sorted.iloc[:train_end].copy()
-    val_df = df_sorted.iloc[train_end:val_end].copy()
-    test_df = df_sorted.iloc[val_end:].copy()
-    
-    return train_df, val_df, test_df
+    train_end = int(n * train_frac)
+    val_end = int(n * (train_frac + val_frac))
+
+    train = df_sorted.iloc[:train_end]
+    val = df_sorted.iloc[train_end:val_end]
+    test = df_sorted.iloc[val_end:]
+
+    return train, val, test
 
 
-def check_data_leakage(
-    train_df: pd.DataFrame,
-    test_df: pd.DataFrame,
-    time_column: str
+# ---------------------------------------------------------------------------
+# 2. Leakage check
+# ---------------------------------------------------------------------------
+
+def check_no_date_leakage(
+    train: pd.DataFrame,
+    val: pd.DataFrame,
+    test: pd.DataFrame,
+    date_col: str,
 ) -> bool:
     """
-    Verifies that no record in train_df has a timestamp greater than or equal to the earliest timestamp in test_df.
-    Returns True if temporal integrity is preserved (no leakage).
+    Assert that train max date < val min date < test min date.
+    Raises ValueError if any overlap is detected.
+
+    Returns True if clean.
     """
-    if train_df.empty or test_df.empty:
-        return True
-    
-    max_train_time = pd.to_datetime(train_df[time_column]).max()
-    min_test_time = pd.to_datetime(test_df[time_column]).min()
-    
-    return max_train_time < min_test_time
+    train_max = train[date_col].max()
+    val_min = val[date_col].min()
+    val_max = val[date_col].max()
+    test_min = test[date_col].min()
+
+    if train_max >= val_min:
+        raise ValueError(
+            f"Leakage: train max date ({train_max}) >= val min date ({val_min})"
+        )
+    if val_max >= test_min:
+        raise ValueError(
+            f"Leakage: val max date ({val_max}) >= test min date ({test_min})"
+        )
+
+    return True
 
 
-def evaluate_forecasting_metrics(y_true: np.ndarray, y_pred: np.ndarray) -> Dict[str, float]:
+# ---------------------------------------------------------------------------
+# 3. Regression metrics (forecasting)
+# ---------------------------------------------------------------------------
+
+def regression_metrics(y_true: np.ndarray, y_pred: np.ndarray) -> Dict[str, float]:
     """
-    Calculates MAE, RMSE, and MAPE metrics for regression/forecasting models.
+    Compute MAPE and RMSE for regression/forecasting models.
+
+    Args:
+        y_true: Ground truth values.
+        y_pred: Predicted values.
+
+    Returns:
+        Dict with keys 'mape' and 'rmse'.
     """
-    y_true = np.asarray(y_true, dtype=float)
-    y_pred = np.asarray(y_pred, dtype=float)
-    
-    mae = mean_absolute_error(y_true, y_pred)
-    rmse = np.sqrt(mean_squared_error(y_true, y_pred))
-    
-    # Avoid division by zero in MAPE
-    mask = y_true != 0
-    mape = np.mean(np.abs((y_true[mask] - y_pred[mask]) / y_true[mask])) * 100 if np.any(mask) else 0.0
-    
-    return {
-        "mae": round(float(mae), 4),
-        "rmse": round(float(rmse), 4),
-        "mape": round(float(mape), 4)
-    }
+    mape = mean_absolute_percentage_error(y_true, y_pred)
+    rmse = root_mean_squared_error(y_true, y_pred)
+    return {"mape": round(float(mape), 4), "rmse": round(float(rmse), 4)}
 
 
-def naive_forecasting_baseline(y_train: np.ndarray, y_test: np.ndarray) -> np.ndarray:
-    """
-    Naive forecasting baseline: predicts the last observed value in y_train for all test steps.
-    """
-    last_value = y_train[-1] if len(y_train) > 0 else 0.0
-    return np.full_like(y_test, fill_value=last_value, dtype=float)
+# ---------------------------------------------------------------------------
+# 4. Classification metrics (delivery risk)
+# ---------------------------------------------------------------------------
 
-
-def evaluate_classification_metrics(
-    y_true: np.ndarray,
-    y_pred: np.ndarray,
-    y_prob: np.ndarray = None
+def classification_metrics(
+    y_true: np.ndarray, y_pred: np.ndarray, y_prob: np.ndarray = None
 ) -> Dict[str, float]:
     """
-    Calculates Accuracy, Precision, Recall, F1, and ROC-AUC metrics for binary classification models.
+    Compute AUC, precision, recall, F1 for binary classifiers.
+
+    Args:
+        y_true: Ground truth binary labels.
+        y_pred: Predicted binary labels.
+        y_prob: Predicted probabilities for the positive class (for AUC).
+
+    Returns:
+        Dict with keys 'auc', 'precision', 'recall', 'f1'.
     """
-    y_true = np.asarray(y_true, dtype=int)
-    y_pred = np.asarray(y_pred, dtype=int)
-    
-    acc = accuracy_score(y_true, y_pred)
-    prec = precision_score(y_true, y_pred, zero_division=0)
-    rec = recall_score(y_true, y_pred, zero_division=0)
-    f1 = f1_score(y_true, y_pred, zero_division=0)
-    
     metrics = {
-        "accuracy": round(float(acc), 4),
-        "precision": round(float(prec), 4),
-        "recall": round(float(rec), 4),
-        "f1": round(float(f1), 4)
+        "precision": round(float(precision_score(y_true, y_pred, zero_division=0)), 4),
+        "recall": round(float(recall_score(y_true, y_pred, zero_division=0)), 4),
+        "f1": round(float(f1_score(y_true, y_pred, zero_division=0)), 4),
     }
-    
-    if y_prob is not None and len(np.unique(y_true)) > 1:
-        try:
-            auc = roc_auc_score(y_true, y_prob)
-            metrics["roc_auc"] = round(float(auc), 4)
-        except Exception:
-            metrics["roc_auc"] = 0.5
-            
+    if y_prob is not None:
+        metrics["auc"] = round(float(roc_auc_score(y_true, y_prob)), 4)
+    else:
+        metrics["auc"] = None
     return metrics
 
 
-def majority_class_baseline(y_train: np.ndarray, y_test: np.ndarray) -> np.ndarray:
+# ---------------------------------------------------------------------------
+# 5. Baseline comparisons
+# ---------------------------------------------------------------------------
+
+def naive_forecast_baseline(y_true: np.ndarray) -> np.ndarray:
     """
-    Majority class baseline: predicts the most frequent class in y_train for all test samples.
+    Naive forecasting baseline: predict the previous observed value.
+    y_true[i] is predicted by y_true[i-1].
+    First prediction uses y_true[0] (no shift available).
+
+    Returns array of same length as y_true.
     """
-    if len(y_train) == 0:
-        return np.zeros_like(y_test)
-    
-    vals, counts = np.unique(y_train, return_counts=True)
-    majority_val = vals[np.argmax(counts)]
-    return np.full_like(y_test, fill_value=majority_val)
+    baseline = np.empty_like(y_true, dtype=float)
+    baseline[0] = y_true[0]
+    baseline[1:] = y_true[:-1]
+    return baseline
+
+
+def majority_class_baseline(y_true: np.ndarray) -> np.ndarray:
+    """
+    Classification baseline: always predict the majority class.
+    Returns array of same length as y_true filled with the majority label.
+    """
+    values, counts = np.unique(y_true, return_counts=True)
+    majority = values[np.argmax(counts)]
+    return np.full_like(y_true, fill_value=majority)
+
+
+def compare_to_baseline(
+    model_metrics: Dict[str, float],
+    baseline_metrics: Dict[str, float],
+) -> Dict[str, float]:
+    """
+    Compute the delta between model and baseline metrics.
+    Positive delta = model is better.
+
+    Returns dict of {metric: delta}.
+    """
+    deltas = {}
+    for key in model_metrics:
+        if model_metrics[key] is not None and baseline_metrics.get(key) is not None:
+            deltas[key] = round(model_metrics[key] - baseline_metrics[key], 4)
+    return deltas

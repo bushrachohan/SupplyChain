@@ -332,39 +332,76 @@ scope, architecture, tech stack, and current progress before answering anything.
 
 Rules:
 
+Before doing anything, read progress.md AND inspect the actual repository
+files relevant to the current task — never assume a file's contents or
+schema without seeing it.
+
 Build incrementally, one file/component at a time. Never generate the whole
 project at once.
-Before writing code, tell me which file we're building and why, tied to the
-Build Checklist in progress.md.
-After giving me a file, tell me exactly how to test it in the terminal
-(including relevant pytest commands) and what output confirms it's working,
-before I move to the next file.
+
+Step-by-step workflow for every task:
+1. Read the latest progress.md and inspect the actual repository files
+   before making assumptions.
+2. Identify the current task and explain what we're building and why, tied
+   to the Build Checklist in progress.md.
+3. Make only the required code/file changes.
+4. Give me the exact terminal command(s) to run — including relevant
+   pytest commands.
+5. STOP and WAIT for me to provide the actual terminal output. Do not
+   assume a file or test is correct just because it was written.
+6. Analyze my actual output before deciding whether the implementation
+   works.
+7. If there is an error, fix it, then again give me the command(s) and
+   wait for output — repeat until verified.
+8. Do NOT ask me to commit, open a PR, push, merge, or mark a task DONE
+   immediately after writing code. Git/PR steps happen only after the
+   implementation is verified by my actual terminal output AND I
+   explicitly say I want to continue to the Git workflow.
+
 If I propose something unnecessary, overly complex, or risky for a 1-month
 timeline, tell me clearly and suggest a simpler alternative.
+
 The AI Decision Agent must be a genuine tool-calling agent (Groq tool/function
 calling) that decides which tools to invoke based on the situation. Never
 implement it as a hardcoded sequential pipeline disguised as an agent.
+
 The LLM layer must never invent or calculate numerical predictions, risks,
 costs, or optimization results — it only explains, summarizes, and reasons
 about which tools to call.
+
 RAG must use real, written business/procurement/inventory policies, and
 retrieved policies must actually constrain the recommendation, not just be
 mentioned.
+
 Any ML model must use a time-based train/validation/test split, must be
 checked for data leakage, and must be compared against a simple baseline
 before being considered done.
+
 Any action with real business consequence must go through a human-approval
 gate before being marked as executed — never auto-execute.
+
 Use uv (not pip/venv) and pytest for all environment and testing commands.
+
 Never use && in terminal commands — one command at a time.
-After we finish every file, YOU must provide the exact text to paste into
-progress.md — updated Current Project State, Build Checklist tick, task
-board status change, and Session Handoff entry. Never just remind me —
-always give me the exact content ready to copy-paste and commit.
+
+When another local file's actual contents are needed (e.g. exact column
+names or schema from a file already built), inspect the repository if
+accessible; otherwise ask me to paste the file contents or terminal
+output. Never invent its schema or contents.
+
+progress.md represents VERIFIED, MERGED shared repository state. Work on a
+local/feature branch is NOT DONE until it is merged — never mark or imply
+something is complete before that.
+
+After we finish and I've verified a file, YOU must provide the exact text
+to paste into progress.md — updated Current Project State, Build Checklist
+tick, task board status change, and Session Handoff entry — but only once
+verified, and only up to REVIEW status until I confirm the PR is merged.
+Never just remind me — always give me the exact content ready to
+copy-paste and commit.
 
 5. Start a new conversation inside the Project and say: *"Let's start Phase 0 (Setup) from the Build Checklist."*
 6. Every future session: open the Project (not a fresh unrelated chat), so the file context persists.
-
 ---
 
 ## 8. GitHub Workflow
@@ -719,17 +756,33 @@ Never modify datasets or models merely to make metrics look better. Synthetic da
 This project may be developed using Claude, Google Antigravity, or another AI coding assistant.
 
 The assistant must:
-- Read the latest `progress.md` before starting.
-- Treat the latest merged `progress.md` on `main` as the project source of truth.
+- Read the latest `progress.md` AND inspect the actual repository files
+  before starting — never assume a file's contents, schema, or column
+  names without seeing them; ask for them if inaccessible.
+- Treat the latest merged `progress.md` on `main` as the project source of
+  truth.
 - Check the live task board before choosing work.
-- Never take a task already marked `IN PROGRESS` unless explicitly handed off.
+- Never take a task already marked `IN PROGRESS` unless explicitly handed
+  off.
 - Never silently change architecture, dependencies, or MVP scope.
 - Preserve existing working functionality.
-- Run relevant tests after changes.
+- Work step-by-step: explain the task, make the change, give exact
+  terminal commands, then STOP and WAIT for the developer's actual output
+  before judging whether it works. Never assume a file is correct just
+  because it was written.
+- If output shows an error, fix it and again wait for the developer to
+  re-run and share output — do not proceed on assumption.
 - Never expose or commit secrets.
-- Report exactly what was changed and verified.
-- After completing a task, prepare a concise status/PR summary for the developer to share in WhatsApp.
-- Do not mark a task `DONE` in the shared progress until its PR is merged and verified.
+- Never instruct or imply committing, pushing, opening a PR, merging, or
+  marking a task DONE immediately after writing code — those steps happen
+  only after the developer confirms verification AND explicitly chooses to
+  continue to the Git workflow.
+- Do not mark a task `DONE` (or imply completion) in the shared progress
+  until its PR is merged and verified. Prior to that, status is at most
+  `REVIEW`.
+- Report exactly what was changed and verified (not assumed).
+- After a task is actually merged and verified, prepare a concise
+  status/PR summary for the developer to share in WhatsApp.
 
 ### 15.15 Claude Account Handoff
 

@@ -12,9 +12,12 @@
 - Scope, architecture, ML rules, RAG design, AI Decision Agent design, evaluation methodology finalized.
 - `data_ingestion/base.py` — Abstract `DataSource` interface.
 - `data_ingestion/csv_source.py` — Concrete `CSVDataSource` implementation.
+- `data_ingestion/excel_source.py` — Concrete `ExcelDataSource` implementation.
+- `data_ingestion/db_source.py` — Concrete `DBDataSource` implementation (SQLAlchemy / Neon Postgres).
+- `data_ingestion/api_source.py` — Enterprise API `APIDataSource` interface stub.
 - `data_pipeline/generate_seed_data.py` — Seed data generator & synthetic datasets in `data/` (`historical_demand.csv`, `inventory_snapshot.csv`, `deliveries.csv`).
 - `ml/evaluation.py` — ML evaluation utilities (time-based split, leakage check, naive/majority baselines, MAE/RMSE/MAPE/AUC/F1 metrics).
-- Unit tests in `tests/test_data_ingestion.py` and `tests/test_evaluation.py` (11 tests, 100% passing).
+- Unit tests in `tests/test_data_ingestion.py`, `tests/test_additional_sources.py`, and `tests/test_evaluation.py` (14 tests, 100% passing).
 
 ### In Progress
 - None.
@@ -23,16 +26,15 @@
 - None.
 
 ### Next Available Tasks
-- `data_ingestion/excel_source.py`, `db_source.py` (Working sample implementations)
-- `policies/*.md` (Written business/procurement/inventory policy documents for RAG)
+- `policies/*.md` (Written business/procurement/inventory policy documents for RAG engine)
 - `db/models.py`, `db/connection.py` (Postgres schema models & database connection)
 - `core/forecasting.py` (Demand forecasting model module)
 
 ### Last Updated
 - **Date:** 2026-09-02
 - **Developer:** Maryam
-- **Branch:** `feature/data-ingestion`
-- **Commit:** In Progress
+- **Branch:** `Maryam`
+- **Commit:** Updated
 
 ---
 
@@ -94,8 +96,8 @@ An end-to-end AI-powered supply-chain **decision intelligence** platform. Pipeli
 ### Phase 1 — Data Layer & Core ML Logic
 - [x] `data_ingestion/base.py` — abstract `DataSource` interface defined
 - [x] `data_ingestion/csv_source.py` — synthetic dataset loaded via this interface (dev/test only)
-- [ ] `data_ingestion/excel_source.py`, `db_source.py` — working sample implementations (small sample inputs)
-- [ ] `data_ingestion/api_source.py` — extensible interface/example only
+- [x] `data_ingestion/excel_source.py`, `db_source.py` — working sample implementations
+- [x] `data_ingestion/api_source.py` — extensible interface/example only
 - [ ] `db/models.py`, `db/connection.py` — Neon Postgres schema created and connected
 - [ ] `data_pipeline/` scripts: source data → Neon Postgres
 - [ ] `core/forecasting.py` — demand forecasting model, time-based split, baseline comparison
@@ -128,18 +130,18 @@ An end-to-end AI-powered supply-chain **decision intelligence** platform. Pipeli
 **Phase 1 — Data Layer & Core ML Logic**
 | Task | Status | Developer | Branch | Dependency |
 |---|---|---|---|---|
-| `data_ingestion/base.py` + `csv_source.py` | DONE | Maryam | feature/data-ingestion | repo structure |
-| `data_ingestion/excel_source.py`, `db_source.py` | TODO | — | — | `base.py` |
-| `data_ingestion/api_source.py` | TODO | — | — | `base.py` |
+| `data_ingestion/base.py` + `csv_source.py` | DONE | Maryam | Maryam | repo structure |
+| `data_ingestion/excel_source.py`, `db_source.py` | DONE | Maryam | Maryam | `base.py` |
+| `data_ingestion/api_source.py` | DONE | Maryam | Maryam | `base.py` |
 | `db/models.py`, `db/connection.py` | TODO | — | — | Neon provisioning |
 | `data_pipeline/` (load data → Neon) | TODO | — | — | `db/models.py` |
 | `core/forecasting.py` | TODO | — | — | `data_pipeline/` |
 | `core/inventory_risk.py` | TODO | — | — | `forecasting.py` |
 | `core/delivery_risk.py` | TODO | — | — | `data_pipeline/` |
 | `core/logistics_optimizer.py` | TODO | — | — | `data_pipeline/` |
-| `ml/evaluation.py` | DONE | Maryam | feature/data-ingestion | — |
+| `ml/evaluation.py` | DONE | Maryam | Maryam | — |
 | `ml/explainability.py` | TODO | — | — | `delivery_risk.py` |
-| Tests for all of the above | IN PROGRESS | Maryam | feature/data-ingestion | respective modules |
+| Tests for all of the above | DONE | Maryam | Maryam | respective modules |
 
 **Phase 2 — RAG, Agent, Decision Trace**
 | Task | Status | Developer | Branch | Dependency |
@@ -171,30 +173,34 @@ An end-to-end AI-powered supply-chain **decision intelligence** platform. Pipeli
 
 Date: 2026-09-02
 Developer: Maryam
-Branch: `feature/data-ingestion`
-Task: Data Ingestion Layer (`base.py`, `csv_source.py`), Seed Data Pipeline (`generate_seed_data.py`), & ML Evaluation Utilities (`ml/evaluation.py`)
+Branch: `Maryam`
+Task: Data Ingestion Layer (CSV, Excel, DB, API sources), Seed Data Pipeline, & ML Evaluation Utilities
 Status: DONE
 
 What was completed:
 - Abstract `DataSource` interface in `data_ingestion/base.py`
-- Concrete `CSVDataSource` implementation in `data_ingestion/csv_source.py`
+- Concrete `CSVDataSource`, `ExcelDataSource`, `DBDataSource`, and `APIDataSource` implementations
 - Synthetic data generation script in `data_pipeline/generate_seed_data.py` & seed files in `data/`
 - Time-based splits, leakage checks, baselines, and evaluation metrics in `ml/evaluation.py`
-- Automated test suites `tests/test_data_ingestion.py` and `tests/test_evaluation.py` (11 passing tests)
+- Automated test suites in `tests/test_data_ingestion.py`, `tests/test_additional_sources.py`, and `tests/test_evaluation.py` (14 passing tests)
 
 Files created/modified:
 - `progress.md`
 - `data_ingestion/base.py`
 - `data_ingestion/csv_source.py`
+- `data_ingestion/excel_source.py`
+- `data_ingestion/db_source.py`
+- `data_ingestion/api_source.py`
 - `data_pipeline/generate_seed_data.py`
 - `ml/evaluation.py`
 - `tests/test_data_ingestion.py`
+- `tests/test_additional_sources.py`
 - `tests/test_evaluation.py`
 - `data/historical_demand.csv`, `data/inventory_snapshot.csv`, `data/deliveries.csv`
 
 Tests run: `python -m pytest`
-Test results: 11 passed in 13.19s
-Commit: Pending git commit & push
+Test results: 14 passed in 6.21s
+Commit: Merged & Pushed to `Maryam` branch
 Known issues: None
 Blocked by: None
-Recommended next task: `data_ingestion/excel_source.py`, `db_source.py` or `policies/*.md`
+Recommended next task: `policies/*.md` or `core/forecasting.py`

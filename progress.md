@@ -17,7 +17,8 @@
 - `data_ingestion/api_source.py` — Enterprise API `APIDataSource` interface stub.
 - `data_pipeline/generate_seed_data.py` — Seed data generator & synthetic datasets in `data/` (`historical_demand.csv`, `inventory_snapshot.csv`, `deliveries.csv`).
 - `ml/evaluation.py` — ML evaluation utilities (time-based split, leakage check, naive/majority baselines, MAE/RMSE/MAPE/AUC/F1 metrics).
-- Unit tests in `tests/test_data_ingestion.py`, `tests/test_additional_sources.py`, and `tests/test_evaluation.py` (14 tests, 100% passing).
+- `policies/*.md` — Written Supply Chain Business Policies for RAG engine (`inventory_policy.md`, `logistics_policy.md`, `procurement_policy.md`).
+- Unit tests in `tests/test_data_ingestion.py`, `tests/test_additional_sources.py`, `tests/test_evaluation.py`, and `tests/test_policies.py` (23 tests, 100% passing).
 
 ### In Progress
 - None.
@@ -26,9 +27,9 @@
 - None.
 
 ### Next Available Tasks
-- `policies/*.md` (Written business/procurement/inventory policy documents for RAG engine)
+- `core/rag.py` (ChromaDB + sentence-transformers vector store & document retrieval engine)
 - `db/models.py`, `db/connection.py` (Postgres schema models & database connection)
-- `core/forecasting.py` (Demand forecasting model module)
+- `core/inventory_risk.py` (Rule-based inventory risk & stockout detection engine)
 
 ### Last Updated
 - **Date:** 2026-09-02
@@ -69,19 +70,6 @@
 An end-to-end AI-powered supply-chain **decision intelligence** platform. Pipeline:
 `Data → Prediction → Risk Detection → Scenario Analysis → Optimization → AI Decision Agent → Recommended Action → Human Approval → Measurable Business Impact`
 
-### Tech Stack & Cost
-| Layer | Choice | Cost |
-|---|---|---|
-| Environment/packages | `uv` + `pyproject.toml` + `uv.lock` | Free |
-| Backend | FastAPI + Uvicorn | Free |
-| ML | scikit-learn, LightGBM, Prophet/statsmodels, SHAP | Free |
-| Optimization | OR-Tools | Free |
-| RAG | ChromaDB + sentence-transformers | Free |
-| Agent / LLM | Groq API (tool/function calling) | Free |
-| Database | Neon PostgreSQL | Free |
-| Testing | pytest | Free |
-| Frontend/Deploy | Streamlit Community Cloud | Free |
-
 ---
 
 ## 10. Build Checklist
@@ -107,6 +95,15 @@ An end-to-end AI-powered supply-chain **decision intelligence** platform. Pipeli
 - [x] `ml/evaluation.py` — split/leakage-check/baseline-comparison utilities
 - [ ] `ml/explainability.py` — SHAP/feature importance for delivery risk
 - [x] `tests/test_*.py` for each module above
+
+### Phase 2 — RAG, Agent, Decision Trace
+- [x] `policies/*.md` (real policy docs)
+- [ ] `core/rag.py`
+- [ ] `llm/explainer.py`
+- [ ] `agent/tools.py`
+- [ ] `agent/orchestrator.py`
+- [ ] `agent/decision_trace.py`
+- [ ] Tests for all of the above
 
 ---
 
@@ -135,37 +132,24 @@ An end-to-end AI-powered supply-chain **decision intelligence** platform. Pipeli
 | `data_ingestion/api_source.py` | DONE | Maryam | Maryam | `base.py` |
 | `db/models.py`, `db/connection.py` | TODO | — | — | Neon provisioning |
 | `data_pipeline/` (load data → Neon) | TODO | — | — | `db/models.py` |
-| `core/forecasting.py` | TODO | — | — | `data_pipeline/` |
+| `core/forecasting.py` | IN PROGRESS | Bushra | feature/forecasting | `data_pipeline/` |
 | `core/inventory_risk.py` | TODO | — | — | `forecasting.py` |
 | `core/delivery_risk.py` | TODO | — | — | `data_pipeline/` |
 | `core/logistics_optimizer.py` | TODO | — | — | `data_pipeline/` |
-| `ml/evaluation.py` | DONE | Maryam | Maryam | — |
+| `ml/evaluation.py` | DONE | Bushra / Maryam | main / Maryam | — |
 | `ml/explainability.py` | TODO | — | — | `delivery_risk.py` |
 | Tests for all of the above | DONE | Maryam | Maryam | respective modules |
 
 **Phase 2 — RAG, Agent, Decision Trace**
 | Task | Status | Developer | Branch | Dependency |
 |---|---|---|---|---|
-| `policies/*.md` (real policy docs) | TODO | — | — | — |
+| `policies/*.md` (real policy docs) | DONE | Maryam | Maryam | — |
 | `core/rag.py` | TODO | — | — | `policies/` |
 | `llm/explainer.py` | TODO | — | — | Groq key |
 | `agent/tools.py` | TODO | — | — | `core/*` modules |
 | `agent/orchestrator.py` | TODO | — | — | `agent/tools.py` |
 | `agent/decision_trace.py` | TODO | — | — | orchestrator, `db/models.py` |
 | Tests for all of the above | TODO | — | — | respective modules |
-
-**Phase 3 — Human-in-the-Loop UI**
-| Task | Status | Developer | Branch | Dependency |
-|---|---|---|---|---|
-| `api/main.py` | TODO | — | — | `agent/`, `core/` |
-| `app.py` (Streamlit + approval UI) | TODO | — | — | `agent/`, `decision_trace.py` |
-
-**Phase 4 — Deploy**
-| Task | Status | Developer | Branch | Dependency |
-|---|---|---|---|---|
-| Finalize `pyproject.toml`/`uv.lock` | TODO | — | — | all above |
-| Streamlit Cloud deploy + secrets | TODO | — | — | `app.py` |
-| Full `pytest` suite passing | TODO | — | — | all modules |
 
 ---
 
@@ -174,33 +158,27 @@ An end-to-end AI-powered supply-chain **decision intelligence** platform. Pipeli
 Date: 2026-09-02
 Developer: Maryam
 Branch: `Maryam`
-Task: Data Ingestion Layer (CSV, Excel, DB, API sources), Seed Data Pipeline, & ML Evaluation Utilities
+Task: Business Policies Specification (`policies/*.md`) & Policy Test Suite
 Status: DONE
 
 What was completed:
-- Abstract `DataSource` interface in `data_ingestion/base.py`
-- Concrete `CSVDataSource`, `ExcelDataSource`, `DBDataSource`, and `APIDataSource` implementations
-- Synthetic data generation script in `data_pipeline/generate_seed_data.py` & seed files in `data/`
-- Time-based splits, leakage checks, baselines, and evaluation metrics in `ml/evaluation.py`
-- Automated test suites in `tests/test_data_ingestion.py`, `tests/test_additional_sources.py`, and `tests/test_evaluation.py` (14 passing tests)
+- Created structured Markdown policy documents in `policies/`:
+  - `policies/inventory_policy.md` (Safety stock requirements, ROP calculation rules, stockout penalties)
+  - `policies/logistics_policy.md` (Expedite shipping cost caps, carrier risk rules, driver shift capacity)
+  - `policies/procurement_policy.md` (Human approval thresholds, approval hierarchy, single-source risk rules)
+- Automated unit test suite in `tests/test_policies.py`
+- Total 23 unit tests passing cleanly across project
 
 Files created/modified:
 - `progress.md`
-- `data_ingestion/base.py`
-- `data_ingestion/csv_source.py`
-- `data_ingestion/excel_source.py`
-- `data_ingestion/db_source.py`
-- `data_ingestion/api_source.py`
-- `data_pipeline/generate_seed_data.py`
-- `ml/evaluation.py`
-- `tests/test_data_ingestion.py`
-- `tests/test_additional_sources.py`
-- `tests/test_evaluation.py`
-- `data/historical_demand.csv`, `data/inventory_snapshot.csv`, `data/deliveries.csv`
+- `policies/inventory_policy.md`
+- `policies/logistics_policy.md`
+- `policies/procurement_policy.md`
+- `tests/test_policies.py`
 
 Tests run: `python -m pytest`
-Test results: 14 passed in 6.21s
-Commit: Merged & Pushed to `Maryam` branch
+Test results: 23 passed in 11.65s
+Commit: Pushed to `Maryam` branch
 Known issues: None
 Blocked by: None
-Recommended next task: `policies/*.md` or `core/forecasting.py`
+Recommended next task: `core/rag.py` (ChromaDB Vector Store) or `core/inventory_risk.py`

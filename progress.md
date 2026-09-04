@@ -170,8 +170,11 @@ An end-to-end AI-powered supply-chain **decision intelligence** platform. Pipeli
 | Version control | GitHub | Free |
 | **Total cost** | | **$0** |
 
-### Folder Structure
-'''text
+
+cat << 'EOF' > README.md
+## Folder Structure
+
+```text
 supplychain-sentinel-ai/
 ├── core/
 │   ├── forecasting.py
@@ -209,8 +212,8 @@ supplychain-sentinel-ai/
 ├── .env
 ├── .gitignore
 └── README.md
-'''
-
+```
+EOF
 
 ### Deployment Architecture (recap)
 Streamlit Community Cloud only runs one process — it can't also host a separate FastAPI server. So: `core/`, `agent/`, `ml/`, `llm/`, and `data_ingestion/` hold all logic with zero web-framework dependencies. FastAPI (`api/main.py`) imports from these for local dev/testing. Streamlit (`app.py`) *also* imports from them directly — that's what actually runs in production. One codebase, two front doors, nothing duplicated.

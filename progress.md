@@ -173,42 +173,42 @@ An end-to-end AI-powered supply-chain **decision intelligence** platform. Pipeli
 ### Folder Structure
 
 supplychain-sentinel-ai/
-├── core/
-│ ├── forecasting.py
-│ ├── inventory_risk.py
-│ ├── delivery_risk.py
-│ ├── logistics_optimizer.py
-│ └── rag.py
-├── ml/
-│ ├── evaluation.py
-│ └── explainability.py
-├── agent/
-│ ├── tools.py
-│ ├── orchestrator.py
-│ └── decision_trace.py
-├── llm/
-│ └── explainer.py
-├── data_ingestion/
-│ ├── base.py
-│ ├── csv_source.py
-│ ├── excel_source.py
-│ ├── db_source.py
-│ └── api_source.py
-├── db/
-│ ├── models.py
-│ └── connection.py
-├── policies/
-├── api/
-│ └── main.py
-├── app.py
-├── data_pipeline/
-├── data/
-├── tests/
-├── pyproject.toml
-├── uv.lock
-├── .env
-├── .gitignore
-└── README.md
+├── core/|
+│ ├── forecasting.py|
+│ ├── inventory_risk.py|
+│ ├── delivery_risk.py|
+│ ├── logistics_optimizer.py|
+│ └── rag.py|
+├── ml/|
+│ ├── evaluation.py|
+│ └── explainability.py|
+├── agent/|
+│ ├── tools.py|
+│ ├── orchestrator.py|
+│ └── decision_trace.py|
+├── llm/|
+│ └── explainer.py|
+├── data_ingestion/|
+│ ├── base.py|
+│ ├── csv_source.py|
+│ ├── excel_source.py|
+│ ├── db_source.py|
+│ └── api_source.py|
+├── db/|
+│ ├── models.py|
+│ └── connection.py|
+├── policies/|
+├── api/|
+│ └── main.py|
+├── app.py|
+├── data_pipeline/|
+├── data/|
+├── tests/|
+├── pyproject.toml|
+├── uv.lock|
+├── .env|
+├── .gitignore|
+└── README.md|
 
 
 ### Deployment Architecture (recap)

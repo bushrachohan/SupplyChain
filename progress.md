@@ -171,7 +171,7 @@ An end-to-end AI-powered supply-chain **decision intelligence** platform. Pipeli
 | **Total cost** | | **$0** |
 
 ### Folder Structure
-
+'''text
 supplychain-sentinel-ai/
 ├── core/
 │   ├── forecasting.py
@@ -209,7 +209,7 @@ supplychain-sentinel-ai/
 ├── .env
 ├── .gitignore
 └── README.md
-
+'''
 
 
 ### Deployment Architecture (recap)

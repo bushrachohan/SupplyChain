@@ -177,11 +177,13 @@ class DecisionTrace(Base):
     policies_retrieved = Column(JSON, nullable=True)
     tools_used = Column(JSON, nullable=True)
     options_considered = Column(JSON, nullable=True)
-    recommendation = Column(JSON, nullable=True)
+    primary_proposal = Column(JSON, nullable=True)
+    policy_critic_output = Column(JSON, nullable=True)
+    business_critic_output = Column(JSON, nullable=True)
+    consensus_result = Column(JSON, nullable=True)
     human_approval = Column(JSON, nullable=True)    # {status, approver, timestamp, notes}
     outcome = Column(JSON, nullable=True)
-
-
+    
 class Approval(Base):
     __tablename__ = "approvals"
 

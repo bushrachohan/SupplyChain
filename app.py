@@ -130,6 +130,38 @@ def main():
 
 
 # --- VIEW: DATA HUB ---
+def validate_dataframe(df, required_cols, dataset_name):
+    """Compatibility validator ensuring empty rows are dropped and quality flagged."""
+    df_clean = df.dropna(how="all").reset_index(drop=True)
+    messages = []
+    status = "pass"
+    
+    missing_cols = [col for col in required_cols if col not in df_clean.columns]
+    if missing_cols:
+        status = "blocking"
+        messages.append(f"BLOCKING: Missing required columns in {dataset_name}: {', '.join(missing_cols)}")
+        return status, messages
+        
+    if len(df_clean) == 0:
+        status = "blocking"
+        messages.append(f"BLOCKING: {dataset_name} has 0 rows.")
+        return status, messages
+        
+    dupes = df_clean.duplicated().sum()
+    if dupes > 0:
+        status = "warning"
+        messages.append(f"WARNING: {dupes} duplicate rows found in {dataset_name}.")
+        
+    missing_vals = df_clean.isnull().sum().sum()
+    if missing_vals > 0:
+        status = "warning"
+        messages.append(f"WARNING: {missing_vals} missing values found across {dataset_name}.")
+        
+    if status == "pass":
+        messages.append(f"PASS: {dataset_name} is valid. ({len(df_clean)} rows, {len(df_clean.columns)} columns)")
+        
+    return status, messages
+
 FILE_TO_SCHEMA = {
     "historical_demand.csv": "demand",
     "inventory_snapshot.csv": "inventory",

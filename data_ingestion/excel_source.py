@@ -20,6 +20,7 @@ class ExcelDataSource(DataSource):
         if not os.path.exists(self.excel_path):
             raise FileNotFoundError(f"Excel file not found at: {self.excel_path}")
         df = pd.read_excel(self.excel_path, sheet_name="historical_demand")
+        df = df.dropna(how="all").reset_index(drop=True)
         if 'date' in df.columns:
             df['date'] = pd.to_datetime(df['date'])
         return df
@@ -27,12 +28,14 @@ class ExcelDataSource(DataSource):
     def load_inventory_snapshot(self) -> pd.DataFrame:
         if not os.path.exists(self.excel_path):
             raise FileNotFoundError(f"Excel file not found at: {self.excel_path}")
-        return pd.read_excel(self.excel_path, sheet_name="inventory_snapshot")
+        df = pd.read_excel(self.excel_path, sheet_name="inventory_snapshot")
+        return df.dropna(how="all").reset_index(drop=True)
 
     def load_deliveries(self) -> pd.DataFrame:
         if not os.path.exists(self.excel_path):
             raise FileNotFoundError(f"Excel file not found at: {self.excel_path}")
         df = pd.read_excel(self.excel_path, sheet_name="deliveries")
+        df = df.dropna(how="all").reset_index(drop=True)
         if 'scheduled_date' in df.columns:
             df['scheduled_date'] = pd.to_datetime(df['scheduled_date'])
         if 'actual_date' in df.columns:

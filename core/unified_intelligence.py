@@ -145,6 +145,18 @@ def calculate_overall_severity(
         return SeverityLevel.NORMAL
 
 
+def _extract_top_feature_name(top_shap_features: Any) -> str:
+    """Safely extracts the top feature name from either dict or list SHAP representation."""
+    if isinstance(top_shap_features, dict) and top_shap_features:
+        return str(list(top_shap_features.keys())[0])
+    elif isinstance(top_shap_features, list) and top_shap_features:
+        item = top_shap_features[0]
+        if isinstance(item, dict):
+            return str(item.get("feature", list(item.keys())[0]))
+        return str(item)
+    return "transit bottleneck"
+
+
 def identify_bottleneck(
     sku_id: Optional[str],
     delivery_id: Optional[str],
@@ -152,7 +164,7 @@ def identify_bottleneck(
     days_of_supply: float,
     delivery_risk_pct: float,
     carrier: str,
-    top_shap_features: List[Dict[str, Any]]
+    top_shap_features: Any
 ) -> Tuple[OperationalBottleneck, List[str]]:
     """
     Identifies the primary operational bottleneck and cross-risk dependencies.
@@ -169,7 +181,7 @@ def identify_bottleneck(
         dependencies.append(dep)
         
         # Primary bottleneck is replenishment transit delay
-        top_driver = top_shap_features[0]["feature"] if top_shap_features else "transit bottleneck"
+        top_driver = _extract_top_feature_name(top_shap_features)
         bottleneck = OperationalBottleneck(
             bottleneck_type="COMPOUND_TRANSIT_STOCKOUT",
             primary_entity_id=f"{sku_id} + {delivery_id}",
@@ -192,7 +204,8 @@ def identify_bottleneck(
 
     # 3. Pure Delivery Delay Risk
     if delivery_risk_pct >= 50.0:
-        driver_desc = f" ({top_shap_features[0]['feature']})" if top_shap_features else ""
+        top_name = _extract_top_feature_name(top_shap_features)
+        driver_desc = f" ({top_name})" if top_name != "transit bottleneck" else ""
         bottleneck = OperationalBottleneck(
             bottleneck_type="DELIVERY_TRANSIT_DELAY",
             primary_entity_id=delivery_id or "UNKNOWN_DELIVERY",

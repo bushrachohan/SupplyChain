@@ -727,6 +727,7 @@ def render_approval_queue():
         for trace in pending_traces:
             with st.container(border=True):
                 # Overview Header
+                c1, c2, c3, c4 = st.columns([1.5, 3, 3, 1.5])
                 trace_risk = "HIGH"
                 if trace.predictions and isinstance(trace.predictions, dict):
                     trace_risk = str(trace.predictions.get("risk_level", trace.predictions.get("overall_severity", "HIGH")))

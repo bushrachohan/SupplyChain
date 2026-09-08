@@ -22,6 +22,12 @@ from core.simulation import (
     simulate_delivery_scenario,
     simulate_logistics_scenario
 )
+from data_ingestion.validation import (
+    validate_dataset,
+    suggest_and_normalize_columns,
+    CANONICAL_SCHEMAS,
+    COLUMN_ALIASES
+)
 
 @st.cache_resource
 def load_simulation_resources():
@@ -119,61 +125,55 @@ def main():
 
 
 # --- VIEW: DATA HUB ---
-def validate_dataframe(df, required_cols, dataset_name):
-    # Ignore/drop completely empty rows (all fields NaN/empty) before validation
-    df = df.dropna(how="all").reset_index(drop=True)
-    messages = []
-    status = "pass"
-    
-    # Check Required Columns
-    missing_cols = [col for col in required_cols if col not in df.columns]
-    if missing_cols:
-        status = "blocking"
-        messages.append(f"BLOCKING: Missing required columns in {dataset_name}: {', '.join(missing_cols)}")
-        return status, messages
-        
-    # Check Rows
-    if len(df) == 0:
-        status = "blocking"
-        messages.append(f"BLOCKING: {dataset_name} has 0 rows.")
-        return status, messages
-        
-    # Check Duplicates
-    dupes = df.duplicated().sum()
-    if dupes > 0:
-        if status != "blocking": status = "warning"
-        messages.append(f"WARNING: {dupes} duplicate rows found in {dataset_name}.")
-        
-    # Check Missing Values
-    missing_vals = df.isnull().sum().sum()
-    if missing_vals > 0:
-        if status != "blocking": status = "warning"
-        messages.append(f"WARNING: {missing_vals} missing values found across {dataset_name}.")
-        
-    if status == "pass":
-        messages.append(f"PASS: {dataset_name} is valid. ({len(df)} rows, {len(df.columns)} columns)")
-        
-    return status, messages
+FILE_TO_SCHEMA = {
+    "historical_demand.csv": "demand",
+    "inventory_snapshot.csv": "inventory",
+    "deliveries.csv": "deliveries",
+}
 
-def suggest_mapping(existing_cols, target_cols):
+def suggest_mapping(existing_cols, target_cols, schema_type=None):
+    """
+    Intelligently suggests default column mappings using exact match,
+    Kaggle & ERP canonical alias tables from validation.py, and substring heuristics.
+    User can always override each mapped column in the UI dropdown.
+    """
     mapping = {}
+    existing_cols_lower = {str(c).strip().lower(): c for c in existing_cols}
+    
     for tgt in target_cols:
-        # Exact match
-        if tgt in existing_cols:
-            mapping[tgt] = tgt
+        # 1. Exact match (case-insensitive)
+        if tgt.lower() in existing_cols_lower:
+            mapping[tgt] = existing_cols_lower[tgt.lower()]
             continue
-        # Substring / loose match
-        for ext in existing_cols:
-            if tgt.replace('_', ' ').lower() in ext.lower() or ext.lower() in tgt.replace('_', ' ').lower():
-                mapping[tgt] = ext
+            
+        # 2. Check canonical aliases from validation.py (Kaggle & ERP conventions)
+        aliases = COLUMN_ALIASES.get(tgt, [])
+        found = None
+        for alias in aliases:
+            cleaned_alias = alias.strip().lower()
+            if cleaned_alias in existing_cols_lower:
+                found = existing_cols_lower[cleaned_alias]
                 break
-        if tgt not in mapping:
-            mapping[tgt] = existing_cols[0] if existing_cols else None
+        if found:
+            mapping[tgt] = found
+            continue
+            
+        # 3. Substring / loose heuristic
+        for raw_col, orig_col in existing_cols_lower.items():
+            if tgt.replace('_', ' ').lower() in raw_col or raw_col in tgt.replace('_', ' ').lower():
+                found = orig_col
+                break
+        if found:
+            mapping[tgt] = found
+            continue
+            
+        # 4. Fallback to first existing column
+        mapping[tgt] = existing_cols[0] if existing_cols else None
     return mapping
 
 def render_data_hub():
     st.title("Enterprise Data Hub")
-    st.markdown("Connect, map, and validate your supply chain datasets.")
+    st.markdown("Connect, map, and validate your supply chain datasets (CSVs, Kaggle datasets, Excel workbooks, or relational databases).")
     
     # Active Dataset Indicator
     active_type = st.session_state.get("active_dataset_type", "demo")
@@ -191,16 +191,17 @@ def render_data_hub():
     
     # CSV UPLOAD
     with tabs[0]:
-        st.subheader("CSV Ingestion")
-        uploaded_files = st.file_uploader("Upload CSV files", type="csv", accept_multiple_files=True)
+        st.subheader("CSV Ingestion & Column Mapping")
+        uploaded_files = st.file_uploader("Upload CSV files (Demand, Inventory, Deliveries)", type="csv", accept_multiple_files=True)
         
         if uploaded_files:
-            st.markdown("### File Mapping & Validation")
+            st.markdown("### Interactive Column Mapping & Canonical Validation")
+            st.caption("Review how your dataset's columns map to Sentinel AI model requirements. Adjust any dropdown to match your schema.")
             all_valid = True
             processed_dfs = {}
             
             for file in uploaded_files:
-                with st.expander(f"📄 Configure: {file.name}", expanded=True):
+                with st.expander(f"📄 Configure & Map: {file.name}", expanded=True):
                     df = pd.read_csv(file)
                     st.dataframe(df.head(3), use_container_width=True)
                     
@@ -211,34 +212,46 @@ def render_data_hub():
                         index=0 if "demand" in file.name.lower() else (1 if "inv" in file.name.lower() else 2)
                     )
                     
+                    schema_type = FILE_TO_SCHEMA.get(target_file, "demand")
                     req_cols = schemas[target_file]
-                    st.markdown("**Column Mapping**")
+                    st.markdown("**Map Dataset Fields to Model Requirements**")
                     
-                    suggested = suggest_mapping(list(df.columns), req_cols)
+                    suggested = suggest_mapping(list(df.columns), req_cols, schema_type)
                     
                     col_map = {}
                     cols = st.columns(min(len(req_cols), 4))
                     for i, req_col in enumerate(req_cols):
                         with cols[i % 4]:
                             idx = list(df.columns).index(suggested[req_col]) if suggested.get(req_col) in df.columns else 0
-                            col_map[req_col] = st.selectbox(f"{req_col}", list(df.columns), index=idx, key=f"map_{file.name}_{req_col}")
+                            col_map[req_col] = st.selectbox(f"Model: {req_col}", list(df.columns), index=idx, key=f"map_{file.name}_{req_col}")
                     
-                    # Apply Mapping
-                    mapped_df = pd.DataFrame()
-                    for k, v in col_map.items():
-                        mapped_df[k] = df[v]
-                        
-                    status, msgs = validate_dataframe(mapped_df, req_cols, target_file)
+                    # Validate using P1 validation engine with user's explicit column mapping
+                    val_res = validate_dataset(df, schema_type=schema_type, explicit_mapping=col_map)
                     
-                    if status == "blocking":
-                        st.error("\n".join(msgs))
+                    if not val_res.is_valid:
+                        st.error("❌ **Validation Failed (Blocking):**\n" + "\n".join(f"- {e}" for e in val_res.errors))
                         all_valid = False
-                    elif status == "warning":
-                        st.warning("\n".join(msgs))
                     else:
-                        st.success("\n".join(msgs))
-                        
-                    processed_dfs[target_file] = mapped_df
+                        st.success(f"✅ **Validation Passed:** `{target_file}` is canonicalized ({len(val_res.normalized_df)} valid rows).")
+                        if val_res.warnings:
+                            with st.expander("⚠️ Quality Warnings & Adaptations", expanded=False):
+                                for w in val_res.warnings:
+                                    st.caption(f"• {w}")
+                                    
+                        # Display Data Understanding Profile
+                        prof = val_res.profiling
+                        with st.expander(f"📊 Dataset Understanding Profile: {file.name}", expanded=True):
+                            p1, p2, p3, p4 = st.columns(4)
+                            p1.metric("Total Rows", prof.get("total_rows", len(df)))
+                            date_range_str = f"{prof.get('date_min', 'N/A')} → {prof.get('date_max', 'N/A')}" if prof.get("date_min") else "N/A"
+                            p2.metric("Date Range", date_range_str)
+                            p3.metric("Unique SKUs", prof.get("unique_skus_count", "N/A"))
+                            p4.metric("Locations / Carriers", prof.get("unique_locations_count", prof.get("unique_carriers_count", "N/A")))
+                            
+                            if prof.get("forecasting_suitability"):
+                                st.info(f"🤖 **ML Forecasting Readiness:** {prof.get('forecasting_suitability')}")
+                                
+                        processed_dfs[target_file] = val_res.normalized_df
 
             if all_valid and len(processed_dfs) == 3: # Require all 3 for the pipeline to work
                 if st.button("Use This Dataset", type="primary"):

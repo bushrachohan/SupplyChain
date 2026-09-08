@@ -348,11 +348,11 @@ Every phase requires confirming terminal output and passing tests before committ
 - [x] `README.md` updated with full deploy instructions
 - [x] Repo pushed to GitHub, fully up to date
 - [x] Full `uv run pytest` suite passing (90/90) before deploy commit
-- [ ] Neon Postgres production database confirmed reachable from Streamlit Cloud
-- [ ] Streamlit Community Cloud app created, connected to GitHub repo, entry point set to `app.py`
-- [ ] `GROQ_API_KEY` and `NEON_DATABASE_URL` added to Streamlit Cloud → App settings → Secrets
+- [x] Neon Postgres production database confirmed reachable from Streamlit Cloud
+- [x] Streamlit Community Cloud app created, connected to GitHub repo, entry point set to `app.py`
+- [x] `GROQ_API_KEY` and `NEON_DATABASE_URL` added to Streamlit Cloud → App settings → Secrets
 - [x] ChromaDB index rebuild on cold start confirmed working (`build_policy_index` auto-rebuilds if `chroma_db/` missing)
-- [ ] **Confirmed:** deployed app loads, runs a full demo scenario end-to-end including multi-agent critique, human approval, and what-if simulation — matches local behavior
+- [x] **Confirmed:** deployed app loads, runs a full demo scenario end-to-end including multi-agent critique, human approval, and what-if simulation — matches local behavior
 
 ---
 
@@ -367,13 +367,14 @@ Every phase requires confirming terminal output and passing tests before committ
 - **Synthetic seed data** — dev/test only, clearly identified as synthetic in all outputs.
 - **Policy documents** — real written business/procurement/logistics/inventory policies in `policies/*.md`.
 - **Database layer** — all 15 Neon Postgres tables defined via SQLAlchemy, connection pooling, `create_tables.py`, 2 tests passing.
+- **What-If Simulation layer** — multi-scenario parameter engine (Inventory, Delivery Risk, Logistics) with Before vs. After metrics comparison.
+- **Cloud Deployment** — Live production Streamlit Community Cloud app connected to Neon Postgres and Groq API.
 
 ---
 
 ## What Needs to Be Built (Priority Order)
 
-1. Phase 4 — What-if simulation layer
-2. Phase 5 — Deploy
+*None — All phases (Phase 1 through Phase 5) are fully completed and verified!* 🎉
 
 ---
 

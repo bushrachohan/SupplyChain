@@ -7,6 +7,7 @@ import pandas as pd
 from db.connection import SessionLocal
 from db.models import DecisionTrace, Recommendation, Approval, InventoryRisk, DeliveryRiskPrediction, SKU
 from agent.orchestrator import run_agent_loop
+from data_ingestion.active_dataset import active_dataset, DatasetMetadata
 from data_ingestion.csv_source import CSVDataSource
 from core.delivery_risk import train_delivery_risk_model
 from core.simulation import (
@@ -15,9 +16,27 @@ from core.simulation import (
     simulate_logistics_scenario
 )
 
+def get_active_data_source():
+    """
+    Returns the active business dataset source.
+    Initializes default dataset if not set.
+    """
+    try:
+        return active_dataset.get_source()
+    except ValueError:
+        default_source = CSVDataSource(data_dir="data")
+        default_meta = DatasetMetadata(
+            source_type="csv",
+            name="Default Bundled CSV Data",
+            status="active",
+            connected_at=datetime.utcnow().isoformat()
+        )
+        active_dataset.set_active(default_source, default_meta)
+        return active_dataset.get_source()
+
 @st.cache_resource
 def load_simulation_resources():
-    source = CSVDataSource(data_dir="data")
+    source = get_active_data_source()
     inv_df = source.load_inventory_snapshot()
     del_df = source.load_deliveries()
     model, _, _ = train_delivery_risk_model(del_df)

@@ -1,6 +1,7 @@
 # PROGRESS.md — SupplyChain Sentinel AI
 > Living document. Update only after verified, merged work.
 > GitHub `main` is the authoritative source of truth — not any local AI project copy.
+> **AI AGENT ENTRY RULE:** Any AI coding agent entering this repository must read this file before modifying code. This file contains both the verified historical state and the active productization execution queue. Never assume prior conversation context exists.
 
 ---
 
@@ -26,7 +27,36 @@ Data → Prediction → Risk Detection → Scenario Analysis
 ## Current Status
 
 **Last updated:** 2026-09-08
-**Currently in progress:** None
+
+**Product Stage:** MVP COMPLETE → PRODUCTIZATION IN PROGRESS
+
+**Currently in progress:** P0 — Active Business Dataset Foundation (`data_ingestion/active_dataset.py`).
+
+**Current execution rule:** The first unchecked task in the Productization Roadmap is the next task for the AI coding agent to work on.
+
+**Important:** The MVP is complete and deployed, but the PRODUCT is not considered complete until the Productization Definition of Done is satisfied.
+
+### 🔄 Current Working State (Local Verification Complete / Push Pending)
+
+The current developer session has completed **P0 — Active Business Dataset Foundation**.
+
+Work implemented and verified locally (95/95 tests passing):
+- `data_ingestion/active_dataset.py`:
+  - `DatasetMetadata` & `ActiveDatasetContext`
+  - Lifecycle states (`uploaded/connected`, `validated`, `active`, `failed`, `replaced`)
+  - Cache invalidation subscriptions (`subscribe`, `unsubscribe`, `_notify`)
+  - Delegation methods (`load_historical_demand`, `load_inventory_snapshot`, `load_deliveries`)
+- `tests/test_active_dataset.py`:
+  - 5 comprehensive tests covering lifecycle, invalidation listeners, CSV delegation, Excel/DB source integration, and downstream cache invalidation.
+- `agent/tools.py`:
+  - Consumes `active_dataset` with automatic cache invalidation on dataset changes.
+- `app.py`:
+  - Simulation resources load from `active_dataset`.
+- `data_ingestion/api_source.py`:
+  - Production contract defined with client injection and transparent connection declarations.
+
+**Status:** Verified locally across all 95 tests. Ready to be committed and pushed to branch `Bushra`.
+
 
 ### ✅ Completed (merged to main)
 | Module | Notes |
@@ -68,7 +98,13 @@ None.
 
 ### 🟢 Next Available
 
-No pending build/deployment tasks. The MVP is fully built, deployed, and verified.
+Productization work is pending.
+
+The next task must be selected from:
+
+`## Productization Roadmap — Active Execution Queue`
+
+The AI coding agent must start with the highest-priority unchecked task and must not skip ahead unless the current task is blocked.
 
 ---
 
@@ -353,16 +389,19 @@ Every phase requires confirming terminal output and passing tests before committ
 - [x] ChromaDB index rebuild on cold start confirmed working (`build_policy_index` auto-rebuilds if `chroma_db/` missing)
 - [x] **Confirmed:** deployed app loads, runs a full demo scenario end-to-end including multi-agent critique, human approval, and what-if simulation — matches local behavior
 
-## Final Verification Status
+## MVP Verification Status
 
-**Status: ✅ COMPLETE**
+**Status: ✅ MVP COMPLETE**
 
-All planned phases (Phase 1 through Phase 5) are complete. The application has been deployed to Streamlit Community Cloud, connected to the production Neon PostgreSQL database and Groq API, and tested end-to-end on the live deployment.
+The original MVP phases are complete, deployed, and verified.
 
-Verified live flow:
-`Data → Prediction → Risk Detection → Scenario Analysis → AI Decision Agent → Multi-Agent Critique → Consensus → Human Approval → Simulation → Business Impact`
+This does NOT mean the final productization roadmap is complete.
 
-No implementation, deployment, or testing tasks are currently pending.
+The project is now in:
+
+**MVP COMPLETE → PRODUCTIZATION IN PROGRESS**
+
+The productization roadmap below is the authoritative source for remaining implementation work.
 
 ---
 
@@ -382,9 +421,314 @@ No implementation, deployment, or testing tasks are currently pending.
 
 ---
 
-## What Needs to Be Built (Priority Order)
+# Productization Roadmap — Active Execution Queue
 
-*None — All phases (Phase 1 through Phase 5) are fully completed and verified!* 🎉
+> This is the active task board for AI coding agents.
+>
+> Before coding, the agent MUST:
+> 1. Read this entire `progress.md`.
+> 2. Inspect the actual repository.
+> 3. Understand what is already completed.
+> 4. Find the first unchecked task below.
+> 5. Work on that task.
+> 6. Test it.
+> 7. Verify it.
+> 8. Only then mark it complete.
+>
+> Do not rebuild completed MVP modules.
+> Do not invent schemas.
+> Do not silently change architecture.
+> Do not implement features outside the current product scope.
+
+## P0 — Active Business Dataset
+
+- [x] Create a single active-dataset context used by the backend — implementation exists locally; verification/merge pending.
+- [x] Ensure selected CSV/Excel/DB/API data reaches downstream modules.
+- [x] Remove hidden dependency on bundled synthetic CSVs.
+- [x] Prevent silent fallback to synthetic data.
+- [x] Track dataset source, identity, status, and lifecycle.
+- [x] Add tests proving the selected dataset is actually consumed.
+
+> Upload/select UI is being implemented separately by another team member.
+> Do NOT duplicate that UI.
+> Backend support for the selected dataset IS part of this roadmap.
+
+## P1 — Data Validation & Understanding
+
+- [ ] Define canonical schemas for demand, inventory, deliveries, and vehicles.
+- [ ] Validate required columns.
+- [ ] Validate datatypes.
+- [ ] Validate missing values.
+- [ ] Validate duplicates.
+- [ ] Validate dates.
+- [ ] Validate numeric/business values.
+- [ ] Validate cross-table relationships.
+- [ ] Produce structured validation results.
+- [ ] Distinguish errors from warnings.
+- [ ] Add schema mapping/normalization.
+- [ ] Add tests for valid and invalid real-data-shaped inputs.
+
+## P2 — Unified Supply Chain Intelligence
+
+- [ ] Create a unified supply-chain situation/state.
+- [ ] Combine demand, inventory, delivery, and logistics intelligence.
+- [ ] Identify affected SKUs/orders/deliveries.
+- [ ] Identify severity and operational bottlenecks.
+- [ ] Preserve source attribution for numerical outputs.
+- [ ] Feed unified intelligence into the Decision Agent.
+- [ ] Add integration tests.
+
+## P3 — Candidate Action Engine
+
+- [ ] Define structured candidate actions.
+- [ ] Generate actions from detected risks.
+- [ ] Include `do_nothing`.
+- [ ] Calculate supported consequences deterministically.
+- [ ] Apply hard business constraints.
+- [ ] Remove infeasible actions.
+- [ ] Compare feasible actions and trade-offs.
+- [ ] Ensure the agent selects from evidence-backed actions.
+- [ ] Add tests for invalid/policy-violating actions.
+
+## P4 — Productized AI Decision Agent
+
+- [ ] Connect unified situation to the agent.
+- [ ] Ensure situation-dependent tool selection.
+- [ ] Ensure all numerical values originate from deterministic tools.
+- [ ] Improve structured recommendation schema.
+- [ ] Include evidence, alternatives, constraints, impact, and uncertainty where supported.
+- [ ] Handle LLM timeout/API failure safely.
+- [ ] Ensure LLM failure cannot create a fake recommendation.
+
+## P5 — Policy Enforcement / RAG
+
+- [ ] Ensure relevant policies are retrieved for decisions.
+- [ ] Attach policy source/section to recommendations.
+- [ ] Convert applicable hard policies into decision constraints.
+- [ ] Block policy-violating candidate actions.
+- [ ] Distinguish hard constraints from guidelines.
+- [ ] Add tests proving policies can change the available actions.
+- [ ] Store policy constraints in the decision trace.
+
+## P6 — Independent Multi-Agent Validation
+
+- [ ] Verify Policy Critic independently evaluates recommendations.
+- [ ] Verify Business Critic independently evaluates recommendations.
+- [ ] Ensure critics can challenge the primary agent.
+- [ ] Define deterministic escalation rules.
+- [ ] Handle critic disagreement.
+- [ ] Handle insufficient evidence.
+- [ ] Handle hard policy violations.
+- [ ] Ensure consensus cannot blindly copy the primary agent.
+- [ ] Add adversarial tests.
+
+## P7 — Human Approval & Governance
+
+- [ ] Ensure consequential recommendations require approval.
+- [ ] Record approval/rejection.
+- [ ] Record approver.
+- [ ] Record timestamp.
+- [ ] Record notes/reason.
+- [ ] Prevent duplicate approval/rejection.
+- [ ] Preserve rejected decisions in history.
+- [ ] Preserve trace linkage.
+
+## P8 — What-If Simulation Integration
+
+- [ ] Start simulation from actual recommendations.
+- [ ] Automatically calculate `do_nothing`.
+- [ ] Compare recommended action vs baseline.
+- [ ] Reuse deterministic ML/risk/optimization outputs.
+- [ ] Show relevant KPI deltas.
+- [ ] Show assumptions.
+- [ ] Handle unsupported scenarios safely.
+- [ ] Persist simulation against the decision trace.
+- [ ] Add integration tests.
+
+## P9 — Business Impact
+
+- [ ] Define supported business KPIs.
+- [ ] Calculate baseline KPIs from actual data.
+- [ ] Calculate recommended-action KPIs.
+- [ ] Calculate deterministic deltas.
+- [ ] Show expected benefit/cost/trade-offs.
+- [ ] Clearly distinguish estimates from measured results.
+- [ ] Never invent financial savings.
+- [ ] Add business-impact tests.
+
+## P10 — Complete Audit Trail
+
+- [ ] Record dataset identity/source.
+- [ ] Record validation.
+- [ ] Record situation.
+- [ ] Record predictions.
+- [ ] Record risks.
+- [ ] Record optimization.
+- [ ] Record candidate actions.
+- [ ] Record policies and constraints.
+- [ ] Record tools and results.
+- [ ] Record primary proposal.
+- [ ] Record both critics.
+- [ ] Record consensus.
+- [ ] Record human decision.
+- [ ] Record simulation.
+- [ ] Record business impact.
+- [ ] Record final outcome.
+- [ ] Ensure traces are reconstructable.
+- [ ] Ensure secrets are never persisted.
+
+## P11 — Product Dashboard
+
+> Coordinate with the teammate implementing data-source/upload UI.
+
+- [ ] Replace hardcoded dashboard metrics with active-dataset results.
+- [ ] Remove misleading static demo metrics from production views.
+- [ ] Show dataset status.
+- [ ] Show data-quality status.
+- [ ] Show current supply-chain situation.
+- [ ] Show major risks.
+- [ ] Show recommendation.
+- [ ] Show evidence.
+- [ ] Show policy constraints.
+- [ ] Show independent reviews.
+- [ ] Show decision validation.
+- [ ] Show approval state.
+- [ ] Show simulation.
+- [ ] Show business impact.
+- [ ] Show decision history.
+
+Use business-facing terminology:
+
+`Analyze Situation`
+`AI Recommendation`
+`Independent Review`
+`Decision Validation`
+`Evidence & Analysis`
+`Policies & Business Rules`
+`Decision Transparency`
+`What-If Simulation`
+`Business Impact`
+`Decision History`
+
+## P12 — End-to-End Real Data Flow
+
+- [ ] CSV → validation → canonical data → intelligence → decision.
+- [ ] Excel → validation → canonical data → intelligence → decision.
+- [ ] Database → validation → canonical data → intelligence → decision.
+- [ ] API → validation → canonical data → intelligence → decision when production connector exists.
+- [ ] Verify no synthetic fallback.
+- [ ] Verify all displayed numbers come from actual computation.
+- [ ] Verify approval persistence.
+- [ ] Verify complete trace.
+
+## P13 — Testing & Reliability
+
+- [ ] Unit tests for new components.
+- [ ] Integration tests for data → ML.
+- [ ] Integration tests for ML → agent.
+- [ ] Integration tests for agent → critics → consensus.
+- [ ] Integration tests for approval → simulation → impact.
+- [ ] Invalid dataset tests.
+- [ ] Empty dataset tests.
+- [ ] Missing-column tests.
+- [ ] LLM failure tests.
+- [ ] Database failure tests.
+- [ ] RAG failure tests.
+- [ ] Optimization failure tests.
+- [ ] Conflicting-critic tests.
+- [ ] Approval/rejection edge cases.
+- [ ] Full `uv run pytest`.
+- [ ] No regression from existing 90/90 baseline.
+
+## P14 — Production Hardening
+
+- [ ] Fresh-clone installation verified.
+- [ ] Dependencies verified.
+- [ ] Streamlit deployment verified.
+- [ ] Neon connectivity verified.
+- [ ] Groq connectivity verified.
+- [ ] Cold-start behavior verified.
+- [ ] Policy index rebuild verified.
+- [ ] Real-data flow verified on deployment.
+- [ ] Safe user-facing errors.
+- [ ] No secret exposure.
+- [ ] No developer-machine dependencies.
+- [ ] Complete live end-to-end verification.
+
+## P15 — Documentation
+
+- [ ] Update README for the productized system.
+- [ ] Document supported data sources.
+- [ ] Document canonical schemas.
+- [ ] Document validation.
+- [ ] Document architecture.
+- [ ] Document AI/ML responsibilities.
+- [ ] Document multi-agent review.
+- [ ] Document RAG/policy enforcement.
+- [ ] Document human approval.
+- [ ] Document simulation.
+- [ ] Document business impact.
+- [ ] Document auditability.
+- [ ] Document limitations.
+- [ ] Clearly label synthetic demo data.
+- [ ] Remove outdated MVP-only claims.
+
+## P16 — Final Product Verification
+
+- [ ] Real business dataset can drive the system.
+- [ ] Dataset is validated.
+- [ ] Dataset becomes the active dataset.
+- [ ] No hidden synthetic fallback exists.
+- [ ] Forecasting uses active data.
+- [ ] Inventory intelligence uses active data.
+- [ ] Delivery intelligence uses active data.
+- [ ] Logistics uses active data.
+- [ ] Unified situation is created.
+- [ ] Candidate actions are evidence-backed.
+- [ ] Policies constrain decisions.
+- [ ] AI agent reasons over actual evidence.
+- [ ] Critics independently challenge the proposal.
+- [ ] Consensus validates the decision.
+- [ ] Deterministic constraints cannot be overridden by the LLM.
+- [ ] Human approval is mandatory for consequential actions.
+- [ ] Simulation uses actual outputs.
+- [ ] Business impact is measurable.
+- [ ] Complete audit trail exists.
+- [ ] Integration tests pass.
+- [ ] Deployment works.
+- [ ] Documentation matches implementation.
+- [ ] Non-technical users can understand the complete decision flow.
+
+---
+
+## CURRENT ACTIVE TASK
+
+### P0 — ActiveDataset Context
+
+**Task:** P0 — Active Business Dataset Foundation
+
+**Current state:** Verified locally with 95/95 passing tests; ready to push to branch `Bushra`.
+
+**Verified local files:**
+- `data_ingestion/active_dataset.py`
+- `tests/test_active_dataset.py`
+- `agent/tools.py`
+- `app.py`
+- `data_ingestion/api_source.py`
+
+AI coding agents must begin with the current active task unless it is blocked.
+
+After completing a task:
+
+1. Implement.
+2. Test.
+3. Verify using actual terminal output ask permission to run the commands and check the output.
+4. Fix any failures and retest.
+5. Update the roadmap state.
+6. Record what changed.
+7. Identify the next unchecked task.
+
+Do not mark a task `DONE` before it is verified and pushed to branch Bushra.
 
 ---
 
@@ -579,6 +923,8 @@ Never:
 - Mark a task `DONE` before its PR is merged (status is at most `REVIEW` until then).
 - Silently change architecture, dependencies, or MVP scope.
 - Invent a file's schema, column names, or contents.
+- Recreate a file that already exists locally without first inspecting it.
+- Treat unverified local changes described in `Current Working State` as merged/completed.
 - Tell the developer to commit/push/open a PR immediately after writing code.
 - Auto-proceed after writing code — always wait for the developer's confirmed output first.
 
@@ -602,16 +948,40 @@ After a task is verified and merged, provide the exact text to paste into `progr
 
 ---
 
-## Project Prioritization (Scope Control)
+## Product Scope Control
 
-| Priority | Scope | Status |
-|---|---|---|
-| **Primary MVP** | Project 17 — Inventory Forecasting & Stockout Prevention | In scope now |
-| **Secondary MVP** | Project 18 — Logistics / Delivery Risk / Route Optimization | In scope — built after primary MVP is solid |
-| **Phase 2 / Future** | Project 10 — Supplier Risk Monitoring / External Disruption Intelligence | Out of scope for 1-month MVP |
+SupplyChain Sentinel AI is treated as ONE unified product.
 
-**Rule:** the AI Decision Agent, RAG, multi-agent critique, and human-approval layers are built to serve Project 17 first, then extended to cover Project 18. Project 10 is not touched until both work end-to-end and are deployed. If a session drifts toward Project 10 features, stop and check this table.
+The product combines:
 
+- Demand Forecasting
+- Inventory Risk Intelligence
+- Delivery Risk Intelligence
+- Route Optimization
+- Unified Supply Chain Intelligence
+- Candidate Action Generation
+- AI Decision Agent
+- Policy/RAG Grounding
+- Independent Multi-Agent Review
+- Decision Validation
+- Human Approval
+- What-If Simulation
+- Business Impact
+- Decision History & Auditability
+- Real Business Data Onboarding
+
+### Out of Current Scope
+
+The following are future expansion areas and must NOT be implemented during the current productization cycle:
+
+- Supplier Risk Intelligence
+- External Disruption Intelligence
+- External News Intelligence
+- Advanced supplier monitoring
+
+Do not introduce unrelated AI features simply because they appear technically interesting.
+
+The current objective is to make the existing capabilities operate together as one complete, reliable, explainable, and measurable product.
 ---
 
 ## Team Workflow
@@ -670,6 +1040,13 @@ A task is DONE only when all of the following are true:
 - `data_ingestion/base.py`
 - `api/main.py` route signatures
 
+### Unmerged Work Rule
+
+- `Current Working State` may describe local work that has been created but is not yet verified or merged.
+- Such work must never appear under `Completed (merged to main)`.
+- Only the Team Leader changes that work to `REVIEW`/`DONE` after actual verification and merge.
+- A fresh AI session must inspect the existing local files before making further changes.
+
 ### `progress.md` Merge Rule
 - Never overwrite newer progress with an older branch copy.
 - Never mark work `DONE` before its PR is merged.
@@ -725,3 +1102,761 @@ Questions for next session:
 | 2026-09-06 | — | `db/models.py` + `db/connection.py` + `tests/test_db.py` | 62/62 passing, merged to main |
 | 2026-09-08 | Team | Phase 4 What-If Simulation (`core/simulation.py`, `app.py`, 90/90 tests passing) | Verified & merged |
 | 2026-09-08 | Team | Phase 5 Deployment — Streamlit Community Cloud + Neon PostgreSQL + Groq; live end-to-end testing including multi-agent critique, human approval, and what-if simulation | Deployed, tested, and verified successfully |
+
+---
+
+# 🚀 PRODUCTIZATION ROADMAP — ACTIVE DEVELOPMENT
+
+> This section is the active execution source of truth for AI coding agents.
+>
+> IMPORTANT:
+> - Read the entire `progress.md` before making changes.
+> - The sections above describe the verified existing system and historical work.
+> - Do NOT rebuild completed functionality.
+> - Work only on the earliest/highest-priority incomplete task.
+> - Inspect the actual repository before editing any file.
+> - A task is not complete because code was written. It is complete only after implementation, testing, verification, and successful integration.
+> - Update this checklist only from verified repository/test/deployment evidence.
+>
+> Current goal:
+>
+> **Transform the working MVP into a coherent, production-quality SupplyChain Sentinel AI product where real business data can flow through the complete decision-intelligence pipeline.**
+
+## Product Goal
+
+The final product should provide this complete experience:
+
+```text
+Business Data
+    ↓
+Data Validation & Understanding
+    ↓
+Canonical Supply Chain Dataset
+    ↓
+Demand Forecasting
+    ↓
+Inventory Risk
+    ↓
+Delivery Risk
+    ↓
+Route Optimization
+    ↓
+Unified Supply Chain Situation
+    ↓
+Candidate Actions
+    ↓
+AI Decision Agent
+    ↓
+Policy / RAG Grounding
+    ↓
+Independent AI Critics
+    ↓
+Decision Validation / Consensus
+    ↓
+Human Approval
+    ↓
+What-If Simulation
+    ↓
+Business Impact
+    ↓
+Decision History / Audit Trace
+
+The product must answer:
+
+What is happening?
+What is likely to happen?
+How serious is the risk?
+What actions are available?
+Which action is best?
+Why is it recommended?
+What policies constrain the decision?
+What happens if we take the action?
+What happens if we do nothing?
+What was finally approved/rejected and why?
+ACTIVE PRODUCTIZATION CHECKLIST
+P0 — Active Business Dataset Foundation
+Backend dataset lifecycle
+ [x] Define a single ActiveDataset / dataset-context abstraction for the currently selected business dataset.
+ [x] Ensure the active dataset can be passed consistently from the application layer into backend/core services.
+ [x] Remove hidden assumptions that data/ synthetic CSV files are always the active source.
+ [x] Ensure every downstream module receives the selected dataset explicitly.
+ [x] Prevent silent fallback to synthetic demo data when a real dataset is selected.
+ [x] Add clear dataset lifecycle states:
+uploaded/connected
+validated
+active
+failed
+replaced
+ [x] Store enough metadata to identify the active dataset and its source.
+ [x] Ensure replacing the active dataset invalidates/rebuilds dependent derived results when necessary.
+ [x] Add tests proving that the selected dataset is actually consumed downstream.
+Data source integration
+ [x] Verify CSV source works with the active-dataset architecture.
+ [x] Verify Excel source works with the active-dataset architecture.
+ [x] Verify database source works with the active-dataset architecture.
+ [x] Define the production contract for API ingestion.
+ [x] Keep API ingestion extensible without pretending the current stub is production-ready.
+ [x] Ensure the backend can consume all supported source types through the same canonical interface.
+
+UI for selecting/uploading CSV, Excel, API, and Database is handled separately by another team member.
+
+Do NOT duplicate or replace that UI here.
+
+Backend integration with the selected dataset IS part of this roadmap.
+
+P1 — Data Understanding & Canonical Data Model
+ Define canonical schemas for:
+demand
+inventory
+deliveries
+vehicles/routes
+ Add required-column validation.
+ Add datatype validation.
+ Add missing-value validation.
+ Add duplicate detection.
+ Add invalid-date detection.
+ Add invalid numeric-value detection.
+ Add identifier consistency checks.
+ Add cross-table relationship validation.
+ Add business-rule validation.
+ Produce structured validation results.
+ Clearly distinguish fatal errors from warnings.
+ Add safe handling for invalid datasets.
+ Build schema mapping/normalization where practical.
+ Ensure real-world column names can be mapped into the canonical model without modifying core ML logic.
+ Add tests for valid and invalid datasets.
+ Verify synthetic/demo data also passes through the same canonical pipeline.
+Data Understanding Output
+
+The product should be able to summarize:
+
+Dataset source
+Rows / columns
+Date range
+SKUs
+Locations
+Deliveries
+Missing values
+Data quality warnings
+Available operational signals
+Detected limitations
+
+This must come from actual loaded data, not hardcoded values.
+
+P2 — Unified Supply Chain Intelligence
+
+Current modules already exist individually.
+
+The next goal is to make them behave as one intelligence system.
+
+ Create a unified supply-chain situation/state object.
+ Combine demand forecast outputs with inventory state.
+ Combine inventory state with delivery risk where relevant.
+ Combine delivery risk with route/logistics information.
+ Preserve source attribution for every numerical output.
+ Define a consistent risk representation.
+ Define overall supply-chain situation severity.
+ Identify affected SKUs/orders/deliveries.
+ Identify the operational bottleneck.
+ Identify dependencies between risks.
+ Ensure the agent receives this unified situation rather than manually assembled disconnected values.
+ Add tests for combined inventory + logistics situations.
+ Ensure irrelevant intelligence layers are not invoked unnecessarily.
+Required principle
+Forecast → Risk → Situation
+
+NOT
+
+Forecast
+Inventory
+Delivery
+Routes
+
+as four disconnected features.
+P3 — Candidate Action & Decision Intelligence
+
+The system currently identifies risks and produces recommendations.
+
+Productization requires an explicit decision layer.
+
+ Define structured candidate actions.
+ Generate actions from actual detected risks.
+ Examples:
+reorder
+expedite
+transfer inventory
+adjust allocation
+reroute delivery
+prioritize shipment
+do nothing
+ Attach measurable consequences to each candidate action where supported by deterministic logic.
+ Attach applicable policy constraints to each action.
+ Reject actions violating hard business rules.
+ Compare feasible actions.
+ Represent trade-offs explicitly.
+ Include a do_nothing baseline.
+ Ensure the primary AI agent selects from evidence-backed candidate actions rather than inventing arbitrary actions.
+ Add tests proving infeasible/policy-violating actions cannot become the final recommendation.
+P4 — AI Decision Agent Productization
+
+Existing agent/tool-calling functionality is already complete at MVP level.
+
+Now harden it for the product.
+
+ Feed the unified supply-chain situation into the agent.
+ Ensure tool selection is situation-dependent.
+ Ensure all tool results are structured and traceable.
+ Ensure the agent cannot invent numerical values.
+ Ensure recommendation references actual evidence.
+ Ensure candidate actions are grounded in deterministic outputs.
+ Improve structured recommendation schema.
+ Include:
+situation
+risk
+recommended action
+alternatives
+evidence
+policy constraints
+expected impact
+confidence/uncertainty where legitimately supported
+ Add graceful handling for LLM/API failure.
+ Add retry/time-out handling where appropriate.
+ Ensure an LLM failure never produces a fake recommendation.
+P5 — RAG & Policy Enforcement
+
+RAG already exists and retrieval is tested.
+
+Productization requires policies to actually affect decisions.
+
+ Ensure relevant policies are retrieved for each decision.
+ Attach policy source/section to recommendations.
+ Convert applicable policy constraints into structured decision constraints where possible.
+ Ensure candidate actions violating hard policies are rejected.
+ Ensure the agent cannot override deterministic policy constraints.
+ Distinguish:
+hard constraints
+recommendations/guidelines
+informational policy context
+ Add tests where policy changes the available action set.
+ Add tests where the agent proposes a policy-violating action and the system blocks/escalates it.
+ Ensure policy references appear in the decision trace.
+P6 — Independent Multi-Agent Review & Decision Validation
+
+Existing critics and consensus exist.
+
+Now make them a reliable product control layer.
+
+Policy/Safety Review
+ Verify Policy Critic independently evaluates the proposal.
+ Verify it can reject/escalate unsafe or policy-invalid recommendations.
+ Ensure it receives the relevant policy evidence.
+Business Impact Review
+ Verify Business Critic independently evaluates cost/feasibility.
+ Ensure it receives actual deterministic impact numbers.
+ Ensure it can challenge the primary agent.
+Consensus
+ Ensure consensus compares all structured outputs.
+ Ensure disagreements are explicitly recorded.
+ Ensure consensus cannot blindly copy the primary agent.
+ Define deterministic escalation rules.
+ Define what happens when critics disagree.
+ Define what happens when evidence is insufficient.
+ Define what happens when a hard policy violation exists.
+ Add adversarial tests where critics challenge the primary proposal.
+
+Required architecture:
+
+Primary Agent
+      ↓
+ ┌────┴────┐
+ ↓         ↓
+Policy    Business
+Critic    Critic
+ └────┬────┘
+      ↓
+ Consensus
+      ↓
+Validated Recommendation
+P7 — Human Approval & Governance
+ Ensure every consequential recommendation enters pending state.
+ Ensure approval/rejection is explicit.
+ Ensure no consequential action is automatically executed.
+ Record approver.
+ Record timestamp.
+ Record approval/rejection reason or notes.
+ Ensure rejected decisions remain auditable.
+ Ensure approved decisions remain linked to their original trace.
+ Handle duplicate approval/rejection safely.
+ Add authorization/error handling where applicable.
+P8 — What-If Simulation Product Integration
+
+Simulation already exists at MVP level.
+
+Now connect it directly to decision intelligence.
+
+ Start simulation from the actual recommendation.
+ Automatically establish the do_nothing baseline.
+ Automatically establish the recommended-action scenario.
+ Reuse actual model/risk/optimization logic.
+ Ensure simulation does not invent unsupported numbers.
+ Compare:
+stockout risk
+inventory level
+delivery risk
+route distance/cost
+operational impact
+relevant business KPIs
+ Show action delta.
+ Show downside/upside.
+ Clearly communicate assumptions.
+ Handle unsupported simulations safely.
+ Store simulation results against the decision trace.
+ Add tests connecting recommendation → simulation.
+P9 — Business Impact Layer
+
+Turn technical outputs into measurable business outcomes.
+
+ Define supported business KPIs.
+ Calculate KPI values from actual dataset/model outputs.
+ Define baseline KPIs.
+ Define recommended-action KPIs.
+ Calculate deterministic deltas.
+ Show:
+expected benefit
+expected cost
+risk reduction
+operational trade-off
+ Never claim financial savings unless supported by actual inputs/assumptions.
+ Clearly label estimates vs measured outcomes.
+ Add business-impact tests.
+ Ensure the Business Critic consumes the same impact calculations.
+P10 — Complete Decision Trace & Auditability
+
+The existing decision trace must become a complete product audit record.
+
+ Record dataset/source identity.
+ Record dataset validation result.
+ Record input situation.
+ Record predictions.
+ Record risk outputs.
+ Record route/optimization outputs.
+ Record candidate actions.
+ Record policies retrieved.
+ Record policy constraints applied.
+ Record tools called.
+ Record tool inputs/outputs.
+ Record primary proposal.
+ Record policy critic.
+ Record business critic.
+ Record consensus.
+ Record human decision.
+ Record simulation.
+ Record business impact.
+ Record final outcome.
+ Make the trace reconstructable without relying on transient UI state.
+ Ensure sensitive credentials/secrets are never stored in traces.
+ Add trace integrity/completeness tests.
+P11 — Product Dashboard & User Experience
+
+Coordinate with the teammate implementing the data-source/upload UI.
+Do not duplicate their work.
+
+ Replace hardcoded/demo dashboard metrics with active-dataset results.
+ Remove misleading static SKU/shipment examples from production views.
+ Show dataset status.
+ Show data-quality status.
+ Show current supply-chain situation.
+ Show major risks.
+ Show recommended actions.
+ Show evidence behind recommendations.
+ Show policy constraints.
+ Show independent reviews.
+ Show validation result.
+ Show approval state.
+ Show simulation.
+ Show business impact.
+ Show decision history.
+ Make the UI understandable to a non-technical business user.
+
+Use business-facing terminology:
+
+Analyze Situation
+AI Recommendation
+Independent Review
+Decision Validation
+Evidence & Analysis
+Policies & Business Rules
+Decision Transparency
+What-If Simulation
+Business Impact
+Decision History
+
+Avoid exposing implementation terminology as the primary UX:
+
+Run Orchestrator
+Critic Agent
+Consensus Engine
+Tool Calls
+RAG Context
+Trace JSON
+P12 — End-to-End Product Flow
+
+The complete flow must work using the active dataset:
+
+Select / Upload / Connect Data
+        ↓
+Validate Dataset
+        ↓
+Understand Dataset
+        ↓
+Build Canonical Data
+        ↓
+Analyze Supply Chain
+        ↓
+Forecast Demand
+        ↓
+Detect Inventory Risk
+        ↓
+Detect Delivery Risk
+        ↓
+Optimize Logistics
+        ↓
+Create Unified Situation
+        ↓
+Generate Candidate Actions
+        ↓
+AI Recommendation
+        ↓
+Policy Grounding
+        ↓
+Independent Reviews
+        ↓
+Decision Validation
+        ↓
+Human Approval
+        ↓
+What-If Simulation
+        ↓
+Business Impact
+        ↓
+Decision History / Audit Trace
+ Verify complete flow locally.
+ Verify complete flow using CSV.
+ Verify complete flow using Excel.
+ Verify complete flow using database source.
+ Verify API path when production connector is implemented.
+ Verify no synthetic fallback occurs when a real dataset is active.
+ Verify all displayed numbers originate from actual computation.
+ Verify approval state persists.
+ Verify trace contains the entire lifecycle.
+P13 — Testing & Reliability
+ Add unit tests for every new productization component.
+ Add integration tests across data → ML → agent.
+ Add integration tests across agent → critics → consensus.
+ Add integration tests across approval → simulation → impact.
+ Add real-data-shaped fixtures.
+ Test malformed datasets.
+ Test empty datasets.
+ Test missing columns.
+ Test missing values.
+ Test unexpected column names.
+ Test impossible business values.
+ Test LLM failure.
+ Test database failure.
+ Test policy retrieval failure.
+ Test optimization failure.
+ Test simulation failure.
+ Test conflicting critic outputs.
+ Test policy violations.
+ Test approval/rejection edge cases.
+ Run complete uv run pytest.
+ Confirm no regression against the existing 90/90 baseline.
+P14 — Deployment & Production Hardening
+ Verify fresh-clone installation.
+ Verify required dependencies are declared.
+ Verify Streamlit deployment.
+ Verify Neon connectivity.
+ Verify Groq connectivity.
+ Verify cold-start behavior.
+ Verify policy index rebuild behavior.
+ Verify real dataset flow on deployment.
+ Verify errors are user-safe.
+ Verify secrets are never exposed.
+ Verify no local-only paths are required.
+ Verify production app does not depend on developer machine state.
+ Perform complete live end-to-end test after productization changes.
+P15 — Documentation & Product Readiness
+ Update README to describe the final product rather than only the MVP.
+ Document supported data sources.
+ Document canonical schemas.
+ Document validation behavior.
+ Document architecture.
+ Document AI/ML responsibilities.
+ Document multi-agent review.
+ Document policy grounding.
+ Document human approval.
+ Document simulation.
+ Document business impact.
+ Document decision trace.
+ Document limitations.
+ Clearly label synthetic demo data.
+ Remove outdated MVP/project-number terminology.
+ Ensure README matches actual implementation.
+ Ensure no documentation claims an unimplemented capability.
+P16 — Final Product Verification
+
+The product is COMPLETE only when every statement below can be verified:
+
+ A user can provide/select a business dataset.
+ The system validates the dataset.
+ The system understands the dataset.
+ The selected dataset becomes the active dataset.
+ No hidden synthetic fallback occurs.
+ Demand forecasting uses the active data.
+ Inventory intelligence uses the active data.
+ Delivery risk uses the active data.
+ Logistics optimization uses actual operational data.
+ All intelligence is combined into a unified situation.
+ Candidate actions are generated from actual risks.
+ Policies constrain decisions.
+ The primary agent reasons over actual evidence.
+ Independent critics challenge the recommendation.
+ Consensus validates the recommendation.
+ Hard deterministic constraints cannot be overridden by the LLM.
+ Human approval is required for consequential actions.
+ Simulation uses actual decision outputs.
+ Business impact is calculated from supported data.
+ Complete decision history is persisted.
+ Every important number is traceable to deterministic computation.
+ End-to-end integration tests pass.
+ Deployment works.
+ Documentation matches reality.
+ The product can be demonstrated to a non-technical judge without explaining the internal architecture first.
+🔴 CURRENT ACTIVE TASK
+
+AI coding agents must start here.
+
+Current task: [SET AUTOMATICALLY TO FIRST UNCHECKED TASK]
+
+Status: TODO
+
+Rule:
+The first unchecked item in the highest-priority incomplete section is the next task to implement.
+
+Do not skip ahead unless:
+
+the current task is blocked, or
+its dependency is incomplete.
+
+If blocked, record the reason directly beside the task.
+
+🤖 VIBE CODING OPERATING PROTOCOL
+
+Every AI coding session MUST follow this protocol.
+
+STEP 1 — Read Context
+
+Before touching code:
+
+Read progress.md completely.
+Read the current repository structure.
+Inspect the files relevant to the current unchecked task.
+Check Git status.
+Check whether another branch/PR is already modifying the same area.
+
+Never assume implementation details from this document alone.
+
+STEP 2 — Select Task
+
+Find the first unchecked task in:
+
+P0 → P1 → P2 → P3 → ... → P16
+
+Work on that task unless it is blocked.
+
+Do not randomly choose a later task.
+
+STEP 3 — Understand Before Editing
+
+Before changing code, identify:
+
+existing implementation
+existing interfaces
+existing tests
+dependencies
+downstream consumers
+potential regressions
+
+Do not rebuild working modules.
+
+Prefer integration/refactoring over duplication.
+
+STEP 4 — Implement
+
+Make the smallest coherent change required.
+
+Rules:
+
+inspect before editing
+preserve existing architecture
+deterministic code owns numerical truth
+LLM does not calculate numbers
+RAG must influence decisions
+critics must be genuinely independent
+consensus must validate
+human approval remains mandatory
+synthetic data is only development/demo/test data
+no secrets in code
+no hardcoded production metrics
+no silent fallback to synthetic data
+STEP 5 — Test
+
+Run the relevant tests.
+
+Then run:
+
+uv run pytest
+
+Never claim success without actual test output.
+
+STEP 6 — Verify
+
+Verify the implementation against the actual requirement.
+
+Check:
+
+expected behavior
+edge cases
+regression risk
+actual data flow
+database persistence where applicable
+UI behavior where applicable
+trace completeness where applicable
+STEP 7 — Update Progress
+
+Only after verified completion:
+
+mark the task [x]
+add a short implementation note if useful
+update Current Status
+identify the next available task
+
+Never mark a task complete merely because code exists.
+
+STEP 8 — Commit / Merge State
+
+A task is officially DONE only after:
+
+Implementation
+    ↓
+Tests pass
+    ↓
+Verification
+    ↓
+PR
+    ↓
+Merge to main
+    ↓
+progress.md updated
+🚫 DO NOT BUILD NOW
+
+The following are intentionally outside the current productization scope:
+
+Supplier Risk Intelligence
+External Disruption Intelligence
+External news intelligence
+Advanced supplier monitoring
+New unrelated AI features
+Unnecessary microservices
+Kubernetes/container orchestration unless genuinely required
+Rebuilding existing ML models without evidence that they need replacement
+Rebuilding the existing agent from scratch
+Rebuilding existing RAG
+Rebuilding existing simulation
+Duplicating the teammate's ingestion/upload UI
+
+These can be considered only after the core product is complete.
+
+PRODUCTIZATION STATUS
+Area	Status
+MVP foundation	✅ COMPLETE
+Predictive intelligence	✅ COMPLETE
+Inventory intelligence	✅ COMPLETE
+Delivery risk	✅ COMPLETE
+Route optimization	✅ COMPLETE
+RAG	✅ COMPLETE
+AI Decision Agent	✅ MVP COMPLETE
+Multi-agent critique	✅ MVP COMPLETE
+Consensus	✅ MVP COMPLETE
+Human approval	✅ MVP COMPLETE
+What-if simulation	✅ MVP COMPLETE
+Deployment	✅ COMPLETE
+Active business dataset	⬜ TODO
+Data validation & understanding	⬜ TODO
+Canonical data model	⬜ TODO
+Unified supply-chain intelligence	⬜ TODO
+Candidate action engine	⬜ TODO
+Productized decision intelligence	⬜ TODO
+Policy enforcement	⬜ TODO
+Multi-agent hardening	⬜ TODO
+Business impact	⬜ TODO
+Complete auditability	⬜ TODO
+Product dashboard integration	⬜ TODO
+End-to-end real-data flow	⬜ TODO
+Production hardening	⬜ TODO
+Final product verification	⬜ TODO
+FINAL PRODUCT DEFINITION
+
+SupplyChain Sentinel AI is complete when it is no longer just a collection of forecasting, risk, optimization, RAG, and agent modules.
+
+It must operate as one decision-intelligence product:
+
+Real supply-chain data → validated understanding → predictive intelligence → risk detection → candidate actions → AI reasoning → independent review → validated decision → human approval → what-if simulation → measurable business impact → complete audit trail.
+
+The goal is not to demonstrate individual AI technologies.
+
+The goal is to demonstrate that the platform can turn operational supply-chain data into validated, explainable, measurable, and governable business decisions.
+
+
+### One more important change
+
+Your current `progress.md` still has this older section:
+
+> **Project Prioritization (Scope Control)**  
+> Primary MVP = Project 17, Secondary MVP = Project 18, Project 10 = Future. :contentReference[oaicite:1]{index=1}
+
+For the **new product direction**, I would remove/replace that section. It made sense when you were organizing three problem statements, but now it conflicts with your goal of treating this as **one unified product**.
+
+Replace it with:
+
+```md
+## Product Scope Control
+
+SupplyChain Sentinel AI is treated as ONE product.
+
+Current product capabilities:
+
+- Demand Forecasting
+- Inventory Risk Intelligence
+- Delivery Risk Intelligence
+- Route Optimization
+- Unified Supply Chain Intelligence
+- AI Decision Agent
+- Policy/RAG Grounding
+- Independent Multi-Agent Review
+- Decision Validation
+- Human Approval
+- What-If Simulation
+- Business Impact
+- Decision History & Auditability
+- Real Business Data Onboarding
+
+### Explicitly out of current scope
+
+- Supplier Risk Intelligence
+- External Disruption Intelligence
+- External News Intelligence
+
+These are future expansion areas and must not consume current development effort.
+
+The current objective is to make the existing capabilities operate together as one complete product.

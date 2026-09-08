@@ -68,7 +68,7 @@ uv run streamlit run app.py
 
 ```bash
 uv run pytest
-# Expected: 90 passed
+# Expected: 116 passed
 ```
 
 ### Run FastAPI (local dev only)
@@ -93,28 +93,31 @@ For local dev, place these in a `.env` file (never commit it).
 
 ## Deployment — Streamlit Cloud
 
-1. **Push repo to GitHub** (already done).
+1. **Push repo to GitHub** on the **`Bushra`** branch.
 2. Go to [share.streamlit.io](https://share.streamlit.io) → **New app**.
 3. Connect your GitHub repo: `bushrachohan/SupplyChain`.
-4. Set **Main file path** to: `app.py`.
-5. Set **Python version** to: `3.13`.
-6. Click **Advanced settings → Secrets** and paste:
+4. Set **Branch** to: `Bushra`.
+5. Set **Main file path** to: `app.py`.
+6. Set **Python version** to: `3.13` (or `3.12`).
+7. Click **Advanced settings → Secrets** and paste (TOML syntax with double quotes):
 
 ```toml
 GROQ_API_KEY = "gsk_..."
 NEON_DATABASE_URL = "postgresql://..."
 ```
 
-7. Click **Deploy**.
+8. Click **Deploy**.
 
 ### ChromaDB on Streamlit Cloud
 The `chroma_db/` directory is git-ignored. On each cold start, `core/rag.py` detects the missing index and rebuilds it automatically from `policies/*.md`. No manual action needed.
 
 ### Why `requirements.txt` instead of `pyproject.toml`?
-Streamlit Community Cloud uses `pip` for installation and looks for `requirements.txt`. The `requirements.txt` in this repo is auto-generated from `uv.lock` and is the source of truth for production dependencies. Do **not** edit it manually — regenerate with:
+Streamlit Community Cloud uses `pip` for installation and looks for `requirements.txt`. The `requirements.txt` in this repo is exported from `uv.lock`. When regenerating, **always include `--no-emit-project`** so `-e .` is not added:
 ```bash
-uv export --format requirements-txt --no-hashes --no-dev -o requirements.txt
+uv export --format requirements-txt --no-hashes --no-dev --no-emit-project -o requirements.txt
 ```
+> [!NOTE]
+> Do not add `packages.txt` with `apt-get` packages unless strictly necessary; modern binary wheels already bundle OpenMP / C++ runtimes, and omitting `packages.txt` prevents Debian repository expiration errors during Streamlit Cloud deployment.
 
 ---
 
@@ -138,7 +141,8 @@ SupplyChain/
 │   ├── delivery_risk.py       # Binary classifier + SHAP
 │   ├── logistics_optimizer.py # OR-Tools Capacitated VRP
 │   ├── rag.py                 # ChromaDB RAG over policy documents
-│   └── simulation.py          # What-if scenario simulation engine
+│   ├── simulation.py          # What-if scenario simulation engine
+│   └── unified_intelligence.py# Cross-risk compounding & enterprise severity assessment
 ├── ml/
 │   ├── evaluation.py          # Time-based split, metrics, baselines
 │   └── explainability.py      # SHAP tree explainer helpers
@@ -149,17 +153,19 @@ SupplyChain/
 │   └── connection.py          # Neon Postgres engine + session
 ├── data_ingestion/
 │   ├── base.py                # Abstract DataSource interface
-│   ├── csv_source.py          # CSV (dev/test synthetic data)
-│   ├── excel_source.py        # Excel source
-│   ├── db_source.py           # Neon DB source
+│   ├── active_dataset.py      # Dynamic dataset manager & cache invalidation
+│   ├── validation.py          # Schema validator, Kaggle auto-mapping, profiler
+│   ├── csv_source.py          # CSV source (300 shipments, Kaggle compatibility)
+│   ├── excel_source.py        # Excel source (.xlsx)
+│   ├── db_source.py           # Neon DB / SQLite source
 │   └── api_source.py          # API stub (extensible)
-├── policies/                   # Business policy documents for RAG
-├── data/                      # Synthetic CSV data (dev/test only)
+├── policies/                  # Business policy documents for RAG
+├── data/                      # 300 deliveries, demand, inventory, vehicles
 ├── data_pipeline/             # Seed data generation + Neon DB loader
-├── tests/                     # 90 tests across all modules
-├── .streamlit/config.toml     # Streamlit theme + server config
+├── tests/                     # 116 tests across all modules (100% pass)
+├── .streamlit/config.toml     # Streamlit dark theme + 200MB upload limit
 ├── pyproject.toml             # uv dependency manifest
-├── requirements.txt           # pip-compatible (for Streamlit Cloud)
+├── requirements.txt           # pip-compatible export (for Streamlit Cloud)
 └── .env.example               # Secret key template
 ```
 

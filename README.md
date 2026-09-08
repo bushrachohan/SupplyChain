@@ -1,7 +1,7 @@
 # SupplyChain Sentinel AI
 
 > **AI-Powered Supply Chain Risk & Decision Intelligence Platform**
-> An end-to-end system that forecasts demand, detects inventory & delivery risk, optimises routes, retrieves business policies via RAG, and runs a genuine multi-agent deliberation before surfacing recommendations for human approval.
+> **An end-to-end system that forecasts demand, detects inventory & delivery risk, optimises routes, retrieves business policies via RAG, and runs a genuine multi-agent deliberation before surfacing recommendations for human approval.**
 
 ---
 

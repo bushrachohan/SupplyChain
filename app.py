@@ -28,6 +28,11 @@ from data_ingestion.validation import (
     CANONICAL_SCHEMAS,
     COLUMN_ALIASES
 )
+from core.unified_intelligence import (
+    build_unified_situation,
+    UnifiedSupplyChainState,
+    SeverityLevel
+)
 
 @st.cache_resource
 def load_simulation_resources():
@@ -466,17 +471,52 @@ def render_create_decision():
                     target_id = st.text_input("Delivery ID")
         
         situation_text = st.text_area("Describe the situation or business constraints", placeholder="e.g., We just landed a huge enterprise client and demand is going to double. Do we have enough stock, or should we expedite shipments?")
+
+        # Live Preview of Unified Situation Assessment
+        if target_id:
+            try:
+                sku_target = target_id if target_type == "Inventory / Demand Issue" else None
+                del_target = target_id if target_type != "Inventory / Demand Issue" else None
+                preview_state = build_unified_situation(sku_id=sku_target, delivery_id=del_target)
+                
+                st.markdown("---")
+                st.markdown("#### 🛡️ Unified Situation Assessment (Pre-Analysis)")
+                
+                s1, s2, s3 = st.columns([1, 2, 1])
+                s1.metric("Overall Severity", preview_state.overall_severity.value)
+                s2.metric("Primary Bottleneck", preview_state.bottleneck.bottleneck_type)
+                s3.metric("Urgency Window", f"~{preview_state.bottleneck.impact_urgency_hours:.0f} hrs")
+                
+                st.info(f"**Bottleneck Discovery:** {preview_state.bottleneck.description}")
+                if preview_state.cross_risk_dependencies:
+                    for dep in preview_state.cross_risk_dependencies:
+                        st.warning(f"⚠️ **Compounding Dependency:** {dep}")
+            except Exception as e:
+                pass
     
     if st.button("Run AI Decision Analysis", type="primary", use_container_width=True):
         if not target_id:
             st.warning("Please specify a Target ID to proceed.")
             return
             
-        situation = f"Target ID: {target_id}. Context: {situation_text}"
+        # Build unified intelligence situation from active data
+        try:
+            sku_target = target_id if target_type == "Inventory / Demand Issue" else None
+            del_target = target_id if target_type != "Inventory / Demand Issue" else None
+            unified_state = build_unified_situation(sku_id=sku_target, delivery_id=del_target)
+            
+            situation_briefing = unified_state.to_summary_markdown()
+            situation = (
+                f"{situation_briefing}\n\n"
+                f"#### 👤 Business Operator Context & Specific Question:\n"
+                f"{situation_text if situation_text.strip() else 'Evaluate the operational risk and provide the optimal recommended action.'}"
+            )
+        except Exception as e:
+            situation = f"Target ID: {target_id}. Context: {situation_text} (Unified state fallback: {e})"
         
         status_container = st.status("Initializing AI Analysis...", expanded=True)
         with status_container:
-            st.write("Analyzing supply-chain data... ✓")
+            st.write("Synthesizing unified supply-chain situation... ✓")
             time.sleep(0.5)
             st.write("Forecasting demand & assessing operational risk... ✓")
             time.sleep(0.5)

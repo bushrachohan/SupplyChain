@@ -34,6 +34,27 @@ def _invalidate_caches():
 # Register cache invalidation hook
 active_dataset.subscribe(_invalidate_caches)
 
+def set_active_datasource(source: Any, name: str = "Active Business Dataset") -> None:
+    """
+    Sets the active DataSource on the global active_dataset context,
+    automatically invalidating caches and synchronizing with ActiveDatasetContext.
+    """
+    source_type = "csv"
+    if hasattr(source, "excel_path"):
+        source_type = "excel"
+    elif hasattr(source, "engine") or hasattr(source, "connection_url"):
+        source_type = "db"
+    elif hasattr(source, "api_endpoint"):
+        source_type = "api"
+
+    meta = DatasetMetadata(
+        source_type=source_type,
+        name=name,
+        status="active",
+        connected_at=datetime.now(timezone.utc).isoformat()
+    )
+    active_dataset.set_active(source, meta)
+
 def _get_active_source():
     """
     Returns the configured business dataset. If no dataset is active yet,

@@ -449,9 +449,8 @@ The productization roadmap below is the authoritative source for remaining imple
 - [x] Track dataset source, identity, status, and lifecycle.
 - [x] Add tests proving the selected dataset is actually consumed.
 
-> Upload/select UI is being implemented separately by another team member.
-> Do NOT duplicate that UI.
-> Backend support for the selected dataset IS part of this roadmap.
+> Upload/select UI implemented on branch `Maryam` (Enterprise Data Hub with CSV, Excel, DB, and API selection tabs, schema mapping, and validation).
+> Backend support for the active dataset context completed on branch `Bushra`.
 
 ## P1 — Data Validation & Understanding
 
@@ -1199,10 +1198,9 @@ Data source integration
  [x] Ensure the backend can consume all supported source types through the same canonical interface.
 
 UI for selecting/uploading CSV, Excel, API, and Database is handled separately by another team member.
+- [x] Upload/select UI verified on branch `Maryam` (Enterprise Data Hub with CSV, Excel, DB, and API selection tabs, schema mapping, and validation).
 
-Do NOT duplicate or replace that UI here.
-
-Backend integration with the selected dataset IS part of this roadmap.
+Backend integration with the selected dataset IS part of this roadmap (completed on branch `Bushra`).
 
 P1 — Data Understanding & Canonical Data Model
  Define canonical schemas for:

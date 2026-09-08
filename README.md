@@ -6,9 +6,9 @@
 [![Live Demo](https://img.shields.io/badge/Live-SupplyChain%20Sentinel-FF4B4B?style=flat&logo=streamlit)](https://supplychain-m6ormyh8hus3tvuep4b5st.streamlit.app/)
 [![Database](https://img.shields.io/badge/Database-Neon%20PostgreSQL-00E599?style=flat&logo=postgresql)](https://neon.tech)
 [![LLM](https://img.shields.io/badge/LLM-Groq%20API-f55036?style=flat)](https://groq.com)
-[![Tests](https://img.shields.io/badge/Tests-116%2F116%20passing-22c55e?style=flat&logo=pytest)](./tests)
+[![Tests](https://img.shields.io/badge/Tests-135%2F135%20passing-22c55e?style=flat&logo=pytest)](./tests)
 [![Python](https://img.shields.io/badge/Python-3.13%2B-3b82f6?style=flat&logo=python)](https://python.org)
-[![Branch](https://img.shields.io/badge/Branch-Bushra-8b5cf6?style=flat&logo=git)](https://github.com/bushrachohan/SupplyChain/tree/Bushra)
+[![Branch](https://img.shields.io/badge/Branch-production--v2-8b5cf6?style=flat&logo=git)](https://github.com/bushrachohan/SupplyChain/tree/production-v2)
 [![License](https://img.shields.io/badge/License-MIT-gray?style=flat)](./LICENSE)
 
 ---
@@ -83,6 +83,12 @@ When modern enterprise supply chains face disruptions, conventional software fai
 
 ### 📈 Dynamic Demand Forecasting & Inventory Risk
 LightGBM quantile regression models future SKU demand by warehouse. The inventory engine cross-references lead times and current stock levels to compute stockout risks, safety-stock deficits, and holding penalties.
+
+### 📊 Demand Forecast vs Actual Visualization
+Provides clear business-facing validation comparing what the business actually experienced against Sentinel's LightGBM predictions on matching out-of-sample validation dates. Displays non-fabricated metrics (Horizon, Actual Avg, Forecast Avg, MAE, and MAPE) with interactive line charts and daily variance audit tables.
+
+### ⚙️ Deterministic Candidate Action Engine & PO Recommendation (P3)
+Evaluates 4 structured options (`do_nothing`, `reorder`, `expedite`, `transfer_inventory`) enforcing authoritative policy constraints: 60-day holding cap (`POL-INV-001`), safety stock minimums, and Director escalation above $10,000 (`POL-PRO-003`). Automatically synthesizes internal Purchase Order draft recommendations for human review.
 
 ### 🚚 Delivery Delay Classification with SHAP TreeExplainer
 Predicts delivery failure probabilities across 300+ shipments based on distance, traffic delay, carrier performance, and weather conditions. TreeExplainer provides local SHAP attribution scores (`+5.24 SHAP traffic delay`, `-0.57 carrier efficiency`) so operators know precisely *why* risk is elevated.
@@ -201,7 +207,7 @@ uv run streamlit run app.py
 
 ```bash
 uv run pytest
-# Expected: 116 passed in ~60s (100% passing)
+# Expected: 135 passed in ~100s (100% passing)
 ```
 
 ### Run FastAPI (Dev / API Mode)
@@ -258,16 +264,18 @@ uv export --format requirements-txt --no-hashes --no-dev --no-emit-project -o re
 ## Roadmap
 
 - [x] LightGBM demand forecasting with quantile intervals
+- [x] Demand forecast vs actual visualization on matching validation dates (Project 17 requirement)
 - [x] Delivery delay binary classifier with TreeExplainer SHAP attribution
 - [x] Capacitated Vehicle Routing Problem (CVRP) via Google OR-Tools
 - [x] ChromaDB RAG with corporate policy documents (`policies/*.md`)
+- [x] Deterministic candidate action engine with 4 replenishment & transfer options (P3)
 - [x] Multi-agent deliberation with Policy and Business Critics
 - [x] Immutable decision traces stored in Neon PostgreSQL (15 tables)
 - [x] Human-in-the-loop approval & rejection ledger UI
 - [x] Multi-source ingestion (CSV, Excel `.xlsx`, Database)
 - [x] Kaggle Supply Chain schema auto-aliasing & live profiler
 - [x] Cross-risk compounding engine (`core/unified_intelligence.py`)
-- [x] 116 unit and integration tests (100% passing)
+- [x] 135 unit and integration tests (100% passing)
 - [ ] Enterprise ERP (SAP / Oracle WMS) live REST/GraphQL connector
 - [ ] Multi-depot, time-windowed fleet routing (VRPTW)
 - [ ] Real-time weather and traffic API webhooks
@@ -289,7 +297,8 @@ SupplyChain/
 │   ├── consensus.py           # Multi-agent consensus protocol
 │   └── decision_trace.py      # Trace builder & DB persistence
 ├── core/
-│   ├── forecasting.py         # LightGBM demand forecast engine
+│   ├── candidate_actions.py   # Deterministic 4-action replenishment engine & PO drafting
+│   ├── forecasting.py         # LightGBM demand forecast & Forecast vs Actual alignment
 │   ├── inventory_risk.py      # Rule-based stockout & safety stock analysis
 │   ├── delivery_risk.py       # Delay classifier with SHAP attribution
 │   ├── logistics_optimizer.py # Google OR-Tools Capacitated VRP solver
@@ -315,7 +324,10 @@ SupplyChain/
 ├── policies/                  # Corporate policy markdown files for RAG
 ├── data/                      # Standard synthetic supply chain datasets (300 deliveries)
 ├── data_pipeline/             # Seed data generator & Neon DB loader
-├── tests/                     # 116 unit & integration tests (100% passing)
+├── tests/                     # 135 unit & integration tests (100% passing)
+│   ├── test_candidate_actions.py # 9 candidate action engine & PO drafting tests
+│   ├── test_forecasting.py    # 15 LightGBM & Forecast vs Actual tests
+│   └── ...                    # Active dataset, critics, simulation, RAG, agent tests
 ├── .streamlit/config.toml     # Theme styling & 200MB file upload limits
 ├── pyproject.toml             # uv package and dependency configuration
 ├── requirements.txt           # pip-compatible manifest for Streamlit Cloud

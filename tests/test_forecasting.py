@@ -13,6 +13,7 @@ from core.forecasting import (
     train_forecast_model,
     predict_demand,
     get_feature_importance,
+    get_forecast_vs_actual,
     FEATURE_COLS,
     TARGET_COL,
 )
@@ -138,3 +139,40 @@ def test_feature_importance_values_nonnegative(trained_model):
     importance = get_feature_importance(model)
     for feat, score in importance.items():
         assert score >= 0, f"Negative importance for {feat}"
+
+
+# ---------------------------------------------------------------------------
+# Forecast vs Actual Comparison
+# ---------------------------------------------------------------------------
+
+def test_get_forecast_vs_actual_success(trained_model, demand_df):
+    model, _, _ = trained_model
+    res = get_forecast_vs_actual(model, demand_df, "SKU_101")
+    assert res["is_aligned"] is True
+    assert res["sku_id"] == "SKU_101"
+    assert "aligned_df" in res
+    assert len(res["aligned_df"]) > 0
+    assert list(res["aligned_df"].columns) == [
+        "Date", "Actual Demand", "Forecast Demand", "Variance (Actual - Forecast)"
+    ]
+    assert res["horizon_periods"] == len(res["aligned_df"])
+    assert res["actual_avg"] > 0
+    assert res["forecast_avg"] > 0
+    assert res["mae"] >= 0
+    assert res["mape"] >= 0
+    assert "full_history_df" in res
+    assert len(res["full_history_df"]) >= len(res["aligned_df"])
+
+
+def test_get_forecast_vs_actual_invalid_sku(trained_model, demand_df):
+    model, _, _ = trained_model
+    res = get_forecast_vs_actual(model, demand_df, "SKU_NONEXISTENT")
+    assert res["is_aligned"] is False
+    assert "error" in res
+
+
+def test_get_forecast_vs_actual_empty_df(trained_model):
+    model, _, _ = trained_model
+    res = get_forecast_vs_actual(model, pd.DataFrame(), "SKU_101")
+    assert res["is_aligned"] is False
+    assert "error" in res

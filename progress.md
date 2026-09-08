@@ -35,7 +35,7 @@ Data → Prediction → Risk Detection → Scenario Analysis
 - ✅ **P1 — Data Validation & Canonical Data Model** (`data_ingestion/validation.py`, canonical schemas, normalization).
 - ✅ **P2 — Unified Supply Chain Intelligence** (`core/unified_intelligence.py`, `UnifiedSupplyChainState`, situation severity, bottleneck identification).
 - ✅ **P3 — Candidate Action Engine** (`core/candidate_actions.py`, deterministic 4-action generator `do_nothing`, `reorder`, `expedite`, `transfer_inventory`, Category A POL-INV-001 / POL-PRO-003 compliance, Category B data-derived logic, Category C assumptions, PO draft recommendation, UI comparison & PO card).
-- ✅ **P11 — Product Dashboard & Final Demo-Readiness UI Pass** (`app.py`, Command Center real-data grounding, defensible KPIs, dynamic priority risks, Data Hub live banner, Multi-Agent Review statuses, trace-grounded Approval Queue, What-If simulation).
+- ✅ **P11 — Product Dashboard & Final Demo-Readiness UI Pass** (`app.py`, Command Center real-data grounding, defensible KPIs, dynamic priority risks, Data Hub live banner, Multi-Agent Review statuses, trace-grounded Approval Queue, What-If simulation, Demand Forecast vs Actual visualization).
 
 **Currently in progress / Next task:** P4 — Productized AI Decision Agent (Orchestrator context enrichment, numerical provenance verification, structured recommendation schema).
 
@@ -65,9 +65,15 @@ The current developer session has completed:
    - Command Center real-data grounding (removed all mock entities).
    - Defensible financial inventory exposure formula.
    - Dynamic Multi-Agent review statuses (`PASSED`, `NEEDS REVIEW`, `REJECTED`).
-   - 132/132 tests passing locally; pushed to branch `production-v2`.
+6. **Demand Forecast vs Actual Visualization (Project 17)**:
+   - `core/forecasting.py`: `get_forecast_vs_actual(model, df, sku_id)` aligns historical demand actuals with test-split forecast predictions on matching dates.
+   - Computes non-fabricated metrics: Forecast Horizon, Actual Avg Demand, Forecast Avg Demand, MAE, and MAPE.
+   - `app.py`: `render_demand_forecast_vs_actual(sku_id)` with business-facing terminology ("Demand Forecast vs Actual", "What the business actually experienced vs. what Sentinel predicted").
+   - Multi-tab interactive visualizations: Aligned Comparison (matching dates) & Full Demand History & Forecast Overlay.
+   - Integrated into Create a Decision (updates on SKU selection), Command Center (top inventory risk expander), and What-If Simulation (inventory stress-testing).
+   - 135/135 tests passing locally.
 
-**Status:** Verified locally across all 132 tests. Committed & pushed to branch `production-v2`.
+**Status:** Verified locally across all 135 tests. Committed & pushed to branch `production-v2`.
 
 
 ### ✅ Completed (merged to main)
@@ -78,7 +84,7 @@ The current developer session has completed:
 | `data_ingestion/` — all 4 sources | `base.py`, `csv_source.py`, `excel_source.py`, `db_source.py`, `api_source.py` |
 | Synthetic seed data + CSVs | Dev/test only — never treated as real company data |
 | `policies/*.md` | Real business/procurement/inventory/logistics policy documents for RAG |
-| `core/forecasting.py` | LightGBM, time-based split, baseline comparison, leakage checks, feature importance, 12 tests |
+| `core/forecasting.py` | LightGBM, time-based split, baseline comparison, leakage checks, feature importance, get_forecast_vs_actual comparison engine, 15 tests |
 | `core/inventory_risk.py` | Rule-based stockout/overstock, contributing-factor explainability, 9 tests |
 | `core/rag.py` | ChromaDB + sentence-transformers, section-aware chunking, safety-stock retrieval verified, 7 tests |
 | `llm/explainer.py` | Groq narration-only wrapper (`explain_recommendation`, `summarize_text`), injectable test client, migrated to `openai/gpt-oss-120b`, 9 tests |
@@ -598,6 +604,7 @@ The productization roadmap below is the authoritative source for remaining imple
 - [x] Show data-quality status.
 - [x] Show current supply-chain situation.
 - [x] Show major risks.
+- [x] Show Demand Forecast vs Actual comparison on matching dates (Project 17 requirement).
 - [x] Show recommendation.
 - [x] Show evidence.
 - [x] Show policy constraints.

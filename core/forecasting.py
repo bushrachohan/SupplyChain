@@ -10,7 +10,7 @@ Uses LightGBM with time-based features. Follows ML engineering rules:
 
 import numpy as np
 import pandas as pd
-from typing import Dict, Tuple
+from typing import Dict, Tuple, Any, Optional
 import lightgbm as lgb
 
 from ml.evaluation import (
@@ -183,7 +183,124 @@ def predict_demand(
 
 
 # ---------------------------------------------------------------------------
-# 4. Feature Importance
+# 4. Forecast vs Actual Comparison
+# ---------------------------------------------------------------------------
+
+def get_forecast_vs_actual(
+    model: lgb.LGBMRegressor,
+    df: pd.DataFrame,
+    sku_id: str,
+) -> Dict[str, Any]:
+    """
+    Produce aligned historical actuals and forecast predictions for a SKU.
+    Reuses existing predict_demand output and df historical demand.
+
+    Args:
+        model: Trained LGBMRegressor from train_forecast_model().
+        df: Full historical demand DataFrame.
+        sku_id: The SKU to generate comparison for.
+
+    Returns:
+        dict containing:
+            - is_aligned: bool
+            - sku_id: str
+            - aligned_df: pd.DataFrame with Date, Actual Demand, Forecast Demand, Variance
+            - full_history_df: pd.DataFrame with Date, Actual Demand, Forecast Demand
+            - horizon_periods: int
+            - actual_avg: Optional[float]
+            - forecast_avg: Optional[float]
+            - mae: Optional[float]
+            - mape: Optional[float]
+            - rmse: Optional[float]
+    """
+    if df is None or df.empty or "sku_id" not in df.columns:
+        return {"is_aligned": False, "sku_id": sku_id, "error": "Demand data unavailable"}
+
+    sku_rows = df[df["sku_id"] == sku_id].copy()
+    if sku_rows.empty or "date" not in sku_rows.columns:
+        return {"is_aligned": False, "sku_id": sku_id, "error": f"No demand records for SKU {sku_id}"}
+
+    target_col = "quantity_demanded" if "quantity_demanded" in sku_rows.columns else ("quantity" if "quantity" in sku_rows.columns else None)
+    if not target_col:
+        return {"is_aligned": False, "sku_id": sku_id, "error": "Quantity column missing"}
+
+    try:
+        preds = predict_demand(model, df, sku_id)
+    except Exception as e:
+        return {"is_aligned": False, "sku_id": sku_id, "error": str(e)}
+
+    if preds is None or preds.empty or "date" not in preds.columns or "predicted_demand" not in preds.columns:
+        return {"is_aligned": False, "sku_id": sku_id, "error": "Predictions unavailable"}
+
+    # Normalize dates to string YYYY-MM-DD for consistent alignment
+    sku_rows["date_str"] = pd.to_datetime(sku_rows["date"]).dt.strftime("%Y-%m-%d")
+    preds["date_str"] = pd.to_datetime(preds["date"]).dt.strftime("%Y-%m-%d")
+
+    # Aggregate actuals by date in case multiple records exist
+    sku_actuals = (
+        sku_rows.groupby("date_str", as_index=False)[target_col]
+        .sum()
+        .rename(columns={target_col: "Actual Demand"})
+    )
+    sku_preds = (
+        preds.groupby("date_str", as_index=False)["predicted_demand"]
+        .mean()
+        .rename(columns={"predicted_demand": "Forecast Demand"})
+    )
+
+    aligned = pd.merge(sku_actuals, sku_preds, on="date_str", how="inner").sort_values("date_str").reset_index(drop=True)
+    if aligned.empty:
+        return {"is_aligned": False, "sku_id": sku_id, "error": "No aligned dates found"}
+
+    aligned["Actual Demand"] = pd.to_numeric(aligned["Actual Demand"], errors="coerce")
+    aligned["Forecast Demand"] = pd.to_numeric(aligned["Forecast Demand"], errors="coerce")
+    aligned = aligned.dropna(subset=["Actual Demand", "Forecast Demand"]).reset_index(drop=True)
+
+    if aligned.empty:
+        return {"is_aligned": False, "sku_id": sku_id, "error": "No valid numeric observations aligned"}
+
+    y_actual = aligned["Actual Demand"].values
+    y_pred = aligned["Forecast Demand"].values
+
+    mae = float(np.mean(np.abs(y_actual - y_pred)))
+    try:
+        reg_metrics = regression_metrics(y_actual, y_pred)
+        mape = float(reg_metrics.get("mape", 0.0))
+        rmse = float(reg_metrics.get("rmse", 0.0))
+    except Exception:
+        mape = None
+        rmse = None
+
+    display_df = pd.DataFrame({
+        "Date": aligned["date_str"],
+        "Actual Demand": np.round(y_actual, 1),
+        "Forecast Demand": np.round(y_pred, 1),
+        "Variance (Actual - Forecast)": np.round(y_actual - y_pred, 1),
+    })
+
+    full_history = (
+        pd.merge(sku_actuals, sku_preds, on="date_str", how="left")
+        .rename(columns={"date_str": "Date"})
+        .sort_values("Date")
+        .reset_index(drop=True)
+    )
+
+    return {
+        "is_aligned": True,
+        "sku_id": sku_id,
+        "aligned_df": display_df,
+        "full_history_df": full_history,
+        "horizon_periods": len(display_df),
+        "actual_avg": float(np.mean(y_actual)),
+        "forecast_avg": float(np.mean(y_pred)),
+        "mae": mae,
+        "mape": mape,
+        "rmse": rmse,
+    }
+
+
+# ---------------------------------------------------------------------------
+# 5. Feature Importance
 # ---------------------------------------------------------------------------
 
 def get_feature_importance(model: lgb.LGBMRegressor) -> Dict[str, float]:

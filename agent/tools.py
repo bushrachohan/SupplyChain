@@ -1,19 +1,15 @@
 """
 agent/tools.py
 Tool wrappers and Groq function-calling schemas for the AI Decision Agent.
-Updated to use thread-local state for safe concurrent Streamlit sessions.
+Uses the Active Dataset architecture for safe, session-aware data access.
 """
 
 import pandas as pd
 from typing import List, Dict, Any
-import threading
-
-<<<<<<< HEAD
-from data_ingestion.base import DataSource
-=======
 from datetime import datetime, timezone
+
+from data_ingestion.base import DataSource
 from data_ingestion.active_dataset import active_dataset, DatasetMetadata
->>>>>>> a707816 (Add: P0 Active Business Dataset Foundation, lifecycle context, and tests)
 from data_ingestion.csv_source import CSVDataSource
 from core.forecasting import train_forecast_model, predict_demand
 from core.inventory_risk import evaluate_sku_risk
@@ -21,41 +17,12 @@ from core.delivery_risk import train_delivery_risk_model, predict_delivery_risk
 from core.logistics_optimizer import optimize_routes as core_optimize_routes
 from core.rag import retrieve_policies as core_retrieve_policies
 
-<<<<<<< HEAD
-# Thread-local state for safe concurrency across Streamlit user sessions
-_state = threading.local()
-
-def _get_state():
-    """Ensure thread-local state is initialized with the default demo source."""
-    if not hasattr(_state, "source"):
-        _state.source = CSVDataSource(data_dir="data")
-        _state.demand_df = None
-        _state.forecast_model = None
-        _state.deliveries_df = None
-        _state.delivery_model = None
-        _state.inventory_df = None
-    return _state
-
-def set_active_datasource(source: DataSource):
-    """
-    Override the active datasource for the current session/thread.
-    Clears all cached models and DataFrames to force a rebuild from the new source.
-    """
-    state = _get_state()
-    state.source = source
-    state.demand_df = None
-    state.forecast_model = None
-    state.deliveries_df = None
-    state.delivery_model = None
-    state.inventory_df = None
-=======
 # Cached models and DataFrames (lazy-loaded and automatically invalidated on active dataset change)
 _demand_df = None
 _forecast_model = None
 _deliveries_df = None
 _delivery_model = None
 _inventory_df = None
->>>>>>> a707816 (Add: P0 Active Business Dataset Foundation, lifecycle context, and tests)
 
 def _invalidate_caches():
     """Reset cached models and DataFrames when the active dataset changes or is cleared."""
@@ -68,6 +35,27 @@ def _invalidate_caches():
 
 # Register cache invalidation hook
 active_dataset.subscribe(_invalidate_caches)
+
+def set_active_datasource(source: Any, name: str = "Active Business Dataset") -> None:
+    """
+    Sets the active DataSource on the global active_dataset context,
+    automatically invalidating caches and synchronizing with ActiveDatasetContext.
+    """
+    source_type = "csv"
+    if hasattr(source, "excel_path"):
+        source_type = "excel"
+    elif hasattr(source, "engine") or hasattr(source, "connection_url"):
+        source_type = "db"
+    elif hasattr(source, "api_endpoint"):
+        source_type = "api"
+
+    meta = DatasetMetadata(
+        source_type=source_type,
+        name=name,
+        status="active",
+        connected_at=datetime.now(timezone.utc).isoformat()
+    )
+    active_dataset.set_active(source, meta)
 
 def _get_active_source():
     """
@@ -88,26 +76,6 @@ def _get_active_source():
         return active_dataset.get_source()
 
 def _get_demand_model():
-<<<<<<< HEAD
-    state = _get_state()
-    if state.forecast_model is None:
-        state.demand_df = state.source.load_historical_demand()
-        state.forecast_model, _, _ = train_forecast_model(state.demand_df)
-    return state.forecast_model, state.demand_df
-
-def _get_delivery_model():
-    state = _get_state()
-    if state.delivery_model is None:
-        state.deliveries_df = state.source.load_deliveries()
-        state.delivery_model, _, _ = train_delivery_risk_model(state.deliveries_df)
-    return state.delivery_model, state.deliveries_df
-
-def _get_inventory_df():
-    state = _get_state()
-    if state.inventory_df is None:
-        state.inventory_df = state.source.load_inventory_snapshot()
-    return state.inventory_df
-=======
     global _demand_df, _forecast_model
     if _forecast_model is None:
         source = _get_active_source()
@@ -129,7 +97,6 @@ def _get_inventory_df():
         source = _get_active_source()
         _inventory_df = source.load_inventory_snapshot()
     return _inventory_df
->>>>>>> a707816 (Add: P0 Active Business Dataset Foundation, lifecycle context, and tests)
 
 # ---------------------------------------------------------------------------
 # Tool Execution Wrappers

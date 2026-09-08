@@ -11,12 +11,9 @@ import tempfile
 from db.connection import SessionLocal
 from db.models import DecisionTrace, Recommendation, Approval, InventoryRisk, DeliveryRiskPrediction, SKU
 from agent.orchestrator import run_agent_loop
-<<<<<<< HEAD
 import agent.tools as agent_tools
 from data_ingestion.base import DataSource
-=======
 from data_ingestion.active_dataset import active_dataset, DatasetMetadata
->>>>>>> a707816 (Add: P0 Active Business Dataset Foundation, lifecycle context, and tests)
 from data_ingestion.csv_source import CSVDataSource
 from data_ingestion.excel_source import ExcelDataSource
 from data_ingestion.db_source import DBDataSource
@@ -26,28 +23,21 @@ from core.simulation import (
     simulate_delivery_scenario,
     simulate_logistics_scenario
 )
-
-def get_active_data_source():
-    """
-    Returns the active business dataset source.
-    Initializes default dataset if not set.
-    """
-    try:
-        return active_dataset.get_source()
-    except ValueError:
-        default_source = CSVDataSource(data_dir="data")
-        default_meta = DatasetMetadata(
-            source_type="csv",
-            name="Default Bundled CSV Data",
-            status="active",
-            connected_at=datetime.utcnow().isoformat()
-        )
-        active_dataset.set_active(default_source, default_meta)
-        return active_dataset.get_source()
+from data_ingestion.validation import (
+    validate_dataset,
+    suggest_and_normalize_columns,
+    CANONICAL_SCHEMAS,
+    COLUMN_ALIASES
+)
+from core.unified_intelligence import (
+    build_unified_situation,
+    UnifiedSupplyChainState,
+    SeverityLevel
+)
 
 @st.cache_resource
 def load_simulation_resources():
-    source = get_active_data_source()
+    source = CSVDataSource(data_dir="data")
     inv_df = source.load_inventory_snapshot()
     del_df = source.load_deliveries()
     model, _, _ = train_delivery_risk_model(del_df)
@@ -142,60 +132,92 @@ def main():
 
 # --- VIEW: DATA HUB ---
 def validate_dataframe(df, required_cols, dataset_name):
+    """Compatibility validator ensuring empty rows are dropped and quality flagged."""
     # Ignore/drop completely empty rows (all fields NaN/empty) before validation
-    df = df.dropna(how="all").reset_index(drop=True)
+    df_clean = df.dropna(how="all").reset_index(drop=True)
     messages = []
     status = "pass"
-    
+
     # Check Required Columns
-    missing_cols = [col for col in required_cols if col not in df.columns]
+    missing_cols = [col for col in required_cols if col not in df_clean.columns]
     if missing_cols:
         status = "blocking"
         messages.append(f"BLOCKING: Missing required columns in {dataset_name}: {', '.join(missing_cols)}")
         return status, messages
-        
+
     # Check Rows
-    if len(df) == 0:
+    if len(df_clean) == 0:
         status = "blocking"
         messages.append(f"BLOCKING: {dataset_name} has 0 rows.")
         return status, messages
-        
+
     # Check Duplicates
-    dupes = df.duplicated().sum()
+    dupes = df_clean.duplicated().sum()
     if dupes > 0:
         if status != "blocking": status = "warning"
         messages.append(f"WARNING: {dupes} duplicate rows found in {dataset_name}.")
-        
+
     # Check Missing Values
-    missing_vals = df.isnull().sum().sum()
+    missing_vals = df_clean.isnull().sum().sum()
     if missing_vals > 0:
         if status != "blocking": status = "warning"
         messages.append(f"WARNING: {missing_vals} missing values found across {dataset_name}.")
-        
+
     if status == "pass":
-        messages.append(f"PASS: {dataset_name} is valid. ({len(df)} rows, {len(df.columns)} columns)")
-        
+        messages.append(f"PASS: {dataset_name} is valid. ({len(df_clean)} rows, {len(df_clean.columns)} columns)")
+
     return status, messages
 
-def suggest_mapping(existing_cols, target_cols):
+FILE_TO_SCHEMA = {
+    "historical_demand.csv": "demand",
+    "inventory_snapshot.csv": "inventory",
+    "deliveries.csv": "deliveries",
+}
+
+def suggest_mapping(existing_cols, target_cols, schema_type=None):
+    """
+    Intelligently suggests default column mappings using exact match,
+    Kaggle & ERP canonical alias tables from validation.py, and substring heuristics.
+    User can always override each mapped column in the UI dropdown.
+    """
     mapping = {}
+    existing_cols_lower = {str(c).strip().lower(): c for c in existing_cols}
+
     for tgt in target_cols:
-        # Exact match
-        if tgt in existing_cols:
-            mapping[tgt] = tgt
+        # 1. Exact match (case-insensitive)
+        if tgt.lower() in existing_cols_lower:
+            mapping[tgt] = existing_cols_lower[tgt.lower()]
             continue
-        # Substring / loose match
-        for ext in existing_cols:
-            if tgt.replace('_', ' ').lower() in ext.lower() or ext.lower() in tgt.replace('_', ' ').lower():
-                mapping[tgt] = ext
+
+        # 2. Check canonical aliases from validation.py (Kaggle & ERP conventions)
+        aliases = COLUMN_ALIASES.get(tgt, [])
+        found = None
+        for alias in aliases:
+            cleaned_alias = alias.strip().lower()
+            if cleaned_alias in existing_cols_lower:
+                found = existing_cols_lower[cleaned_alias]
                 break
-        if tgt not in mapping:
-            mapping[tgt] = existing_cols[0] if existing_cols else None
+        if found:
+            mapping[tgt] = found
+            continue
+
+        # 3. Substring / loose heuristic
+        found = None
+        for raw_col, orig_col in existing_cols_lower.items():
+            if tgt.replace('_', ' ').lower() in raw_col or raw_col in tgt.replace('_', ' ').lower():
+                found = orig_col
+                break
+        if found:
+            mapping[tgt] = found
+            continue
+
+        # 4. Fallback to first existing column
+        mapping[tgt] = existing_cols[0] if existing_cols else None
     return mapping
 
 def render_data_hub():
     st.title("Enterprise Data Hub")
-    st.markdown("Connect, map, and validate your supply chain datasets.")
+    st.markdown("Connect, map, and validate your supply chain datasets (CSVs, Kaggle datasets, Excel workbooks, or relational databases).")
     
     # Active Dataset Indicator
     active_type = st.session_state.get("active_dataset_type", "demo")
@@ -213,54 +235,67 @@ def render_data_hub():
     
     # CSV UPLOAD
     with tabs[0]:
-        st.subheader("CSV Ingestion")
-        uploaded_files = st.file_uploader("Upload CSV files", type="csv", accept_multiple_files=True)
-        
+        st.subheader("CSV Ingestion & Column Mapping")
+        uploaded_files = st.file_uploader("Upload CSV files (Demand, Inventory, Deliveries)", type="csv", accept_multiple_files=True)
+
         if uploaded_files:
-            st.markdown("### File Mapping & Validation")
+            st.markdown("### Interactive Column Mapping & Canonical Validation")
+            st.caption("Review how your dataset's columns map to Sentinel AI model requirements. Adjust any dropdown to match your schema.")
             all_valid = True
             processed_dfs = {}
-            
+
             for file in uploaded_files:
-                with st.expander(f"📄 Configure: {file.name}", expanded=True):
+                with st.expander(f"📄 Configure & Map: {file.name}", expanded=True):
                     df = pd.read_csv(file)
                     st.dataframe(df.head(3), use_container_width=True)
-                    
+
                     target_file = st.selectbox(
-                        "Assign to Dataset Type", 
-                        list(schemas.keys()), 
+                        "Assign to Dataset Type",
+                        list(schemas.keys()),
                         key=f"target_{file.name}",
                         index=0 if "demand" in file.name.lower() else (1 if "inv" in file.name.lower() else 2)
                     )
-                    
+
+                    schema_type = FILE_TO_SCHEMA.get(target_file, "demand")
                     req_cols = schemas[target_file]
-                    st.markdown("**Column Mapping**")
-                    
-                    suggested = suggest_mapping(list(df.columns), req_cols)
-                    
+                    st.markdown("**Map Dataset Fields to Model Requirements**")
+
+                    suggested = suggest_mapping(list(df.columns), req_cols, schema_type)
+
                     col_map = {}
                     cols = st.columns(min(len(req_cols), 4))
                     for i, req_col in enumerate(req_cols):
                         with cols[i % 4]:
                             idx = list(df.columns).index(suggested[req_col]) if suggested.get(req_col) in df.columns else 0
-                            col_map[req_col] = st.selectbox(f"{req_col}", list(df.columns), index=idx, key=f"map_{file.name}_{req_col}")
-                    
-                    # Apply Mapping
-                    mapped_df = pd.DataFrame()
-                    for k, v in col_map.items():
-                        mapped_df[k] = df[v]
-                        
-                    status, msgs = validate_dataframe(mapped_df, req_cols, target_file)
-                    
-                    if status == "blocking":
-                        st.error("\n".join(msgs))
+                            col_map[req_col] = st.selectbox(f"Model: {req_col}", list(df.columns), index=idx, key=f"map_{file.name}_{req_col}")
+
+                    # Validate using P1 validation engine with user's explicit column mapping
+                    val_res = validate_dataset(df, schema_type=schema_type, explicit_mapping=col_map)
+
+                    if not val_res.is_valid:
+                        st.error("❌ **Validation Failed (Blocking):**\n" + "\n".join(f"- {e}" for e in val_res.errors))
                         all_valid = False
-                    elif status == "warning":
-                        st.warning("\n".join(msgs))
                     else:
-                        st.success("\n".join(msgs))
-                        
-                    processed_dfs[target_file] = mapped_df
+                        st.success(f"✅ **Validation Passed:** `{target_file}` is canonicalized ({len(val_res.normalized_df)} valid rows).")
+                        if val_res.warnings:
+                            with st.expander("⚠️ Quality Warnings & Adaptations", expanded=False):
+                                for w in val_res.warnings:
+                                    st.caption(f"• {w}")
+
+                        # Display Data Understanding Profile
+                        prof = val_res.profiling
+                        with st.expander(f"📊 Dataset Understanding Profile: {file.name}", expanded=True):
+                            p1, p2, p3, p4 = st.columns(4)
+                            p1.metric("Total Rows", prof.get("total_rows", len(df)))
+                            date_range_str = f"{prof.get('date_min', 'N/A')} → {prof.get('date_max', 'N/A')}" if prof.get("date_min") else "N/A"
+                            p2.metric("Date Range", date_range_str)
+                            p3.metric("Unique SKUs", prof.get("unique_skus_count", "N/A"))
+                            p4.metric("Locations / Carriers", prof.get("unique_locations_count", prof.get("unique_carriers_count", "N/A")))
+
+                            if prof.get("forecasting_suitability"):
+                                st.info(f"🤖 **ML Forecasting Readiness:** {prof.get('forecasting_suitability')}")
+
+                        processed_dfs[target_file] = val_res.normalized_df
 
             if all_valid and len(processed_dfs) == 3: # Require all 3 for the pipeline to work
                 if st.button("Use This Dataset", type="primary"):
@@ -310,10 +345,22 @@ def render_data_hub():
     with tabs[2]:
         st.subheader("Database Connection")
         st.info("Supported Connections: PostgreSQL (Neon), SQLite")
+
+        configured_neon = os.getenv("NEON_DATABASE_URL")
+        if not configured_neon:
+            try:
+                configured_neon = st.secrets.get("NEON_DATABASE_URL")
+            except Exception:
+                pass
+
+        use_configured = False
+        if configured_neon:
+            use_configured = st.checkbox("Use system-configured Neon Database (from Secrets / .env)", value=False)
+
         with st.form("db_form"):
-            db_url = st.text_input("Database URL", type="password", placeholder="postgresql://user:pass@host/db")
+            db_url = st.text_input("Database URL", type="password", placeholder="postgresql://user:pass@host/db", value=configured_neon if use_configured else "")
             test_conn = st.form_submit_button("Test Connection & Use")
-            
+
             if test_conn:
                 if not db_url:
                     st.error("Please enter a connection URL.")
@@ -323,9 +370,9 @@ def render_data_hub():
                         engine = create_engine(db_url)
                         with engine.connect() as conn:
                             pass
-                        
+
                         agent_tools.set_active_datasource(DBDataSource(connection_url=db_url))
-                        
+
                         # Pre-flight check to see if tables exist
                         try:
                             agent_tools._get_inventory_df()
@@ -336,7 +383,7 @@ def render_data_hub():
                         except Exception as e:
                             agent_tools.set_active_datasource(CSVDataSource(data_dir="data")) # Revert
                             st.error(f"BLOCKING: Connection succeeded, but required tables are missing or invalid: {e}")
-                            
+
                     except Exception as e:
                         st.error(f"BLOCKING: Connection failed. Check credentials. ({e})")
 
@@ -475,17 +522,51 @@ def render_create_decision():
                     target_id = st.text_input("Delivery ID")
         
         situation_text = st.text_area("Describe the situation or business constraints", placeholder="e.g., We just landed a huge enterprise client and demand is going to double. Do we have enough stock, or should we expedite shipments?")
-    
+
+        # Live Preview of Unified Situation Assessment
+        if target_id:
+            try:
+                sku_target = target_id if target_type == "Inventory / Demand Issue" else None
+                del_target = target_id if target_type != "Inventory / Demand Issue" else None
+                preview_state = build_unified_situation(sku_id=sku_target, delivery_id=del_target)
+
+                st.markdown("---")
+                st.markdown("#### 🛡️ Unified Situation Assessment (Pre-Analysis)")
+
+                s1, s2, s3 = st.columns([1, 2, 1])
+                s1.metric("Overall Severity", preview_state.overall_severity.value)
+                s2.metric("Primary Bottleneck", preview_state.bottleneck.bottleneck_type)
+                s3.metric("Urgency Window", f"~{preview_state.bottleneck.impact_urgency_hours:.0f} hrs")
+
+                st.info(f"**Bottleneck Discovery:** {preview_state.bottleneck.description}")
+                if preview_state.cross_risk_dependencies:
+                    for dep in preview_state.cross_risk_dependencies:
+                        st.warning(f"⚠️ **Compounding Dependency:** {dep}")
+            except Exception:
+                pass
     if st.button("Run AI Decision Analysis", type="primary", use_container_width=True):
         if not target_id:
             st.warning("Please specify a Target ID to proceed.")
             return
             
-        situation = f"Target ID: {target_id}. Context: {situation_text}"
-        
+        # Build unified intelligence situation from active data
+        try:
+            sku_target = target_id if target_type == "Inventory / Demand Issue" else None
+            del_target = target_id if target_type != "Inventory / Demand Issue" else None
+            unified_state = build_unified_situation(sku_id=sku_target, delivery_id=del_target)
+
+            situation_briefing = unified_state.to_summary_markdown()
+            situation = (
+                f"{situation_briefing}\n\n"
+                f"#### 👤 Business Operator Context & Specific Question:\n"
+                f"{situation_text if situation_text.strip() else 'Evaluate the operational risk and provide the optimal recommended action.'}"
+            )
+        except Exception as e:
+            situation = f"Target ID: {target_id}. Context: {situation_text}"
+
         status_container = st.status("Initializing AI Analysis...", expanded=True)
         with status_container:
-            st.write("Analyzing supply-chain data... ✓")
+            st.write("Synthesizing unified supply-chain situation... ✓")
             time.sleep(0.5)
             st.write("Forecasting demand & assessing operational risk... ✓")
             time.sleep(0.5)

@@ -34,9 +34,10 @@ Data → Prediction → Risk Detection → Scenario Analysis
 - ✅ **P0 — Active Business Dataset Foundation** (`data_ingestion/active_dataset.py`, `CSVDataSource`, `ExcelDataSource`, `DBDataSource`, `ActiveDatasetContext`).
 - ✅ **P1 — Data Validation & Canonical Data Model** (`data_ingestion/validation.py`, canonical schemas, normalization).
 - ✅ **P2 — Unified Supply Chain Intelligence** (`core/unified_intelligence.py`, `UnifiedSupplyChainState`, situation severity, bottleneck identification).
+- ✅ **P3 — Candidate Action Engine** (`core/candidate_actions.py`, deterministic 4-action generator `do_nothing`, `reorder`, `expedite`, `transfer_inventory`, Category A POL-INV-001 / POL-PRO-003 compliance, Category B data-derived logic, Category C assumptions, PO draft recommendation, UI comparison & PO card).
 - ✅ **P11 — Product Dashboard & Final Demo-Readiness UI Pass** (`app.py`, Command Center real-data grounding, defensible KPIs, dynamic priority risks, Data Hub live banner, Multi-Agent Review statuses, trace-grounded Approval Queue, What-If simulation).
 
-**Currently in progress / Next task:** P3 — Candidate Action & Decision Intelligence (Structured candidate action generator).
+**Currently in progress / Next task:** P4 — Productized AI Decision Agent (Orchestrator context enrichment, numerical provenance verification, structured recommendation schema).
 
 **Current execution rule:** The first unchecked task in the Productization Roadmap is the next task for the AI coding agent to work on.
 
@@ -52,13 +53,21 @@ The current developer session has completed:
    - Canonical schemas for demand, inventory, deliveries, and routing with fatal error / quality warning separation.
 3. **P2 — Unified Supply Chain Intelligence**:
    - `UnifiedSupplyChainState` integrating forecasting, inventory, delivery, and logistics with source attribution.
-4. **Final Demo-Readiness UI Pass (P11)**:
+4. **P3 — Candidate Action Engine**:
+   - `core/candidate_actions.py`: deterministic 4-action generator (`do_nothing`, `reorder`, `expedite`, `transfer_inventory`).
+   - Category A authoritative policy compliance: POL-INV-001 (60-day cap, 14-day safety stock) & POL-PRO-003 ($10,000 approval threshold).
+   - Category B data-derived logic (blended demand rate, warehouse surplus lookup).
+   - Category C configurable project assumptions (order review cycle, expedite lead time compression & surcharge, transfer handling fee).
+   - Purchase Order draft recommendation artifact with human-approval disclaimers.
+   - UI candidate-action comparison table and PO draft card in `app.py`.
+   - Tool `get_candidate_actions` and business critic threshold alignment.
+5. **Final Demo-Readiness UI Pass (P11)**:
    - Command Center real-data grounding (removed all mock entities).
    - Defensible financial inventory exposure formula.
    - Dynamic Multi-Agent review statuses (`PASSED`, `NEEDS REVIEW`, `REJECTED`).
-   - 123/123 tests passing locally; pushed to branch `Bushra` and deployed to Streamlit Cloud.
+   - 132/132 tests passing locally; pushed to branch `production-v2`.
 
-**Status:** Verified locally across all 123 tests. Committed & pushed to branch `Bushra`.
+**Status:** Verified locally across all 132 tests. Committed & pushed to branch `production-v2`.
 
 
 ### ✅ Completed (merged to main)
@@ -482,15 +491,15 @@ The productization roadmap below is the authoritative source for remaining imple
 
 ## P3 — Candidate Action Engine
 
-- [ ] Define structured candidate actions.
-- [ ] Generate actions from detected risks.
-- [ ] Include `do_nothing`.
-- [ ] Calculate supported consequences deterministically.
-- [ ] Apply hard business constraints.
-- [ ] Remove infeasible actions.
-- [ ] Compare feasible actions and trade-offs.
-- [ ] Ensure the agent selects from evidence-backed actions.
-- [ ] Add tests for invalid/policy-violating actions.
+- [x] Define structured candidate actions (`core/candidate_actions.py`).
+- [x] Generate actions from detected risks.
+- [x] Include `do_nothing`.
+- [x] Calculate supported consequences deterministically.
+- [x] Apply hard business constraints (Category A: POL-INV-001 60d cap, POL-PRO-003 $10k threshold).
+- [x] Remove infeasible actions (e.g., negative/zero qty, insufficient lead time for expedite, missing surplus for transfer).
+- [x] Compare feasible actions and trade-offs.
+- [x] Ensure the agent selects from evidence-backed actions (`get_candidate_actions` tool + `options_considered`).
+- [x] Add tests for invalid/policy-violating actions (`tests/test_candidate_actions.py` - 9/9 passing).
 
 ## P4 — Productized AI Decision Agent
 
@@ -1793,7 +1802,7 @@ Active business dataset	✅ COMPLETE
 Data validation & understanding	✅ COMPLETE
 Canonical data model	✅ COMPLETE
 Unified supply-chain intelligence	✅ COMPLETE
-Candidate action engine	⬜ TODO
+Candidate action engine	✅ COMPLETE
 Productized decision intelligence	⬜ TODO
 Policy enforcement	⬜ TODO
 Multi-agent hardening	⬜ TODO

@@ -7,7 +7,7 @@
 
 ## Live Demo
 
-🚀 [Deploy on Streamlit Cloud]  https://supplychain-xiydr3sj8cfn8o5rstpg8t.streamlit.app/  — see setup instructions below.
+🚀 [Check Out Product]  https://supplychain-xiydr3sj8cfn8o5rstpg8t.streamlit.app/  — see setup instructions below.
 
 ---
 

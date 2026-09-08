@@ -51,6 +51,10 @@ Data → Prediction → Risk Detection → Scenario Analysis
 | `agent/critics/business_critic.py` | Cost + feasibility check |
 | `agent/consensus.py` | Compares proposal + critics, records disagreements |
 | `agent/decision_trace.py` | Builds and persists full trace to DB |
+| `api/main.py` | FastAPI endpoints for orchestrator, traces, recommendations, approval |
+| `app.py` | Streamlit dashboard for command center, create decision, approval queue |
+| `core/simulation.py` | What-if simulation engine (inventory, delivery, logistics), 3 tests |
+| Phase 4 Simulation UI in `app.py` | Interactive before/after stress test controls & action delta comparison |
 ### 🔄 In Progress
 None.
 
@@ -60,8 +64,7 @@ None.
 ### 🟢 Next Available
 | Task | Unblocked By |
 |---|---|
-| `api/main.py` | `agent/orchestrator.py` |
-| `app.py` | `api/main.py` |
+| Phase 5 — Deploy | Phase 4 |
 
 ---
 
@@ -235,16 +238,16 @@ The agent skips tools irrelevant to the situation. A pure inventory alert should
 ### Phase 3 — Human-in-the-Loop UI
 | Task | Status |
 |---|---|
-| `api/main.py` — FastAPI endpoints (local dev) | TODO |
-| `app.py` — Streamlit dashboard + Approve/Reject + decision trace view | TODO |
+| `api/main.py` — FastAPI endpoints (local dev) | ✅ DONE |
+| `app.py` — Streamlit dashboard + Approve/Reject + decision trace view | ✅ DONE |
 
 ### Phase 4 — What-If Simulation & Business Demonstration
 | Task | Status |
 |---|---|
-| Scenario parameter controls (demand, stock, lead time, delivery risk, capacity, disruption) | TODO |
-| Before/after prediction comparison | TODO |
-| Recommended action delta (do nothing vs. act) | TODO |
-| Non-technical visual explanation UI | TODO |
+| Scenario parameter controls (demand, stock, lead time, delivery risk, capacity, disruption) | ✅ DONE |
+| Before/after prediction comparison | ✅ DONE |
+| Recommended action delta (do nothing vs. act) | ✅ DONE |
+| Non-technical visual explanation UI | ✅ DONE |
 
 **Purpose of Phase 4:** The final system must be understandable to non-technical judges and business users. The simulation reuses actual ML/risk/optimization/agent outputs — it does not invent independent numbers. Users change business conditions and see the resulting change in stockout risk, delivery risk, inventory level, route cost, and recommended action.
 
@@ -313,19 +316,19 @@ Every phase requires confirming terminal output and passing tests before committ
 - [x] **Confirmed:** orchestrator run end-to-end from terminal produces a full trace (inputs → predictions → policies → tools used → primary proposal → critic verdicts → consensus result → recommendation) for at least two distinct test scenarios
 
 ### Phase 3 — Human-in-the-Loop UI
-- [ ] `api/main.py` — FastAPI endpoints wired to `agent/`/`core/`, tested locally via `uv run uvicorn api.main:app --reload` and the `/docs` page
-- [ ] `app.py` — Streamlit dashboard: pending recommendations with full decision trace visible, **Approve / Reject** buttons, business-impact simulation shown after approval
-- [ ] Rejecting a recommendation does not mark it executed; approving does
-- [ ] Decision trace view shows: inputs → predictions → policies retrieved → tools called → primary proposal → critic verdicts → consensus result
-- [ ] **Confirmed:** both the FastAPI `/docs` page and the Streamlit dashboard show correct results for the same test case
+- [x] `api/main.py` — FastAPI endpoints wired to `agent/`/`core/`, tested locally via `uv run uvicorn api.main:app --reload` and the `/docs` page
+- [x] `app.py` — Streamlit dashboard: pending recommendations with full decision trace visible, **Approve / Reject** buttons, business-impact simulation shown after approval
+- [x] Rejecting a recommendation does not mark it executed; approving does
+- [x] Decision trace view shows: inputs → predictions → policies retrieved → tools called → primary proposal → critic verdicts → consensus result
+- [x] **Confirmed:** both the FastAPI `/docs` page and the Streamlit dashboard show correct results for the same test case
 
 ### Phase 4 — What-If Simulation & Business Demonstration
-- [ ] Scenario parameter controls in Streamlit UI — adjustable: demand level, current inventory, supplier lead time, delivery risk, vehicle capacity, disruption scenario
-- [ ] Before/after prediction comparison — same ML/risk/optimization outputs, different input conditions
-- [ ] Recommended action delta — "do nothing" outcome vs. recommended action outcome, side by side
-- [ ] Non-technical visual explanation — clearly shows: "What problem did AI find?" → "What options were considered?" → "What is recommended?" → "What happens if we do nothing?"
-- [ ] Simulation reuses actual `core/*` model outputs — does not invent independent numbers
-- [ ] **Confirmed:** a non-technical user can follow the BEFORE → simulate → AFTER flow without explanation
+- [x] Scenario parameter controls in Streamlit UI — adjustable: demand level, current inventory, supplier lead time, delivery risk, vehicle capacity, disruption scenario
+- [x] Before/after prediction comparison — same ML/risk/optimization outputs, different input conditions
+- [x] Recommended action delta — "do nothing" outcome vs. recommended action outcome, side by side
+- [x] Non-technical visual explanation — clearly shows: "What problem did AI find?" → "What options were considered?" → "What is recommended?" → "What happens if we do nothing?"
+- [x] Simulation reuses actual `core/*` model outputs — does not invent independent numbers
+- [x] **Confirmed:** a non-technical user can follow the BEFORE → simulate → AFTER flow without explanation
 
 ### Phase 5 — Deploy
 - [ ] `pyproject.toml` / `uv.lock` finalized and confirmed to install cleanly via `uv sync` in a fresh clone
@@ -355,10 +358,8 @@ Every phase requires confirming terminal output and passing tests before committ
 
 ## What Needs to Be Built (Priority Order)
 
-1. `api/main.py` — FastAPI wiring for local dev
-2. `app.py` — Streamlit dashboard + human approval UI
-3. Phase 4 — What-if simulation layer
-4. Phase 5 — Deploy
+1. Phase 4 — What-if simulation layer
+2. Phase 5 — Deploy
 
 ---
 
@@ -396,8 +397,8 @@ supplychain-sentinel-ai/
 │   └── connection.py              ✅ Neon connection, session 
 ├── policies/                      ✅ real policy markdown documents
 ├── api/
-│   └── main.py                    TODO
-├── app.py                         TODO (Streamlit — what deploys)
+│   └── main.py                    ✅
+├── app.py                         ✅
 ├── data_pipeline/                 ✅
 ├── data/                          ✅ synthetic seed CSVs (dev/test only)
 ├── tests/
@@ -697,3 +698,4 @@ Questions for next session:
 |------|-----------|------|---------|
 | pre-2026-09-02 | Team | Phase 0, data ingestion, evaluation, forecasting, inventory risk, RAG, LLM explainer | All merged to main |
 | 2026-09-06 | — | `db/models.py` + `db/connection.py` + `tests/test_db.py` | 62/62 passing, merged to main |
+| 2026-09-08 | Team | Phase 4 What-If Simulation (`core/simulation.py`, `app.py`, 90/90 tests passing) | Verified & merged |

@@ -2,10 +2,26 @@ import streamlit as st
 import json
 from datetime import datetime
 import time
+import pandas as pd
 
 from db.connection import SessionLocal
 from db.models import DecisionTrace, Recommendation, Approval, InventoryRisk, DeliveryRiskPrediction, SKU
 from agent.orchestrator import run_agent_loop
+from data_ingestion.csv_source import CSVDataSource
+from core.delivery_risk import train_delivery_risk_model
+from core.simulation import (
+    simulate_inventory_scenario,
+    simulate_delivery_scenario,
+    simulate_logistics_scenario
+)
+
+@st.cache_resource
+def load_simulation_resources():
+    source = CSVDataSource(data_dir="data")
+    inv_df = source.load_inventory_snapshot()
+    del_df = source.load_deliveries()
+    model, _, _ = train_delivery_risk_model(del_df)
+    return inv_df, del_df, model
 
 st.set_page_config(page_title="SupplyChain Sentinel AI", layout="wide", initial_sidebar_state="expanded")
 
@@ -360,33 +376,300 @@ def render_decision_history():
 
 # --- VIEW: WHAT-IF SIMULATION (Phase 4) ---
 def render_simulation():
-    st.title("What-If Simulation")
-    st.markdown("See how changing supply-chain conditions could affect operational outcomes.")
+    st.title("What-If Simulation & Business Intelligence")
+    st.markdown("Stress-test supply-chain operations under shifting market conditions, disruptions, and capacity constraints.")
     
-    st.warning("🔌 The Phase 4 Simulation Engine is not yet connected. Results below are illustrative placeholders to demonstrate the intended UI layout.")
+    st.markdown("""
+    <div style="background-color: #1a1a2e; border: 1px solid #30363d; border-radius: 8px; padding: 12px 18px; margin-bottom: 22px;">
+        <div style="display: flex; justify-content: space-between; font-size: 0.9em; color: #c9d1d9; font-weight: 500;">
+            <span>🔍 <b>1. Identify Operational Risk</b></span>
+            <span style="color: #58a6ff;">➔</span>
+            <span>⚙️ <b>2. Configure Stress Test Overrides</b></span>
+            <span style="color: #58a6ff;">➔</span>
+            <span>📊 <b>3. Compare Baseline vs. Scenario</b></span>
+            <span style="color: #58a6ff;">➔</span>
+            <span>🛡️ <b>4. Evaluate Action Delta (Do Nothing vs. Act)</b></span>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
     
-    col1, col2 = st.columns([1, 2])
-    with col1:
-        st.subheader("Scenario Controls")
-        st.slider("Demand Change (%)", -50, 50, 20)
-        st.slider("Supplier Delay (Days)", 0, 14, 4)
-        st.slider("Inventory Adjustment", -500, 500, -100)
-        st.button("Run Simulation", type="primary")
+    inv_df, del_df, delivery_model = load_simulation_resources()
+    
+    sim_mode = st.selectbox(
+        "Select Simulation Domain",
+        ["📦 Inventory Risk & Stockout", "🚚 Delivery Risk & Transit Delay", "🗺️ Logistics Fleet & Routing Capacity"],
+        key="sim_mode_selector"
+    )
+    st.markdown("---")
+
+    if sim_mode == "📦 Inventory Risk & Stockout":
+        st.subheader("📦 Inventory Stress-Testing: Demand Shocks & Supplier Delays")
+        st.markdown("Simulate how demand spikes or supplier lead time extensions impact Days of Supply and Stockout exposure.")
         
-    with col2:
-        st.subheader("Projected Business Impact")
+        sku_options = inv_df["sku_id"].tolist()
+        col_ctrl, col_results = st.columns([1, 1.4], gap="large")
         
-        st.markdown("""
-        | Metric | Baseline | Scenario |
-        |---|---|---|
-        | **Stockout Risk** | 82% | 94% 🔴 |
-        | **Service Level** | 78% | 64% 🔴 |
-        | **Expected Shortage** | 560 units | 890 units 🔴 |
-        | **Operational Cost** | — | — |
-        """)
+        with col_ctrl:
+            with st.form(key="inv_sim_form"):
+                st.markdown("#### Scenario Controls")
+                selected_sku = st.selectbox("Select Target SKU", sku_options, index=0)
+                sku_row = inv_df[inv_df["sku_id"] == selected_sku].iloc[0]
+                
+                base_stock = float(sku_row.get("current_stock", 100.0))
+                base_lead_time = float(sku_row.get("lead_time_days", 7.0))
+                unit_cost = float(sku_row.get("unit_cost", 50.0))
+                
+                st.caption(f"Baseline: Stock = **{base_stock:.0f} units** | Lead Time = **{base_lead_time:.0f} days** | Unit Cost = **₹{unit_cost:.2f}**")
+                
+                demand_mult = st.slider(
+                    "Demand Surge Multiplier",
+                    min_value=0.5,
+                    max_value=3.0,
+                    value=1.5,
+                    step=0.1,
+                    help="1.0 = baseline demand, 1.5 = 50% surge, 2.0 = 100% surge"
+                )
+                
+                stock_override_opt = st.checkbox("Override Current On-Hand Stock?", value=False)
+                stock_override = None
+                if stock_override_opt:
+                    stock_override = st.number_input("Adjusted Stock (units)", min_value=0.0, max_value=5000.0, value=base_stock, step=10.0)
+                    
+                lead_override_opt = st.checkbox("Override Supplier Lead Time?", value=False)
+                lead_time_override = None
+                if lead_override_opt:
+                    lead_time_override = st.slider("Adjusted Lead Time (days)", min_value=1.0, max_value=45.0, value=float(base_lead_time), step=1.0)
+                    
+                run_inv = st.form_submit_button("⚡ Run Inventory Simulation", type="primary")
+
+        with col_results:
+            st.markdown("#### Projected Business Impact")
+            base_daily = max(1.0, base_stock / 15.0)
+            base_forecast_14d = base_daily * 14.0
+            
+            sim_res = simulate_inventory_scenario(
+                sku_id=selected_sku,
+                base_current_stock=base_stock,
+                base_avg_daily_demand=base_daily,
+                base_forecast_demand=base_forecast_14d,
+                base_forecast_period_days=14,
+                base_lead_time_days=base_lead_time,
+                base_safety_stock_days=14.0,
+                demand_multiplier=demand_mult,
+                stock_override=stock_override,
+                lead_time_override=lead_time_override,
+            )
+            
+            before = sim_res["before"]
+            after = sim_res["after"]
+            deltas = sim_res["deltas"]
+            
+            m1, m2, m3 = st.columns(3)
+            dos_delta = deltas["days_of_supply_delta"]
+            m1.metric("Days of Supply", f"{after['days_of_supply']:.1f} d", delta=f"{dos_delta:+.1f} d", delta_color="normal" if dos_delta >= 0 else "inverse")
+            
+            rop_delta = deltas["reorder_point_delta"]
+            m2.metric("Reorder Point", f"{after['reorder_point_units']:.0f} u", delta=f"{rop_delta:+.0f} u", delta_color="inverse" if rop_delta > 0 else "normal")
+            
+            m3.markdown(f"**Risk Level**<br>{get_risk_badge(before['risk_level'])} ➔ {get_risk_badge(after['risk_level'])}", unsafe_allow_html=True)
+            
+            st.markdown("---")
+            st.markdown("##### Detailed Metric Breakdown")
+            comp_data = {
+                "Metric": ["Current Stock (units)", "Lead Time (days)", "Avg Daily Demand (units/d)", "14-Day Demand Forecast (units)", "Days of Supply (days)", "Reorder Point (units)", "Operational Risk Status"],
+                "Baseline State": [
+                    f"{before['current_stock']:.0f}",
+                    f"{before['lead_time_days']:.0f}",
+                    f"{before['avg_daily_demand']:.1f}",
+                    f"{before['forecasted_demand']:.1f}",
+                    f"{before['days_of_supply']:.1f}",
+                    f"{before['reorder_point_units']:.1f}",
+                    before['risk_level'].upper()
+                ],
+                "Scenario State": [
+                    f"{after['current_stock']:.0f}",
+                    f"{after['lead_time_days']:.0f}",
+                    f"{after['avg_daily_demand']:.1f}",
+                    f"{after['forecasted_demand']:.1f}",
+                    f"{after['days_of_supply']:.1f}",
+                    f"{after['reorder_point_units']:.1f}",
+                    after['risk_level'].upper()
+                ],
+                "Observed Delta": [
+                    f"{after['current_stock'] - before['current_stock']:+.0f}",
+                    f"{after['lead_time_days'] - before['lead_time_days']:+.0f}",
+                    f"{after['avg_daily_demand'] - before['avg_daily_demand']:+.1f}",
+                    f"{after['forecasted_demand'] - before['forecasted_demand']:+.1f}",
+                    f"{deltas['days_of_supply_delta']:+.1f}",
+                    f"{deltas['reorder_point_delta']:+.1f}",
+                    "CHANGED ⚠️" if deltas["risk_level_changed"] else "UNCHANGED"
+                ]
+            }
+            st.dataframe(pd.DataFrame(comp_data), hide_index=True, use_container_width=True)
+            
+            st.markdown("##### 🛡️ Decision Delta: Do Nothing vs. Recommended Action")
+            a_col1, a_col2 = st.columns(2)
+            with a_col1:
+                st.error(f"""
+                **❌ Do Nothing Scenario**
+                - Buffer depleted within **{after['days_of_supply']:.1f} days**.
+                - Stockout penalty incurred; customer fulfillments backlogged.
+                - Operational exposure of approx **₹{base_stock * unit_cost:,.0f}**.
+                """)
+            with a_col2:
+                reorder_qty = max(0.0, after['reorder_point_units'] - after['current_stock'])
+                st.success(f"""
+                **✅ Recommended Action (AI Decision)**
+                - Issue replenishment PO for **{reorder_qty:.0f} units**.
+                - Enforce expedited supplier dispatch to hold lead time to **{after['lead_time_days']:.0f} days**.
+                - Preserves service level stability and eliminates stockout penalty.
+                """)
+
+    elif sim_mode == "🚚 Delivery Risk & Transit Delay":
+        st.subheader("🚚 Delivery Risk: Severe Weather & Traffic Bottlenecks")
+        st.markdown("Simulate how severe weather disruptions or extreme highway congestion elevate delivery delay probability.")
         
-        st.markdown("<br>", unsafe_allow_html=True)
-        st.info("**AI Recommendation Under This Scenario:**\n\nEXPEDITE REPLENISHMENT VIA PREMIUM FREIGHT")
+        delivery_ids = del_df["delivery_id"].tolist()
+        col_ctrl, col_results = st.columns([1, 1.4], gap="large")
+        
+        with col_ctrl:
+            with st.form(key="del_sim_form"):
+                st.markdown("#### Scenario Controls")
+                selected_del = st.selectbox("Select Target Delivery ID", delivery_ids, index=0)
+                del_row = del_df[del_df["delivery_id"] == selected_del].iloc[0]
+                
+                carrier = del_row.get("carrier_id", "Unknown")
+                origin = del_row.get("origin", "Depot")
+                dest = del_row.get("destination", "Retail")
+                distance = float(del_row.get("distance_km", 100))
+                base_weather = str(del_row.get("weather_condition", "CLEAR"))
+                base_traffic = float(del_row.get("traffic_delay_hrs", 0.0))
+                
+                st.caption(f"Route: **{origin} ➔ {dest}** ({distance:.0f} km) | Carrier: **{carrier}**")
+                st.caption(f"Baseline Weather: **{base_weather}** | Baseline Traffic Delay: **{base_traffic:.1f} hrs**")
+                
+                weather_options = ["CLEAR", "RAIN", "FOG", "STORM"]
+                w_idx = weather_options.index(base_weather) if base_weather in weather_options else 0
+                weather_override = st.selectbox("Simulate Weather Condition", weather_options, index=w_idx)
+                traffic_override = st.slider("Simulate Traffic Delay (Hours)", min_value=0.0, max_value=12.0, value=float(base_traffic), step=0.5)
+                
+                run_del = st.form_submit_button("⚡ Run Delivery Simulation", type="primary")
+                
+        with col_results:
+            st.markdown("#### Projected Business Impact")
+            sim_res = simulate_delivery_scenario(
+                model=delivery_model,
+                df_deliveries=del_df,
+                delivery_id=selected_del,
+                traffic_delay_override=traffic_override,
+                weather_condition_override=weather_override
+            )
+            
+            before = sim_res["before"]
+            after = sim_res["after"]
+            deltas = sim_res["deltas"]
+            
+            m1, m2 = st.columns(2)
+            score_delta = deltas["risk_score_delta"]
+            m1.metric("Late Delivery Probability", f"{after['risk_score']*100:.1f}%", delta=f"{score_delta*100:+.1f}%", delta_color="inverse" if score_delta > 0 else "normal")
+            m2.markdown(f"**Risk Classification**<br>{get_risk_badge(before['risk_label'])} ➔ {get_risk_badge(after['risk_label'])}", unsafe_allow_html=True)
+            
+            st.markdown("---")
+            st.markdown("##### ML Driving Risk Factors (SHAP Explanation)")
+            top_feats = after.get("top_features", {})
+            if top_feats:
+                feat_df = pd.DataFrame([{"Feature": k, "Impact Score (SHAP)": f"{v:+.4f}"} for k, v in top_feats.items()])
+                st.dataframe(feat_df, hide_index=True, use_container_width=True)
+                
+            st.markdown("##### 🛡️ Decision Delta: Do Nothing vs. Recommended Action")
+            a_col1, a_col2 = st.columns(2)
+            with a_col1:
+                st.error("""
+                **❌ Do Nothing Scenario**
+                - Shipment stuck in severe weather / congestion corridor.
+                - Promised delivery window missed by estimated delay duration.
+                - On-time delivery SLA breach penalty applied.
+                """)
+            with a_col2:
+                st.success("""
+                **✅ Recommended Action (AI Decision)**
+                - Reroute shipment via alternate regional bypass to circumvent bottlenecks.
+                - Pre-notify receiving facility for dynamic cross-dock priority staging.
+                - If delay estimate exceeds 4 hours, dispatch emergency courier unit.
+                """)
+
+    elif sim_mode == "🗺️ Logistics Fleet & Routing Capacity":
+        st.subheader("🗺️ Logistics Routing: Fleet Capacity & Vehicle Constraints")
+        st.markdown("Simulate how fleet availability and vehicle payload capacity affect route efficiency and fuel costs.")
+        
+        all_dels = del_df["delivery_id"].head(8).tolist()
+        col_ctrl, col_results = st.columns([1, 1.4], gap="large")
+        
+        with col_ctrl:
+            with st.form(key="log_sim_form"):
+                st.markdown("#### Scenario Controls")
+                selected_dels = st.multiselect("Select Deliveries to Route", all_dels, default=all_dels[:5])
+                
+                num_vehicles = st.slider("Available Delivery Vehicles", min_value=1, max_value=5, value=2, step=1)
+                capacity_mult = st.slider("Vehicle Payload Capacity Multiplier", min_value=0.5, max_value=2.0, value=1.0, step=0.1, help="Adjust capacity limit per vehicle (1.0 = standard 500kg capacity)")
+                
+                run_log = st.form_submit_button("⚡ Run Routing Simulation", type="primary")
+                
+        with col_results:
+            st.markdown("#### Projected Business Impact")
+            if not selected_dels:
+                st.warning("Please select at least 1 delivery to route.")
+            else:
+                base_constraints = {"num_vehicles": 2, "capacities": [500] * 2}
+                del_records = del_df[del_df["delivery_id"].isin(selected_dels)].to_dict(orient="records")
+                for d in del_records:
+                    if "weight" not in d:
+                        d["weight"] = 100
+                        
+                sim_res = simulate_logistics_scenario(
+                    delivery_ids=selected_dels,
+                    df_deliveries=del_records,
+                    base_vehicle_constraints=base_constraints,
+                    capacity_multiplier=capacity_mult,
+                    num_vehicles_override=num_vehicles
+                )
+                
+                before = sim_res["before"]
+                after = sim_res["after"]
+                deltas = sim_res["deltas"]
+                
+                if after.get("status") != "Success":
+                    st.warning(f"⚠️ Routing Constraint Alert: {after.get('status', 'No solution found')}. Fleet capacity is insufficient to deliver all assigned shipments. Increase vehicle count or payload multiplier.")
+                else:
+                    m1, m2, m3 = st.columns(3)
+                    dist_delta = deltas["total_distance_delta"]
+                    cost_delta = deltas["total_cost_delta"]
+                    
+                    m1.metric("Total Transit Distance", f"{after.get('total_distance_km', 0):.0f} km", delta=f"{dist_delta:+.0f} km", delta_color="inverse" if dist_delta > 0 else "normal")
+                    m2.metric("Estimated Route Cost", f"₹{after.get('total_cost', 0):,.0f}", delta=f"₹{cost_delta:+,.0f}", delta_color="inverse" if cost_delta > 0 else "normal")
+                    m3.metric("Dispatched Routes", f"{len(after.get('routes', []))} vehicles", delta=f"{len(after.get('routes', [])) - len(before.get('routes', [])):+d} vs Base")
+                    
+                    st.markdown("---")
+                    st.markdown("##### Optimized Vehicle Allocations")
+                    for r in after.get("routes", []):
+                        stops_str = " ➔ ".join([s["delivery_id"] for s in r["stops"]])
+                        st.markdown(f"**Vehicle #{r['vehicle_id'] + 1}:** {stops_str} *(Distance: {r['route_distance_km']} km | Load: {r['route_load']} kg)*")
+                        
+                st.markdown("---")
+                st.markdown("##### 🛡️ Decision Delta: Do Nothing vs. Recommended Action")
+                a_col1, a_col2 = st.columns(2)
+                with a_col1:
+                    st.error("""
+                    **❌ Do Nothing (Fixed / Unoptimized Dispatch)**
+                    - Underutilized vehicles run redundant cross-city mileage.
+                    - Overloaded vehicles risk breakdown or safety compliance breach.
+                    """)
+                with a_col2:
+                    st.success("""
+                    **✅ Recommended Action (VRP Optimization)**
+                    - Re-cluster shipments into optimal density zones.
+                    - Minimize total fleet transit kilometers and driver overtime expenses.
+                    """)
 
 if __name__ == "__main__":
     main()

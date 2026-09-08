@@ -1,22 +1,198 @@
 # SupplyChain Sentinel AI
 
-An end-to-end AI-powered supply-chain decision intelligence platform.
+> **AI-Powered Supply Chain Risk & Decision Intelligence Platform**
+> An end-to-end system that forecasts demand, detects inventory & delivery risk, optimises routes, retrieves business policies via RAG, and runs a genuine multi-agent deliberation before surfacing recommendations for human approval.
 
-## Stack
-- **ML:** scikit-learn, LightGBM, SHAP
-- **Optimization:** OR-Tools (VRP)
-- **RAG:** ChromaDB + sentence-transformers
-- **Agent/LLM:** Groq API (tool/function calling)
-- **Database:** Neon PostgreSQL
-- **Backend:** FastAPI + Uvicorn
-- **Frontend:** Streamlit
-- **Environment:** uv
+---
 
-## Setup
-1. Clone the repo
-2. Run `uv sync`
-3. Copy `.env.example` to `.env` and fill in secrets
-4. Run `uv run streamlit run app.py`
+## Live Demo
+
+🚀 [Deploy on Streamlit Cloud](#deployment-streamlit-cloud) — see setup instructions below.
+
+---
+
+## Tech Stack
+
+| Layer | Technology |
+|---|---|
+| **ML / Forecasting** | LightGBM, scikit-learn, SHAP |
+| **Optimisation** | Google OR-Tools (Capacitated VRP) |
+| **RAG / Policy Retrieval** | ChromaDB + sentence-transformers (`all-MiniLM-L6-v2`) |
+| **Agent / LLM** | Groq API — `openai/gpt-oss-120b` (tool/function calling) |
+| **Database** | Neon PostgreSQL (serverless, free tier) |
+| **Backend** | FastAPI + Uvicorn (local dev) |
+| **Frontend** | Streamlit (production entry point) |
+| **Environment** | `uv` + `pyproject.toml` + `uv.lock` |
+
+---
+
+## Architecture
+
+```
+Data Sources (CSV / Neon DB)
+    ↓
+Data Ingestion Layer (DataSource interface)
+    ↓
+Core ML Modules
+  ├── core/forecasting.py         (LightGBM demand forecast)
+  ├── core/inventory_risk.py      (rule-based stockout/overstock)
+  ├── core/delivery_risk.py       (binary classifier + SHAP)
+  ├── core/logistics_optimizer.py (OR-Tools VRP)
+  ├── core/rag.py                 (ChromaDB + sentence-transformers)
+  └── core/simulation.py          (What-if scenario engine)
+    ↓
+AI Decision Agent (agent/orchestrator.py)
+  └── genuine tool-calling agent — LLM decides which tools to call
+    ↓
+Multi-Agent Critique
+  ├── agent/critics/policy_critic.py   (policy compliance + safety)
+  └── agent/critics/business_critic.py (cost + feasibility)
+    ↓
+Consensus Layer (agent/consensus.py)
+    ↓
+Human Approval Gate (Streamlit UI — Approve / Reject)
+    ↓
+What-If Simulation (Phase 4 — core/simulation.py)
+```
+
+---
+
+## Quick Start (Local)
+
+### Prerequisites
+- Python 3.13+
+- [uv](https://docs.astral.sh/uv/getting-started/installation/) installed
+
+### Setup
+
+```bash
+# 1. Clone the repo
+git clone https://github.com/bushrachohan/SupplyChain.git
+cd SupplyChain
+
+# 2. Install all dependencies (including dev/test)
+uv sync
+
+# 3. Copy the example env file and fill in your secrets
+cp .env.example .env
+# Edit .env with your real GROQ_API_KEY and NEON_DATABASE_URL
+
+# 4. Run the Streamlit app
+uv run streamlit run app.py
+```
+
+### Run Tests
+
+```bash
+uv run pytest
+# Expected: 90 passed
+```
+
+### Run FastAPI (local dev only)
+
+```bash
+uv run uvicorn api.main:app --reload
+# Visit http://localhost:8000/docs
+```
+
+---
+
+## Secrets Required
+
+| Key | Where to get it |
+|---|---|
+| `GROQ_API_KEY` | [console.groq.com](https://console.groq.com) — free tier |
+| `NEON_DATABASE_URL` | [neon.tech](https://neon.tech) — free tier PostgreSQL |
+
+For local dev, place these in a `.env` file (never commit it).
+
+---
+
+## Deployment — Streamlit Cloud
+
+1. **Push repo to GitHub** (already done).
+2. Go to [share.streamlit.io](https://share.streamlit.io) → **New app**.
+3. Connect your GitHub repo: `bushrachohan/SupplyChain`.
+4. Set **Main file path** to: `app.py`.
+5. Set **Python version** to: `3.13`.
+6. Click **Advanced settings → Secrets** and paste:
+
+```toml
+GROQ_API_KEY = "gsk_..."
+NEON_DATABASE_URL = "postgresql://..."
+```
+
+7. Click **Deploy**.
+
+### ChromaDB on Streamlit Cloud
+The `chroma_db/` directory is git-ignored. On each cold start, `core/rag.py` detects the missing index and rebuilds it automatically from `policies/*.md`. No manual action needed.
+
+### Why `requirements.txt` instead of `pyproject.toml`?
+Streamlit Community Cloud uses `pip` for installation and looks for `requirements.txt`. The `requirements.txt` in this repo is auto-generated from `uv.lock` and is the source of truth for production dependencies. Do **not** edit it manually — regenerate with:
+```bash
+uv export --format requirements-txt --no-hashes --no-dev -o requirements.txt
+```
+
+---
+
+## Project Structure
+
+```
+SupplyChain/
+├── app.py                     # Streamlit production entry point
+├── api/main.py                # FastAPI (local dev / testing only)
+├── agent/
+│   ├── orchestrator.py        # Primary decision agent (Groq tool-calling)
+│   ├── tools.py               # Tool wrappers + Groq function schemas
+│   ├── critics/
+│   │   ├── policy_critic.py   # Policy compliance + safety check
+│   │   └── business_critic.py # Cost + feasibility check
+│   ├── consensus.py           # Multi-agent consensus layer
+│   └── decision_trace.py      # Builds + persists full trace to DB
+├── core/
+│   ├── forecasting.py         # LightGBM demand forecast
+│   ├── inventory_risk.py      # Rule-based stockout/overstock
+│   ├── delivery_risk.py       # Binary classifier + SHAP
+│   ├── logistics_optimizer.py # OR-Tools Capacitated VRP
+│   ├── rag.py                 # ChromaDB RAG over policy documents
+│   └── simulation.py          # What-if scenario simulation engine
+├── ml/
+│   ├── evaluation.py          # Time-based split, metrics, baselines
+│   └── explainability.py      # SHAP tree explainer helpers
+├── llm/
+│   └── explainer.py           # Groq narration-only wrapper
+├── db/
+│   ├── models.py              # SQLAlchemy models (15 tables)
+│   └── connection.py          # Neon Postgres engine + session
+├── data_ingestion/
+│   ├── base.py                # Abstract DataSource interface
+│   ├── csv_source.py          # CSV (dev/test synthetic data)
+│   ├── excel_source.py        # Excel source
+│   ├── db_source.py           # Neon DB source
+│   └── api_source.py          # API stub (extensible)
+├── policies/                  # Real business policy documents for RAG
+├── data/                      # Synthetic CSV data (dev/test only)
+├── data_pipeline/             # Seed data generation + Neon DB loader
+├── tests/                     # 90 tests across all modules
+├── .streamlit/config.toml     # Streamlit theme + server config
+├── pyproject.toml             # uv dependency manifest
+├── requirements.txt           # pip-compatible (for Streamlit Cloud)
+└── .env.example               # Secret key template
+```
+
+---
 
 ## Team
-- Bushra(Team Leader), Maryam, Shreeya, Samiya
+
+**Bushra** (Team Leader) · **Maryam** · **Shreeya** · **Samiya**
+
+See [`progress.md`](progress.md) for the full task board, build checklist, and session log.
+
+---
+
+## Key Design Rules
+
+- **LLM Grounding Constraint**: The LLM only narrates and reasons. Every number traces to a `core/*` tool call — never hallucinated.
+- **Human-in-the-loop**: No business action executes without human approval.
+- **Real agent, not a pipeline**: The LLM decides which tools to call based on the situation. A pure inventory alert must not trigger route optimisation.
+- **Synthetic data**: All `data/*.csv` files are clearly synthetic. Never presented as real company data.

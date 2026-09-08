@@ -136,11 +136,16 @@ def simulate_logistics_scenario(
     # Calculate After
     after_result = optimize_routes(delivery_ids, after_constraints, df_deliveries)
     
+    before_dist = before_result.get("total_distance_km", before_result.get("total_distance", 0))
+    after_dist = after_result.get("total_distance_km", after_result.get("total_distance", 0))
+    before_cost = before_result.get("total_cost", 0)
+    after_cost = after_result.get("total_cost", 0)
+
     return {
         "before": before_result,
         "after": after_result,
         "deltas": {
-            "total_distance_delta": round(after_result.get("total_distance", 0) - before_result.get("total_distance", 0), 2),
-            "total_cost_delta": round(after_result.get("total_cost", 0) - before_result.get("total_cost", 0), 2)
+            "total_distance_delta": round(after_dist - before_dist, 2),
+            "total_cost_delta": round(after_cost - before_cost, 2)
         }
     }

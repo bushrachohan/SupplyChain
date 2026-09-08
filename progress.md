@@ -471,13 +471,13 @@ The productization roadmap below is the authoritative source for remaining imple
 
 ## P2 — Unified Supply Chain Intelligence
 
-- [ ] Create a unified supply-chain situation/state.
-- [ ] Combine demand, inventory, delivery, and logistics intelligence.
-- [ ] Identify affected SKUs/orders/deliveries.
-- [ ] Identify severity and operational bottlenecks.
-- [ ] Preserve source attribution for numerical outputs.
-- [ ] Feed unified intelligence into the Decision Agent.
-- [ ] Add integration tests.
+- [x] Create a unified supply-chain situation/state (`core/unified_intelligence.py` -> `UnifiedSupplyChainState`).
+- [x] Combine demand, inventory, delivery, and logistics intelligence.
+- [x] Identify affected SKUs/orders/deliveries.
+- [x] Identify severity and operational bottlenecks (`calculate_overall_severity`, `identify_bottleneck`).
+- [x] Preserve source attribution for numerical outputs (`deterministic_attribution`).
+- [x] Feed unified intelligence into the Decision Agent (`app.py` -> `run_agent_loop(situation_briefing)`).
+- [x] Add integration tests (`tests/test_unified_intelligence.py` - 6/6 passing).
 
 ## P3 — Candidate Action Engine
 
@@ -1246,19 +1246,19 @@ Current modules already exist individually.
 
 The next goal is to make them behave as one intelligence system.
 
- Create a unified supply-chain situation/state object.
- Combine demand forecast outputs with inventory state.
- Combine inventory state with delivery risk where relevant.
- Combine delivery risk with route/logistics information.
- Preserve source attribution for every numerical output.
- Define a consistent risk representation.
- Define overall supply-chain situation severity.
- Identify affected SKUs/orders/deliveries.
- Identify the operational bottleneck.
- Identify dependencies between risks.
- Ensure the agent receives this unified situation rather than manually assembled disconnected values.
- Add tests for combined inventory + logistics situations.
- Ensure irrelevant intelligence layers are not invoked unnecessarily.
+- [x] Create a unified supply-chain situation/state object (`UnifiedSupplyChainState`).
+- [x] Combine demand forecast outputs with inventory state.
+- [x] Combine inventory state with delivery risk where relevant.
+- [x] Combine delivery risk with route/logistics information.
+- [x] Preserve source attribution for every numerical output.
+- [x] Define a consistent risk representation.
+- [x] Define overall supply-chain situation severity (`calculate_overall_severity`).
+- [x] Identify affected SKUs/orders/deliveries.
+- [x] Identify the operational bottleneck (`identify_bottleneck`).
+- [x] Identify dependencies between risks (`cross_risk_dependencies`).
+- [x] Ensure the agent receives this unified situation rather than manually assembled disconnected values (integrated into `app.py`).
+- [x] Add tests for combined inventory + logistics situations (`tests/test_unified_intelligence.py`).
+- [x] Ensure irrelevant intelligence layers are not invoked unnecessarily.
 Required principle
 Forecast → Risk → Situation
 
@@ -1633,7 +1633,7 @@ The product is COMPLETE only when every statement below can be verified:
 
 AI coding agents must start here.
 
-Current task: P2 — Unified Supply Chain Intelligence (Create unified supply-chain situation/state object)
+Current task: P3 — Candidate Action & Decision Intelligence (Structured candidate action generator)
 
 Status: TODO
 

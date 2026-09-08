@@ -41,6 +41,16 @@ Data → Prediction → Risk Detection → Scenario Analysis
 | `core/rag.py` | ChromaDB + sentence-transformers, section-aware chunking, safety-stock retrieval verified, 7 tests |
 | `llm/explainer.py` | Groq narration-only wrapper (`explain_recommendation`, `summarize_text`), injectable test client, migrated to `openai/gpt-oss-120b`, 9 tests |
 | `db/models.py` + `db/connection.py` | All 15 tables, SQLAlchemy models, Neon connection, `create_tables.py`, 2 tests passing |
+| `data_pipeline/` | `generate_seed_data.py`, `load_seed_data.py` for Neon DB population |
+| `core/delivery_risk.py` | Binary classifier, time-based split, baseline comparison, SHAP |
+| `core/logistics_optimizer.py` | OR-Tools Capacitated VRP |
+| `ml/explainability.py` | SHAP/feature importance helpers for delivery risk |
+| `agent/tools.py` | Tool wrappers with Groq function-call schemas |
+| `agent/orchestrator.py` | Genuine tool-calling agent loop |
+| `agent/critics/policy_critic.py` | Policy compliance + safety check |
+| `agent/critics/business_critic.py` | Cost + feasibility check |
+| `agent/consensus.py` | Compares proposal + critics, records disagreements |
+| `agent/decision_trace.py` | Builds and persists full trace to DB |
 ### 🔄 In Progress
 None.
 
@@ -50,10 +60,8 @@ None.
 ### 🟢 Next Available
 | Task | Unblocked By |
 |---|---|
-| `core/delivery_risk.py` | `data_pipeline/` |
-| `core/logistics_optimizer.py` | `data_pipeline/` |
-| `agent/tools.py` (partial) | `core/forecasting.py` + `core/inventory_risk.py` + `core/rag.py` already done — `get_demand_forecast`, `get_inventory_risk`, `retrieve_policies` tools can be built now; `get_delivery_risk` and `optimize_routes` tools wait for their respective `core/` modules |
-| `ml/explainability.py` | `core/delivery_risk.py` |
+| `api/main.py` | `agent/orchestrator.py` |
+| `app.py` | `api/main.py` |
 
 ---
 
@@ -201,14 +209,14 @@ The agent skips tools irrelevant to the situation. A pure inventory alert should
 | `data_ingestion/excel_source.py`, `db_source.py` | ✅ DONE |
 | `data_ingestion/api_source.py` | ✅ DONE |
 | `db/models.py` + `db/connection.py` | ✅ DONE |
-| `data_pipeline/` — load data → Neon | TODO |
+| `data_pipeline/` — load data → Neon | ✅ DONE |
 | `core/forecasting.py` | ✅ DONE |
 | `core/inventory_risk.py` | ✅ DONE |
-| `core/delivery_risk.py` | TODO |
-| `core/logistics_optimizer.py` | TODO |
+| `core/delivery_risk.py` | ✅ DONE |
+| `core/logistics_optimizer.py` | ✅ DONE |
 | `ml/evaluation.py` | ✅ DONE |
-| `ml/explainability.py` | TODO |
-| Tests for all above | ✅ DONE (where modules done) |
+| `ml/explainability.py` | ✅ DONE |
+| Tests for all above | ✅ DONE |
 
 ### Phase 2 — RAG + Agentic AI
 | Task | Status |
@@ -216,13 +224,13 @@ The agent skips tools irrelevant to the situation. A pure inventory alert should
 | `policies/*.md` — real policy documents | ✅ DONE |
 | `core/rag.py` | ✅ DONE |
 | `llm/explainer.py` | ✅ DONE |
-| `agent/tools.py` | TODO |
-| `agent/orchestrator.py` | TODO |
-| `agent/critics/policy_critic.py` | TODO |
-| `agent/critics/business_critic.py` | TODO |
-| `agent/consensus.py` | TODO |
-| `agent/decision_trace.py` | TODO |
-| Tests for all above | TODO |
+| `agent/tools.py` | ✅ DONE |
+| `agent/orchestrator.py` | ✅ DONE |
+| `agent/critics/policy_critic.py` | ✅ DONE |
+| `agent/critics/business_critic.py` | ✅ DONE |
+| `agent/consensus.py` | ✅ DONE |
+| `agent/decision_trace.py` | ✅ DONE |
+| Tests for all above | ✅ DONE |
 
 ### Phase 3 — Human-in-the-Loop UI
 | Task | Status |
@@ -278,31 +286,31 @@ Every phase requires confirming terminal output and passing tests before committ
 - [x] `data_ingestion/excel_source.py`, `db_source.py` — working sample implementations
 - [x] `data_ingestion/api_source.py` — extensible interface/example only (not a production connector)
 - [x] `db/models.py`, `db/connection.py` — Neon Postgres schema created and connected
-- [ ] `data_pipeline/` scripts: source data → Neon Postgres
+- [x] `data_pipeline/` scripts: source data → Neon Postgres
 - [x] `core/forecasting.py` — LightGBM, time-based split, baseline comparison, 12 tests passing
 - [x] `core/inventory_risk.py` — stockout/overstock logic, 9 tests passing
-- [ ] `core/delivery_risk.py` — binary classifier, time-based split, baseline comparison, SHAP
-- [ ] `core/logistics_optimizer.py` — OR-Tools Capacitated VRP, tested standalone
+- [x] `core/delivery_risk.py` — binary classifier, time-based split, baseline comparison, SHAP
+- [x] `core/logistics_optimizer.py` — OR-Tools Capacitated VRP, tested standalone
 - [x] `ml/evaluation.py` — split/leakage-check/baseline-comparison utilities, 13 tests passing
-- [ ] `ml/explainability.py` — SHAP/feature importance helpers for delivery risk
+- [x] `ml/explainability.py` — SHAP/feature importance helpers for delivery risk
 - [x] `tests/test_evaluation.py`, `tests/test_forecasting.py`, `tests/test_inventory_risk.py`, `tests/test_data_ingestion.py` — passing
-- [ ] `tests/test_delivery_risk.py`, `tests/test_logistics_optimizer.py` — passing
-- [ ] **Confirmed:** each module runs independently, terminal output shows expected results, `uv run pytest` is green
+- [x] `tests/test_delivery_risk.py`, `tests/test_logistics_optimizer.py` — passing
+- [x] **Confirmed:** each module runs independently, terminal output shows expected results, `uv run pytest` is green
 
 ### Phase 2 — RAG, Multi-Agent, and Decision Trace
 - [x] Real business/procurement/inventory/logistics policy documents written and placed in `policies/`
 - [x] `core/rag.py` — ChromaDB + sentence-transformers, section-aware chunking, safety-stock retrieval verified, 7 tests passing
 - [x] `llm/explainer.py` — Groq narration-only wrapper, injectable test client, 9 tests passing
-- [ ] `agent/tools.py` — tool wrappers around `core/*` with Groq function-call schemas
-- [ ] `agent/orchestrator.py` — genuine Groq tool-calling agent loop; tested for at least two scenarios that call *different* tool subsets (pure inventory alert must not trigger `optimize_routes`)
-- [ ] `agent/critics/policy_critic.py` — receives proposed action + retrieved policies, returns structured verdict with specific policy references
-- [ ] `agent/critics/business_critic.py` — receives proposed action + cost/impact numbers, returns structured trade-off verdict
-- [ ] `agent/consensus.py` — compares primary proposal + both critic verdicts, records disagreements, does not simply echo the primary agent
-- [ ] `agent/decision_trace.py` — builds and persists full trace to `decision_traces` table; `human_approval.status` starts as `"pending"`
-- [ ] `tests/test_rag.py` — safety-stock query retrieves safety-stock policy section above unrelated sections
-- [ ] `tests/test_agent_tools.py` — each tool returns correct schema for a given input
-- [ ] `tests/test_decision_trace.py` — completed run produces trace with all required fields; approval status starts `"pending"`
-- [ ] **Confirmed:** orchestrator run end-to-end from terminal produces a full trace (inputs → predictions → policies → tools used → primary proposal → critic verdicts → consensus result → recommendation) for at least two distinct test scenarios
+- [x] `agent/tools.py` — tool wrappers around `core/*` with Groq function-call schemas
+- [x] `agent/orchestrator.py` — genuine Groq tool-calling agent loop; tested for at least two scenarios that call *different* tool subsets (pure inventory alert must not trigger `optimize_routes`)
+- [x] `agent/critics/policy_critic.py` — receives proposed action + retrieved policies, returns structured verdict with specific policy references
+- [x] `agent/critics/business_critic.py` — receives proposed action + cost/impact numbers, returns structured trade-off verdict
+- [x] `agent/consensus.py` — compares primary proposal + both critic verdicts, records disagreements, does not simply echo the primary agent
+- [x] `agent/decision_trace.py` — builds and persists full trace to `decision_traces` table; `human_approval.status` starts as `"pending"`
+- [x] `tests/test_rag.py` — safety-stock query retrieves safety-stock policy section above unrelated sections
+- [x] `tests/test_agent_tools.py` — each tool returns correct schema for a given input
+- [x] `tests/test_decision_trace.py` — completed run produces trace with all required fields; approval status starts `"pending"`
+- [x] **Confirmed:** orchestrator run end-to-end from terminal produces a full trace (inputs → predictions → policies → tools used → primary proposal → critic verdicts → consensus result → recommendation) for at least two distinct test scenarios
 
 ### Phase 3 — Human-in-the-Loop UI
 - [ ] `api/main.py` — FastAPI endpoints wired to `agent/`/`core/`, tested locally via `uv run uvicorn api.main:app --reload` and the `/docs` page
@@ -347,20 +355,10 @@ Every phase requires confirming terminal output and passing tests before committ
 
 ## What Needs to Be Built (Priority Order)
 
-1. `data_pipeline/` — load seed data → Neon Postgres
-2. `core/delivery_risk.py` — binary classifier, time-based split, SHAP
-3. `core/logistics_optimizer.py` — OR-Tools Capacitated VRP
-4. `ml/explainability.py` — SHAP/feature importance helpers for delivery risk
-5. `agent/tools.py` — tool wrappers with Groq function-call schemas
-6. `agent/orchestrator.py` — genuine tool-calling agent loop
-7. `agent/critics/policy_critic.py`
-8. `agent/critics/business_critic.py`
-9. `agent/consensus.py`
-10. `agent/decision_trace.py`
-11. `api/main.py` — FastAPI wiring for local dev
-12. `app.py` — Streamlit dashboard + human approval UI
-13. Phase 4 — What-if simulation layer
-14. Phase 5 — Deploy
+1. `api/main.py` — FastAPI wiring for local dev
+2. `app.py` — Streamlit dashboard + human approval UI
+3. Phase 4 — What-if simulation layer
+4. Phase 5 — Deploy
 
 ---
 
@@ -371,20 +369,20 @@ supplychain-sentinel-ai/
 ├── core/
 │   ├── forecasting.py             ✅ LightGBM demand forecast
 │   ├── inventory_risk.py          ✅ stockout/overstock detection
-│   ├── delivery_risk.py           TODO
-│   ├── logistics_optimizer.py     TODO
+│   ├── delivery_risk.py           ✅
+│   ├── logistics_optimizer.py     ✅
 │   └── rag.py                     ✅ ChromaDB + sentence-transformers
 ├── ml/
 │   ├── evaluation.py              ✅ split / leakage / baselines / metrics
-│   └── explainability.py          TODO
+│   └── explainability.py          ✅
 ├── agent/
-│   ├── tools.py                   TODO
-│   ├── orchestrator.py            TODO
-│   ├── decision_trace.py          TODO
+│   ├── tools.py                   ✅
+│   ├── orchestrator.py            ✅
+│   ├── decision_trace.py          ✅
 │   ├── critics/
-│   │   ├── policy_critic.py       TODO
-│   │   └── business_critic.py     TODO
-│   └── consensus.py               TODO
+│   │   ├── policy_critic.py       ✅
+│   │   └── business_critic.py     ✅
+│   └── consensus.py               ✅
 ├── llm/
 │   └── explainer.py               ✅ Groq narration-only wrapper
 ├── data_ingestion/
@@ -400,7 +398,7 @@ supplychain-sentinel-ai/
 ├── api/
 │   └── main.py                    TODO
 ├── app.py                         TODO (Streamlit — what deploys)
-├── data_pipeline/                 TODO
+├── data_pipeline/                 ✅
 ├── data/                          ✅ synthetic seed CSVs (dev/test only)
 ├── tests/
 │   ├── test_forecasting.py        ✅ 12 passing
@@ -408,10 +406,10 @@ supplychain-sentinel-ai/
 │   ├── test_evaluation.py         ✅ 13 passing
 │   ├── test_data_ingestion.py     ✅ passing
 │   ├── test_rag.py                ✅ 7 passing
-│   ├── test_delivery_risk.py      TODO
-│   ├── test_logistics_optimizer.py TODO
-│   ├── test_agent_tools.py        TODO
-│   └── test_decision_trace.py     TODO
+│   ├── test_delivery_risk.py      ✅ passing
+│   ├── test_logistics_optimizer.py ✅ passing
+│   ├── test_agent_tools.py        ✅ passing
+│   └── test_decision_trace.py     ✅ passing
 ├── pyproject.toml                 ✅
 ├── uv.lock                        ✅
 ├── .env                           ✅ local secrets (never committed)

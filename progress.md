@@ -1205,27 +1205,24 @@ UI for selecting/uploading CSV, Excel, API, and Database is handled separately b
 Backend integration with the selected dataset IS part of this roadmap (completed on branch `Bushra`).
 
 P1 — Data Understanding & Canonical Data Model
- Define canonical schemas for:
-demand
-inventory
-deliveries
-vehicles/routes
- Add required-column validation.
- Add datatype validation.
- Add missing-value validation.
- Add duplicate detection.
- Add invalid-date detection.
- Add invalid numeric-value detection.
- Add identifier consistency checks.
- Add cross-table relationship validation.
- Add business-rule validation.
- Produce structured validation results.
- Clearly distinguish fatal errors from warnings.
- Add safe handling for invalid datasets.
- Build schema mapping/normalization where practical.
- Ensure real-world column names can be mapped into the canonical model without modifying core ML logic.
- Add tests for valid and invalid datasets.
- Verify synthetic/demo data also passes through the same canonical pipeline.
+- [x] Define canonical schemas for: demand, inventory, deliveries, vehicles/routes (`data_ingestion/validation.py`).
+- [x] Add required-column validation.
+- [x] Add datatype validation.
+- [x] Add missing-value validation.
+- [x] Add duplicate detection.
+- [x] Add invalid-date detection.
+- [x] Add invalid numeric-value detection.
+- [x] Add identifier consistency checks.
+- [x] Add cross-table relationship validation.
+- [x] Add business-rule validation.
+- [x] Produce structured validation results (`ValidationResult` distinguishing fatal errors from quality warnings).
+- [x] Clearly distinguish fatal errors from warnings.
+- [x] Add safe handling for invalid datasets.
+- [x] Build schema mapping/normalization where practical (`COLUMN_ALIASES`, `suggest_and_normalize_columns`).
+- [x] Ensure real-world column names can be mapped into the canonical model without modifying core ML logic (verified with Kaggle `Product_Code`, `Sales`, `Order_Date`, etc.).
+- [x] Add tests for valid and invalid datasets (`tests/test_validation.py` - 8/8 passing).
+- [x] Verify synthetic/demo data also passes through the same canonical pipeline.
+- [x] Integrated interactive column mapping & live Data Understanding Profiling into Enterprise Data Hub (`app.py`).
 Data Understanding Output
 
 The product should be able to summarize:
@@ -1636,7 +1633,7 @@ The product is COMPLETE only when every statement below can be verified:
 
 AI coding agents must start here.
 
-Current task: [SET AUTOMATICALLY TO FIRST UNCHECKED TASK]
+Current task: P2 — Unified Supply Chain Intelligence (Create unified supply-chain situation/state object)
 
 Status: TODO
 

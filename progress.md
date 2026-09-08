@@ -456,18 +456,18 @@ The productization roadmap below is the authoritative source for remaining imple
 
 ## P1 — Data Validation & Understanding
 
-- [ ] Define canonical schemas for demand, inventory, deliveries, and vehicles.
-- [ ] Validate required columns.
-- [ ] Validate datatypes.
-- [ ] Validate missing values.
-- [ ] Validate duplicates.
-- [ ] Validate dates.
-- [ ] Validate numeric/business values.
-- [ ] Validate cross-table relationships.
-- [ ] Produce structured validation results.
-- [ ] Distinguish errors from warnings.
-- [ ] Add schema mapping/normalization.
-- [ ] Add tests for valid and invalid real-data-shaped inputs.
+- [x] Define canonical schemas for demand, inventory, deliveries, and vehicles (`data_ingestion/validation.py`).
+- [x] Validate required columns.
+- [x] Validate datatypes.
+- [x] Validate missing values.
+- [x] Validate duplicates.
+- [x] Validate dates.
+- [x] Validate numeric/business values.
+- [x] Validate cross-table relationships.
+- [x] Produce structured validation results (`ValidationResult` separating fatal errors from quality warnings).
+- [x] Distinguish errors from warnings.
+- [x] Add schema mapping/normalization (`suggest_and_normalize_columns`, `COLUMN_ALIASES`).
+- [x] Add tests for valid and invalid real-data-shaped inputs (`tests/test_validation.py` - 8/8 passing).
 
 ## P2 — Unified Supply Chain Intelligence
 

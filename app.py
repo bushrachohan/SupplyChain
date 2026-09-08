@@ -212,8 +212,25 @@ def render_data_hub():
     st.title("Enterprise Data Hub")
     st.markdown("Connect, map, and validate your supply chain datasets (CSVs, Kaggle datasets, Excel workbooks, or relational databases).")
     
-    # Active Dataset Indicator
+    # Active Dataset Status Banner
     active_type = st.session_state.get("active_dataset_type", "demo")
+    if active_type == "demo":
+        st.info("● **DATA SOURCE: Demo Dataset — Synthetic**\n\nActive Status: Bundled synthetic supply-chain data (`data/*.csv`) is currently powering Sentinel AI decisions.")
+    else:
+        st.success(f"● **DATA SOURCE: Company Dataset — Connected ({active_type.upper()})**\n\nActive Status: User-provided dataset is dynamically ingested and powering Sentinel AI decisions.")
+        try:
+            inv_df = agent_tools._get_inventory_df()
+            _, del_df = agent_tools._get_delivery_model()
+            _, dem_df = agent_tools._get_demand_model()
+            
+            sc1, sc2, sc3, sc4 = st.columns(4)
+            sc1.metric("Active Format", active_type.upper())
+            sc2.metric("Inventory SKUs", len(inv_df) if not inv_df.empty else 0)
+            sc3.metric("Deliveries Loaded", len(del_df) if not del_df.empty else 0)
+            sc4.metric("Demand Records", len(dem_df) if not dem_df.empty else 0)
+            st.markdown("<br>", unsafe_allow_html=True)
+        except Exception:
+            pass
     
     tabs = st.tabs(["CSV Upload", "Excel Upload", "Database Connection", "API Connection", "Demo Dataset"])
     
@@ -395,10 +412,31 @@ def render_data_hub():
         st.subheader("Synthetic Demo Dataset")
         st.markdown("Use the synthetic data bundled with the application to safely test Sentinel's AI decision-making capabilities without connecting your own systems.")
         
+        try:
+            demo_src = CSVDataSource(data_dir="data")
+            d_inv = demo_src.load_inventory_snapshot()
+            d_del = demo_src.load_deliveries()
+            d_dem = demo_src.load_historical_demand()
+            
+            d_skus_count = str(d_inv["sku_id"].nunique()) if ("sku_id" in d_inv.columns and not d_inv.empty) else str(len(d_inv))
+            d_del_count = str(len(d_del))
+            
+            if "date" in d_dem.columns and not d_dem["date"].dropna().empty:
+                d_min = pd.to_datetime(d_dem["date"]).min()
+                d_max = pd.to_datetime(d_dem["date"]).max()
+                d_days = (d_max - d_min).days + 1
+                d_date_str = f"{d_days} Days ({d_min.strftime('%Y-%m-%d')} → {d_max.strftime('%Y-%m-%d')})"
+            else:
+                d_date_str = "Multi-Period History"
+        except Exception:
+            d_skus_count = "10 SKUs"
+            d_del_count = "300 Shipments"
+            d_date_str = "30 Days"
+            
         c1, c2, c3 = st.columns(3)
-        c1.metric("Mock SKUs", "100")
-        c2.metric("Mock Deliveries", "50")
-        c3.metric("Historical Data", "30 Days")
+        c1.metric("Bundled Demo SKUs", f"{d_skus_count} SKUs")
+        c2.metric("Bundled Deliveries", f"{d_del_count} Shipments")
+        c3.metric("Historical Date Span", d_date_str)
         
         if st.button("Use Demo Dataset", type="primary"):
             agent_tools.set_active_datasource(CSVDataSource(data_dir="data"))
@@ -414,67 +452,150 @@ def render_command_center():
     
     session = get_db_session()
     try:
-        recent_decisions = session.query(DecisionTrace).count()
+        from datetime import timedelta
+        week_ago = datetime.utcnow() - timedelta(days=7)
+        total_decisions = session.query(DecisionTrace).count()
+        week_decisions = session.query(DecisionTrace).filter(DecisionTrace.timestamp >= week_ago).count()
         
         # Calculate metrics dynamically from active datasource via agent_tools
-        active_inventory_risks = "N/A"
-        exposure_str = "N/A"
-        high_delivery_risks = "N/A"
+        inv_df = pd.DataFrame()
+        del_df = pd.DataFrame()
+        active_inventory_risks = 0
+        exposure_str = "₹0"
+        exposure_delta = "Buffer Healthy"
+        high_delivery_risks = 0
+        del_delta_str = "All On-Time"
         
         try:
             inv_df = agent_tools._get_inventory_df()
-            if not inv_df.empty:
-                # Mock risk evaluation for dashboard
+            if not inv_df.empty and "current_stock" in inv_df.columns and "reorder_point" in inv_df.columns:
                 low_stock = inv_df[inv_df["current_stock"] < inv_df["reorder_point"]]
                 active_inventory_risks = len(low_stock)
                 
-                if "unit_cost" in inv_df.columns and "current_stock" in inv_df.columns:
-                    exp = low_stock["unit_cost"].sum() * 100
-                    exposure_str = f"₹{exp:,.0f}"
+                if "unit_cost" in inv_df.columns and not low_stock.empty:
+                    # Deficit exposure: monetary value of inventory needed to restore safe reorder point
+                    deficit = (low_stock["reorder_point"] - low_stock["current_stock"]).clip(lower=0)
+                    exp_val = (deficit * low_stock["unit_cost"]).sum()
+                    exposure_str = f"₹{exp_val:,.0f}"
+                    exposure_delta = f"Deficit on {len(low_stock)} SKUs"
+                elif not low_stock.empty:
+                    exposure_str = f"{len(low_stock)} SKUs"
+                    exposure_delta = "Stock Deficit"
         except Exception:
-            active_inventory_risks = "Not enough data"
+            active_inventory_risks = "N/A"
+            exposure_str = "N/A"
+            exposure_delta = "Data Unavailable"
             
         try:
             _, del_df = agent_tools._get_delivery_model()
-            if not del_df.empty and "is_late" in del_df.columns:
-                high_delivery_risks = len(del_df[del_df["is_late"] == 1])
+            if not del_df.empty:
+                if "is_late" in del_df.columns:
+                    late_mask = del_df["is_late"] == 1
+                    high_delivery_risks = int(late_mask.sum())
+                    del_delta_str = f"{high_delivery_risks} of {len(del_df)} shipments"
+                elif "traffic_delay_hrs" in del_df.columns:
+                    delayed_mask = del_df["traffic_delay_hrs"] > 1.0
+                    high_delivery_risks = int(delayed_mask.sum())
+                    del_delta_str = f"{high_delivery_risks} delayed >1h"
         except Exception:
-            high_delivery_risks = "Not enough data"
+            high_delivery_risks = "N/A"
+            del_delta_str = "Data Unavailable"
         
         st.markdown("<br>", unsafe_allow_html=True)
         col1, col2, col3, col4 = st.columns(4)
-        col1.metric("ACTIVE RISKS", active_inventory_risks, delta="Requires Attention", delta_color="inverse")
-        col2.metric("INVENTORY AT RISK", exposure_str, delta="Potential Exposure", delta_color="off")
-        col3.metric("DELIVERY RISK", high_delivery_risks, delta="Delayed Shipments", delta_color="inverse")
-        col4.metric("AI DECISIONS", recent_decisions, delta="This Week", delta_color="normal")
+        col1.metric("ACTIVE RISKS", active_inventory_risks, delta=f"{active_inventory_risks} below ROP" if isinstance(active_inventory_risks, int) and active_inventory_risks > 0 else "All Stock Healthy", delta_color="inverse" if isinstance(active_inventory_risks, int) and active_inventory_risks > 0 else "normal")
+        col2.metric("INVENTORY AT RISK", exposure_str, delta=exposure_delta, delta_color="inverse" if exposure_str not in ["₹0", "N/A"] else "off")
+        col3.metric("DELIVERY RISK", high_delivery_risks, delta=del_delta_str, delta_color="inverse" if isinstance(high_delivery_risks, int) and high_delivery_risks > 0 else "normal")
+        col4.metric("AI DECISIONS", total_decisions, delta=f"{week_decisions} in last 7 days" if week_decisions > 0 else "Total in ledger", delta_color="normal")
         
         st.markdown("---")
-        st.subheader("Priority Risks")
+        st.subheader("Priority Risks (Active System State)")
         
         r1, r2 = st.columns(2)
         with r1:
-            st.markdown("""
-            <div class='decision-card'>
-                <h4>🔴 HIGH RISK: SKU-104</h4>
-                <p style="color: #bbb;">Electronics Component</p>
-                <h3>Stockout Risk: 82%</h3>
-                <p>Expected demand is exceeding available inventory coverage. Supplier lead-time increases exposure.</p>
-            </div>
-            """, unsafe_allow_html=True)
-            if st.button("Review Decision →", key="btn_risk1"):
-                st.info("Navigate to 'Approval Queue' to review pending AI decisions.")
+            if not inv_df.empty and "current_stock" in inv_df.columns and "reorder_point" in inv_df.columns:
+                low_stock = inv_df[inv_df["current_stock"] < inv_df["reorder_point"]]
+                if not low_stock.empty:
+                    # Find SKU with lowest coverage ratio (most urgent)
+                    low_stock_calc = low_stock.copy()
+                    low_stock_calc["ratio"] = low_stock_calc["current_stock"] / low_stock_calc["reorder_point"].replace(0, 1)
+                    top_inv_row = low_stock_calc.sort_values(by="ratio", ascending=True).iloc[0]
+                    top_sku = str(top_inv_row["sku_id"])
+                    
+                    inv_risk_res = agent_tools.get_inventory_risk(top_sku)
+                    dos = inv_risk_res.get("days_of_supply", 0.0)
+                    detail_text = inv_risk_res.get("detail", f"Current stock ({top_inv_row['current_stock']}) is below reorder point ({top_inv_row['reorder_point']}).")
+                    loc = top_inv_row.get("location_id", "Primary Facility")
+                    lead_time = top_inv_row.get("lead_time_days", 7)
+                    unit_cost = top_inv_row.get("unit_cost", 0)
+                    
+                    st.markdown(f"""
+                    <div class='decision-card'>
+                        <h4>🔴 TOP INVENTORY RISK: {top_sku}</h4>
+                        <p style="color: #bbb;">Location: {loc} | Unit Cost: ₹{unit_cost:.2f} | Lead Time: {lead_time:.0f}d</p>
+                        <h3 style="color: #ff4b4b;">Stockout Warning: {dos:.1f} Days of Supply</h3>
+                        <p>{detail_text}</p>
+                    </div>
+                    """, unsafe_allow_html=True)
+                    if st.button(f"Evaluate Decision for {top_sku} →", key="btn_risk1"):
+                        st.session_state["target_type_choice"] = "Inventory / Demand Issue"
+                        st.session_state["selected_target_id"] = top_sku
+                        st.info(f"Target set to {top_sku}. Navigate to 'Create a Decision' to run AI analysis.")
+                else:
+                    st.markdown("""
+                    <div class='decision-card'>
+                        <h4>🟢 INVENTORY OPTIMAL</h4>
+                        <p style="color: #bbb;">All monitored SKUs</p>
+                        <h3 style="color: #00c04b;">All Stock Levels Healthy</h3>
+                        <p>No SKU has current inventory below its reorder point threshold.</p>
+                    </div>
+                    """, unsafe_allow_html=True)
+            else:
+                st.info("No inventory risk available for the active dataset.")
                 
         with r2:
-            st.markdown("""
-            <div class='decision-card'>
-                <h4>🟠 DELIVERY RISK: Shipment #2048</h4>
-                <p style="color: #bbb;">Carrier: Global Freight</p>
-                <h3>High probability of delay</h3>
-                <p>Supplier lead-time disruption detected at origin port.</p>
-            </div>
-            """, unsafe_allow_html=True)
-            if st.button("Investigate →", key="btn_risk2"):
-                st.info("Navigate to 'Create a Decision' to evaluate alternatives.")
+            if not del_df.empty:
+                # Find top delivery risk
+                late_dels = del_df[del_df.get("is_late", 0) == 1] if "is_late" in del_df.columns else pd.DataFrame()
+                if not late_dels.empty:
+                    if "traffic_delay_hrs" in late_dels.columns:
+                        top_del_row = late_dels.sort_values(by="traffic_delay_hrs", ascending=False).iloc[0]
+                    else:
+                        top_del_row = late_dels.iloc[0]
+                else:
+                    if "traffic_delay_hrs" in del_df.columns:
+                        top_del_row = del_df.sort_values(by="traffic_delay_hrs", ascending=False).iloc[0]
+                    else:
+                        top_del_row = del_df.iloc[0]
+                        
+                top_del_id = str(top_del_row["delivery_id"])
+                del_risk_res = agent_tools.get_delivery_risk(top_del_id)
+                
+                score = del_risk_res.get("risk_score", 0.85 if top_del_row.get("is_late") == 1 else 0.15)
+                risk_label = del_risk_res.get("risk_label", "HIGH" if top_del_row.get("is_late") == 1 else "LOW")
+                carrier = top_del_row.get("carrier_id", "Assigned Carrier")
+                orig = top_del_row.get("origin", "Origin Hub")
+                dest = top_del_row.get("destination", "Destination")
+                dist = top_del_row.get("distance_km", 0)
+                traffic = top_del_row.get("traffic_delay_hrs", 0.0)
+                weather = top_del_row.get("weather_condition", "CLEAR")
+                
+                badge_color = "#ff4b4b" if risk_label.upper() == "HIGH" else ("#ffa421" if risk_label.upper() == "MEDIUM" else "#00c04b")
+                
+                st.markdown(f"""
+                <div class='decision-card'>
+                    <h4>🟠 TOP DELIVERY RISK: {top_del_id}</h4>
+                    <p style="color: #bbb;">Carrier: {carrier} | Route: {orig} ➔ {dest} ({dist:.0f} km)</p>
+                    <h3 style="color: {badge_color};">Late Probability: {score * 100:.1f}% ({risk_label.upper()})</h3>
+                    <p>Traffic Congestion: {traffic:.1f} hrs delay | Weather: {weather}</p>
+                </div>
+                """, unsafe_allow_html=True)
+                if st.button(f"Investigate Delivery {top_del_id} →", key="btn_risk2"):
+                    st.session_state["target_type_choice"] = "Delivery / Routing Issue"
+                    st.session_state["selected_target_id"] = top_del_id
+                    st.info(f"Target set to {top_del_id}. Navigate to 'Create a Decision' to evaluate routing.")
+            else:
+                st.info("No delivery risk available for the active dataset.")
     finally:
         session.close()
 
@@ -499,20 +620,28 @@ def render_create_decision():
             del_list = []
             
         col1, col2 = st.columns(2)
+        target_types = ["Inventory / Demand Issue", "Delivery / Routing Issue"]
+        def_type_idx = 0
+        if st.session_state.get("target_type_choice") in target_types:
+            def_type_idx = target_types.index(st.session_state.get("target_type_choice"))
+            
         with col1:
-            target_type = st.radio("What does this concern?", ["Inventory / Demand Issue", "Delivery / Routing Issue"])
+            target_type = st.radio("What does this concern?", target_types, index=def_type_idx)
             
         with col2:
+            selected_id_preset = st.session_state.get("selected_target_id", "")
             if target_type == "Inventory / Demand Issue":
                 if sku_list:
-                    target_id = st.selectbox("Select Product (SKU)", sku_list)
+                    idx = sku_list.index(selected_id_preset) if selected_id_preset in sku_list else 0
+                    target_id = st.selectbox("Select Product (SKU)", sku_list, index=idx)
                 else:
-                    target_id = st.text_input("Product / SKU ID")
+                    target_id = st.text_input("Product / SKU ID", value=selected_id_preset)
             else:
                 if del_list:
-                    target_id = st.selectbox("Select Delivery (Shipment ID)", del_list)
+                    idx = del_list.index(selected_id_preset) if selected_id_preset in del_list else 0
+                    target_id = st.selectbox("Select Delivery (Shipment ID)", del_list, index=idx)
                 else:
-                    target_id = st.text_input("Delivery ID")
+                    target_id = st.text_input("Delivery ID", value=selected_id_preset)
         
         situation_text = st.text_area("Describe the situation or business constraints", placeholder="e.g., We just landed a huge enterprise client and demand is going to double. Do we have enough stock, or should we expedite shipments?")
 
@@ -598,8 +727,20 @@ def render_approval_queue():
         for trace in pending_traces:
             with st.container(border=True):
                 # Overview Header
-                c1, c2, c3, c4 = st.columns([1, 2, 2, 1])
-                c1.markdown(get_risk_badge("HIGH"), unsafe_allow_html=True)
+                trace_risk = "HIGH"
+                if trace.predictions and isinstance(trace.predictions, dict):
+                    trace_risk = str(trace.predictions.get("risk_level", trace.predictions.get("overall_severity", "HIGH")))
+                elif trace.tools_used:
+                    for tc in trace.tools_used:
+                        res = tc.get("result", {})
+                        if isinstance(res, dict):
+                            if "risk_level" in res:
+                                trace_risk = str(res["risk_level"])
+                                break
+                            elif "risk_label" in res:
+                                trace_risk = str(res["risk_label"])
+                                break
+                c1.markdown(get_risk_badge(trace_risk), unsafe_allow_html=True)
                 
                 # Extract situation string cleanly
                 sit_str = str(trace.inputs.get("situation", "Unknown Situation"))
@@ -691,20 +832,93 @@ def render_detailed_decision(trace: DecisionTrace, is_pending: bool):
     
     if not has_evidence:
         st.caption("No specific quantitative evidence extracted for this decision.")
+        
+    # Render Consulted RAG Policies if present
+    if trace.policies_retrieved and isinstance(trace.policies_retrieved, list):
+        st.markdown("### Enterprise Policies Consulted (via ChromaDB RAG)")
+        for pol in trace.policies_retrieved:
+            p_title = pol.get("policy_title", pol.get("title", "Corporate Supply Chain Policy"))
+            p_sec = pol.get("section", "Standard Operating Procedure")
+            p_text = pol.get("text", pol.get("content", ""))
+            st.markdown(f"""
+            <div style="background-color: rgba(94, 92, 230, 0.1); border-left: 4px solid #5e5ce6; padding: 0.8rem; border-radius: 4px; margin-bottom: 0.8rem;">
+                <strong>📜 {p_title}</strong> <em>(Section: {p_sec})</em><br/>
+                <span style="color: #bbb; font-size: 0.9em;">"{p_text[:220]}{'...' if len(p_text) > 220 else ''}"</span>
+            </div>
+            """, unsafe_allow_html=True)
     
     st.markdown("<br>", unsafe_allow_html=True)
     
-    # 2. Validation Flow
+    # 2. Multi-Agent Review Flow
     st.subheader("Why should I trust this decision?")
     
-    pol_status = "✓ PASSED" if trace.policy_critic_output and trace.policy_critic_output.get("compliant") else "⚠ NEEDS REVIEW"
-    bus_status = "✓ PASSED" if trace.business_critic_output and trace.business_critic_output.get("approved") else "⚠ NEEDS REVIEW"
+    pol_out = trace.policy_critic_output or {}
+    bus_out = trace.business_critic_output or {}
+    con_out = trace.consensus_result or {}
     
+    if pol_out.get("compliant") is True:
+        pol_status = "PASSED"
+        pol_state = "success"
+        pol_icon = "✓"
+    elif pol_out.get("compliant") is False:
+        pol_status = "REJECTED"
+        pol_state = "error"
+        pol_icon = "✕"
+    else:
+        pol_status = "NEEDS REVIEW"
+        pol_state = "warning"
+        pol_icon = "⚠"
+        
+    if bus_out.get("approved") is True:
+        bus_status = "PASSED"
+        bus_state = "success"
+        bus_icon = "✓"
+    elif bus_out.get("approved") is False:
+        bus_status = "REJECTED"
+        bus_state = "error"
+        bus_icon = "✕"
+    else:
+        bus_status = "NEEDS REVIEW"
+        bus_state = "warning"
+        bus_icon = "⚠"
+        
+    con_status_raw = str(con_out.get("status", "")).upper()
+    if con_status_raw in ["APPROVED", "VALIDATED", "PASSED"]:
+        con_status = "PASSED"
+        con_state = "success"
+        con_icon = "✓"
+    elif con_status_raw in ["REJECTED", "FAILED"]:
+        con_status = "REJECTED"
+        con_state = "error"
+        con_icon = "✕"
+    else:
+        con_status = "NEEDS REVIEW"
+        con_state = "warning"
+        con_icon = "⚠"
+        
     vcol1, vcol2, vcol3, vcol4 = st.columns(4)
-    vcol1.info(f"**Primary AI**\n\nProposed action formulated.")
-    vcol2.warning(f"**Policy Review**\n\n{pol_status}")
-    vcol3.success(f"**Business Review**\n\n{bus_status}")
-    vcol4.info(f"**Consensus**\n\n✓ Validated")
+    vcol1.info("**Primary AI**\n\n✓ Action Formulated")
+    
+    if pol_state == "success":
+        vcol2.success(f"**Policy Review**\n\n{pol_icon} {pol_status}")
+    elif pol_state == "error":
+        vcol2.error(f"**Policy Review**\n\n{pol_icon} {pol_status}")
+    else:
+        vcol2.warning(f"**Policy Review**\n\n{pol_icon} {pol_status}")
+        
+    if bus_state == "success":
+        vcol3.success(f"**Business Review**\n\n{bus_icon} {bus_status}")
+    elif bus_state == "error":
+        vcol3.error(f"**Business Review**\n\n{bus_icon} {bus_status}")
+    else:
+        vcol3.warning(f"**Business Review**\n\n{bus_icon} {bus_status}")
+        
+    if con_state == "success":
+        vcol4.success(f"**Consensus**\n\n{con_icon} {con_status}")
+    elif con_state == "error":
+        vcol4.error(f"**Consensus**\n\n{con_icon} {con_status}")
+    else:
+        vcol4.warning(f"**Consensus**\n\n{con_icon} {con_status}")
     
     # 3. Decision Transparency (Technical Details Hidden)
     with st.expander("Decision Transparency (Technical Details)"):
@@ -832,7 +1046,14 @@ def render_simulation():
     </div>
     """, unsafe_allow_html=True)
     
-    inv_df, del_df, delivery_model = load_simulation_resources()
+    try:
+        inv_df = agent_tools._get_inventory_df()
+        delivery_model, del_df = agent_tools._get_delivery_model()
+    except Exception:
+        inv_df, del_df, delivery_model = load_simulation_resources()
+        
+    if inv_df is None or inv_df.empty or del_df is None or del_df.empty:
+        inv_df, del_df, delivery_model = load_simulation_resources()
     
     sim_mode = st.selectbox(
         "Select Simulation Domain",
@@ -845,7 +1066,14 @@ def render_simulation():
         st.subheader("📦 Inventory Stress-Testing: Demand Shocks & Supplier Delays")
         st.markdown("Simulate how demand spikes or supplier lead time extensions impact Days of Supply and Stockout exposure.")
         
+        if inv_df.empty or "sku_id" not in inv_df.columns:
+            st.info("No SKU inventory data available in the active dataset for simulation.")
+            return
+            
         sku_options = inv_df["sku_id"].dropna().unique().tolist()
+        if not sku_options:
+            st.info("No SKU inventory records found in the active dataset.")
+            return
         col_ctrl, col_results = st.columns([1, 1.4], gap="large")
         
         with col_ctrl:
@@ -968,7 +1196,14 @@ def render_simulation():
         st.subheader("🚚 Delivery Risk: Severe Weather & Traffic Bottlenecks")
         st.markdown("Simulate how severe weather disruptions or extreme highway congestion elevate delivery delay probability.")
         
-        delivery_ids = del_df["delivery_id"].tolist()
+        if del_df.empty or "delivery_id" not in del_df.columns:
+            st.info("No delivery records available in active dataset for simulation.")
+            return
+            
+        delivery_ids = del_df["delivery_id"].dropna().unique().tolist()
+        if not delivery_ids:
+            st.info("No delivery records found in active dataset.")
+            return
         col_ctrl, col_results = st.columns([1, 1.4], gap="large")
         
         with col_ctrl:
@@ -1041,7 +1276,14 @@ def render_simulation():
         st.subheader("🗺️ Logistics Routing: Fleet Capacity & Vehicle Constraints")
         st.markdown("Simulate how fleet availability and vehicle payload capacity affect route efficiency and fuel costs.")
         
-        all_dels = del_df["delivery_id"].head(8).tolist()
+        if del_df.empty or "delivery_id" not in del_df.columns:
+            st.info("No delivery records available in active dataset for fleet routing.")
+            return
+            
+        all_dels = del_df["delivery_id"].dropna().unique().tolist()[:8]
+        if not all_dels:
+            st.info("No delivery records found in active dataset.")
+            return
         col_ctrl, col_results = st.columns([1, 1.4], gap="large")
         
         with col_ctrl:

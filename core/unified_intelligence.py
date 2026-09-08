@@ -169,7 +169,7 @@ def identify_bottleneck(
         dependencies.append(dep)
         
         # Primary bottleneck is replenishment transit delay
-        top_driver = top_shap_features[0]["feature"] if top_shap_features else "transit bottleneck"
+        top_driver = next(iter(top_shap_features), "transit bottleneck") if top_shap_features else "transit bottleneck"
         bottleneck = OperationalBottleneck(
             bottleneck_type="COMPOUND_TRANSIT_STOCKOUT",
             primary_entity_id=f"{sku_id} + {delivery_id}",
@@ -192,7 +192,8 @@ def identify_bottleneck(
 
     # 3. Pure Delivery Delay Risk
     if delivery_risk_pct >= 50.0:
-        driver_desc = f" ({top_shap_features[0]['feature']})" if top_shap_features else ""
+        top_key = next(iter(top_shap_features), None)
+        driver_desc = f" ({top_key})" if top_key else ""
         bottleneck = OperationalBottleneck(
             bottleneck_type="DELIVERY_TRANSIT_DELAY",
             primary_entity_id=delivery_id or "UNKNOWN_DELIVERY",

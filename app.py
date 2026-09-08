@@ -542,8 +542,9 @@ def render_create_decision():
                 if preview_state.cross_risk_dependencies:
                     for dep in preview_state.cross_risk_dependencies:
                         st.warning(f"⚠️ **Compounding Dependency:** {dep}")
-            except Exception:
+            except Exception as e:
                 pass
+
     if st.button("Run AI Decision Analysis", type="primary", use_container_width=True):
         if not target_id:
             st.warning("Please specify a Target ID to proceed.")

@@ -55,3 +55,35 @@ def test_csv_data_source_missing_directory():
     source = CSVDataSource(data_dir="non_existent_dir_123")
     with pytest.raises(FileNotFoundError):
         source.load_historical_demand()
+
+
+def test_csv_data_source_drops_completely_blank_rows():
+    """Verify completely blank rows (e.g. trailing empty row) are dropped, giving exactly 450 rows."""
+    source = CSVDataSource(data_dir="data")
+    df = source.load_historical_demand()
+    assert len(df) == 450, f"Expected 450 valid rows after dropping blank row, got {len(df)}"
+    assert df.isnull().sum().sum() == 0, "No missing values should remain from trailing blank rows"
+
+
+def test_validate_dataframe_behavior():
+    """Verify validate_dataframe drops completely blank rows but flags partially missing rows."""
+    from app import validate_dataframe
+    
+    # 1. DataFrame with 1 valid row + 1 completely blank row
+    df_blank = pd.DataFrame([
+        {"sku_id": "SKU_101", "date": "2026-06-01", "quantity_demanded": 10, "location_id": "LOC_1"},
+        {"sku_id": None, "date": None, "quantity_demanded": None, "location_id": None}
+    ])
+    req_cols = ["sku_id", "date", "quantity_demanded", "location_id"]
+    status, msgs = validate_dataframe(df_blank, req_cols, "test.csv")
+    assert status == "pass"
+    assert "1 rows" in msgs[0]
+    
+    # 2. DataFrame with a partially missing row (1 field missing out of 4)
+    df_partial = pd.DataFrame([
+        {"sku_id": "SKU_101", "date": "2026-06-01", "quantity_demanded": None, "location_id": "LOC_1"}
+    ])
+    status_p, msgs_p = validate_dataframe(df_partial, req_cols, "test.csv")
+    assert status_p == "warning"
+    assert any("missing values" in msg for msg in msgs_p)
+

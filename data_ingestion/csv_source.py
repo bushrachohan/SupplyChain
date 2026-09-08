@@ -24,6 +24,7 @@ class CSVDataSource(DataSource):
         if not os.path.exists(file_path):
             raise FileNotFoundError(f"Demand data file not found at: {file_path}")
         df = pd.read_csv(file_path)
+        df = df.dropna(how="all").reset_index(drop=True)
         df['date'] = pd.to_datetime(df['date'])
         return df
 
@@ -31,15 +32,17 @@ class CSVDataSource(DataSource):
         file_path = self._get_path("inventory_snapshot.csv")
         if not os.path.exists(file_path):
             raise FileNotFoundError(f"Inventory snapshot file not found at: {file_path}")
-        return pd.read_csv(file_path)
+        df = pd.read_csv(file_path)
+        return df.dropna(how="all").reset_index(drop=True)
 
     def load_deliveries(self) -> pd.DataFrame:
         file_path = self._get_path("deliveries.csv")
         if not os.path.exists(file_path):
             raise FileNotFoundError(f"Deliveries data file not found at: {file_path}")
         df = pd.read_csv(file_path)
+        df = df.dropna(how="all").reset_index(drop=True)
         if 'scheduled_date' in df.columns:
-            df['scheduled_date'] = pd.to_datetime(df['scheduled_date'])
+            df['scheduled_date'] = pd.to_datetime(df['scheduled_date'], format="%d-%m-%Y")
         if 'actual_date' in df.columns:
-            df['actual_date'] = pd.to_datetime(df['actual_date'])
+            df['actual_date'] = pd.to_datetime(df['actual_date'], format="%d-%m-%Y")
         return df

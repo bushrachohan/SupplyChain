@@ -92,6 +92,7 @@ def train_delivery_risk_model(
         n_estimators=100,
         learning_rate=0.1,
         num_leaves=15,
+        min_child_samples=5,
         random_state=42,
         verbose=-1,
         class_weight="balanced"

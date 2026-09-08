@@ -3,11 +3,19 @@ import json
 from datetime import datetime
 import time
 import pandas as pd
+import uuid
+import os
+import shutil
+import tempfile
 
 from db.connection import SessionLocal
 from db.models import DecisionTrace, Recommendation, Approval, InventoryRisk, DeliveryRiskPrediction, SKU
 from agent.orchestrator import run_agent_loop
+import agent.tools as agent_tools
+from data_ingestion.base import DataSource
 from data_ingestion.csv_source import CSVDataSource
+from data_ingestion.excel_source import ExcelDataSource
+from data_ingestion.db_source import DBDataSource
 from core.delivery_risk import train_delivery_risk_model
 from core.simulation import (
     simulate_inventory_scenario,
@@ -68,11 +76,28 @@ def get_risk_badge(level: str):
 
 # --- MAIN NAVIGATION ---
 def main():
+    if "session_id" not in st.session_state:
+        st.session_state.session_id = str(uuid.uuid4())
+    if "active_dataset_type" not in st.session_state:
+        st.session_state.active_dataset_type = "demo"
+    if "active_datasource" not in st.session_state:
+        st.session_state.active_datasource = CSVDataSource(data_dir="data")
+
+    # Ensure active datasource is synchronized with thread-local state
+    agent_tools.set_active_datasource(st.session_state.active_datasource)
+
     st.sidebar.title("🛡️ SupplyChain Sentinel AI")
     st.sidebar.markdown("**AI Decision Intelligence**")
     st.sidebar.markdown("---")
     
-    menu = ["Command Center", "Create a Decision", "Approval Queue", "Decision History", "What-If Simulation"]
+    if st.session_state.active_dataset_type == "demo":
+        st.sidebar.info("DATA SOURCE\n● Demo Dataset — Synthetic")
+    else:
+        st.sidebar.success("DATA SOURCE\n● Company Supply Chain — Connected")
+        
+    st.sidebar.markdown("---")
+    
+    menu = ["Command Center", "Data Hub", "Create a Decision", "Approval Queue", "Decision History", "What-If Simulation"]
     choice = st.sidebar.radio("Navigation", menu)
     
     st.sidebar.markdown("---")
@@ -81,6 +106,8 @@ def main():
 
     if choice == "Command Center":
         render_command_center()
+    elif choice == "Data Hub":
+        render_data_hub()
     elif choice == "Create a Decision":
         render_create_decision()
     elif choice == "Approval Queue":
@@ -90,6 +117,234 @@ def main():
     elif choice == "What-If Simulation":
         render_simulation()
 
+
+# --- VIEW: DATA HUB ---
+def validate_dataframe(df, required_cols, dataset_name):
+    # Ignore/drop completely empty rows (all fields NaN/empty) before validation
+    df = df.dropna(how="all").reset_index(drop=True)
+    messages = []
+    status = "pass"
+    
+    # Check Required Columns
+    missing_cols = [col for col in required_cols if col not in df.columns]
+    if missing_cols:
+        status = "blocking"
+        messages.append(f"BLOCKING: Missing required columns in {dataset_name}: {', '.join(missing_cols)}")
+        return status, messages
+        
+    # Check Rows
+    if len(df) == 0:
+        status = "blocking"
+        messages.append(f"BLOCKING: {dataset_name} has 0 rows.")
+        return status, messages
+        
+    # Check Duplicates
+    dupes = df.duplicated().sum()
+    if dupes > 0:
+        if status != "blocking": status = "warning"
+        messages.append(f"WARNING: {dupes} duplicate rows found in {dataset_name}.")
+        
+    # Check Missing Values
+    missing_vals = df.isnull().sum().sum()
+    if missing_vals > 0:
+        if status != "blocking": status = "warning"
+        messages.append(f"WARNING: {missing_vals} missing values found across {dataset_name}.")
+        
+    if status == "pass":
+        messages.append(f"PASS: {dataset_name} is valid. ({len(df)} rows, {len(df.columns)} columns)")
+        
+    return status, messages
+
+def suggest_mapping(existing_cols, target_cols):
+    mapping = {}
+    for tgt in target_cols:
+        # Exact match
+        if tgt in existing_cols:
+            mapping[tgt] = tgt
+            continue
+        # Substring / loose match
+        for ext in existing_cols:
+            if tgt.replace('_', ' ').lower() in ext.lower() or ext.lower() in tgt.replace('_', ' ').lower():
+                mapping[tgt] = ext
+                break
+        if tgt not in mapping:
+            mapping[tgt] = existing_cols[0] if existing_cols else None
+    return mapping
+
+def render_data_hub():
+    st.title("Enterprise Data Hub")
+    st.markdown("Connect, map, and validate your supply chain datasets.")
+    
+    # Active Dataset Indicator
+    active_type = st.session_state.get("active_dataset_type", "demo")
+    
+    tabs = st.tabs(["CSV Upload", "Excel Upload", "Database Connection", "API Connection", "Demo Dataset"])
+    
+    # Define required schemas
+    schemas = {
+        "historical_demand.csv": ["sku_id", "date", "quantity_demanded", "location_id"],
+        "inventory_snapshot.csv": ["sku_id", "current_stock", "reorder_point", "safety_stock", "unit_cost", "lead_time_days", "location_id"],
+        "deliveries.csv": ["delivery_id", "carrier_id", "origin", "destination", "distance_km", "scheduled_date", "actual_date", "is_late", "weather_condition", "traffic_delay_hrs"]
+    }
+    
+    temp_dir = os.path.join(tempfile.gettempdir(), "supplychain_sentinel_sessions", st.session_state.session_id)
+    
+    # CSV UPLOAD
+    with tabs[0]:
+        st.subheader("CSV Ingestion")
+        uploaded_files = st.file_uploader("Upload CSV files", type="csv", accept_multiple_files=True)
+        
+        if uploaded_files:
+            st.markdown("### File Mapping & Validation")
+            all_valid = True
+            processed_dfs = {}
+            
+            for file in uploaded_files:
+                with st.expander(f"📄 Configure: {file.name}", expanded=True):
+                    df = pd.read_csv(file)
+                    st.dataframe(df.head(3), use_container_width=True)
+                    
+                    target_file = st.selectbox(
+                        "Assign to Dataset Type", 
+                        list(schemas.keys()), 
+                        key=f"target_{file.name}",
+                        index=0 if "demand" in file.name.lower() else (1 if "inv" in file.name.lower() else 2)
+                    )
+                    
+                    req_cols = schemas[target_file]
+                    st.markdown("**Column Mapping**")
+                    
+                    suggested = suggest_mapping(list(df.columns), req_cols)
+                    
+                    col_map = {}
+                    cols = st.columns(min(len(req_cols), 4))
+                    for i, req_col in enumerate(req_cols):
+                        with cols[i % 4]:
+                            idx = list(df.columns).index(suggested[req_col]) if suggested.get(req_col) in df.columns else 0
+                            col_map[req_col] = st.selectbox(f"{req_col}", list(df.columns), index=idx, key=f"map_{file.name}_{req_col}")
+                    
+                    # Apply Mapping
+                    mapped_df = pd.DataFrame()
+                    for k, v in col_map.items():
+                        mapped_df[k] = df[v]
+                        
+                    status, msgs = validate_dataframe(mapped_df, req_cols, target_file)
+                    
+                    if status == "blocking":
+                        st.error("\n".join(msgs))
+                        all_valid = False
+                    elif status == "warning":
+                        st.warning("\n".join(msgs))
+                    else:
+                        st.success("\n".join(msgs))
+                        
+                    processed_dfs[target_file] = mapped_df
+
+            if all_valid and len(processed_dfs) == 3: # Require all 3 for the pipeline to work
+                if st.button("Use This Dataset", type="primary"):
+                    os.makedirs(temp_dir, exist_ok=True)
+                    for filename, pdf in processed_dfs.items():
+                        pdf.to_csv(os.path.join(temp_dir, filename), index=False)
+                    agent_tools.set_active_datasource(CSVDataSource(data_dir=temp_dir))
+                    st.session_state.active_dataset_type = "csv"
+                    st.success("Dataset successfully activated! The backend AI pipeline will now consume this data.")
+                    time.sleep(1)
+                    st.rerun()
+            elif len(processed_dfs) < 3:
+                st.info("⚠️ Please upload and map all 3 required files (Demand, Inventory, Deliveries) to proceed.")
+
+    # EXCEL UPLOAD
+    with tabs[1]:
+        st.subheader("Excel Ingestion")
+        excel_file = st.file_uploader("Upload Excel workbook (.xlsx)", type=["xlsx"])
+        if excel_file:
+            path = os.path.join(tempfile.gettempdir(), f"upload_{st.session_state.session_id}.xlsx")
+            with open(path, "wb") as f:
+                f.write(excel_file.getbuffer())
+            try:
+                xl = pd.ExcelFile(path)
+                st.write(f"Detected sheets: {', '.join(xl.sheet_names)}")
+                
+                required_sheets = ["historical_demand", "inventory_snapshot", "deliveries"]
+                missing = [s for s in required_sheets if s not in xl.sheet_names]
+                
+                if missing:
+                    st.error(f"BLOCKING: Workbook is missing required sheets: {', '.join(missing)}")
+                else:
+                    st.success("Validation Passed: Workbook contains required sheets.")
+                    if st.button("Use This Excel Dataset", type="primary"):
+                        os.makedirs(temp_dir, exist_ok=True)
+                        dest_path = os.path.join(temp_dir, "supplychain_data.xlsx")
+                        shutil.copy(path, dest_path)
+                        agent_tools.set_active_datasource(ExcelDataSource(excel_path=dest_path))
+                        st.session_state.active_dataset_type = "excel"
+                        st.success("Dataset activated!")
+                        time.sleep(1)
+                        st.rerun()
+            except Exception as e:
+                st.error(f"Error reading Excel: {e}")
+
+    # DATABASE CONNECTION
+    with tabs[2]:
+        st.subheader("Database Connection")
+        st.info("Supported Connections: PostgreSQL (Neon), SQLite")
+        with st.form("db_form"):
+            db_url = st.text_input("Database URL", type="password", placeholder="postgresql://user:pass@host/db")
+            test_conn = st.form_submit_button("Test Connection & Use")
+            
+            if test_conn:
+                if not db_url:
+                    st.error("Please enter a connection URL.")
+                else:
+                    try:
+                        from sqlalchemy import create_engine
+                        engine = create_engine(db_url)
+                        with engine.connect() as conn:
+                            pass
+                        
+                        agent_tools.set_active_datasource(DBDataSource(connection_url=db_url))
+                        
+                        # Pre-flight check to see if tables exist
+                        try:
+                            agent_tools._get_inventory_df()
+                            st.session_state.active_dataset_type = "db"
+                            st.success("Connection successful! Required tables found. Dataset activated!")
+                            time.sleep(1)
+                            st.rerun()
+                        except Exception as e:
+                            agent_tools.set_active_datasource(CSVDataSource(data_dir="data")) # Revert
+                            st.error(f"BLOCKING: Connection succeeded, but required tables are missing or invalid: {e}")
+                            
+                    except Exception as e:
+                        st.error(f"BLOCKING: Connection failed. Check credentials. ({e})")
+
+    # API CONNECTION
+    with tabs[3]:
+        st.subheader("Enterprise API Integration")
+        st.info("API ingestion is currently in development. Generic REST/GraphQL sync will be supported in the next major release.")
+        st.text_input("API Name", placeholder="e.g., SAP ERP, Oracle WMS", disabled=True)
+        st.text_input("Endpoint URL", placeholder="https://api.company.com/v1", disabled=True)
+        st.selectbox("Authentication Method", ["Bearer Token", "OAuth2", "Basic Auth"], disabled=True)
+        st.text_input("Auth Token / API Key", type="password", disabled=True)
+        st.button("Test API Connection", disabled=True, help="Coming Soon")
+
+    # DEMO DATASET
+    with tabs[4]:
+        st.subheader("Synthetic Demo Dataset")
+        st.markdown("Use the synthetic data bundled with the application to safely test Sentinel's AI decision-making capabilities without connecting your own systems.")
+        
+        c1, c2, c3 = st.columns(3)
+        c1.metric("Mock SKUs", "100")
+        c2.metric("Mock Deliveries", "50")
+        c3.metric("Historical Data", "30 Days")
+        
+        if st.button("Use Demo Dataset", type="primary"):
+            agent_tools.set_active_datasource(CSVDataSource(data_dir="data"))
+            st.session_state.active_dataset_type = "demo"
+            st.success("Switched to Synthetic Demo Dataset.")
+            time.sleep(1)
+            st.rerun()
+
 # --- VIEW: COMMAND CENTER ---
 def render_command_center():
     st.title("Supply Chain Command Center")
@@ -97,15 +352,32 @@ def render_command_center():
     
     session = get_db_session()
     try:
-        # Fetch actual metrics
-        active_inventory_risks = session.query(InventoryRisk).filter(InventoryRisk.risk_flag != "ok").count()
-        high_delivery_risks = session.query(DeliveryRiskPrediction).filter(DeliveryRiskPrediction.risk_label == "high").count()
         recent_decisions = session.query(DecisionTrace).count()
         
-        # Calculate exposure (just a rough proxy summing unit_cost of at-risk SKUs if available, else placeholder)
-        at_risk_skus = session.query(SKU).join(InventoryRisk).filter(InventoryRisk.risk_flag == "stockout").all()
-        exposure = sum([sku.unit_cost * 100 for sku in at_risk_skus]) if at_risk_skus else 0
-        exposure_str = f"₹{exposure:,.0f}" if exposure > 0 else "—"
+        # Calculate metrics dynamically from active datasource via agent_tools
+        active_inventory_risks = "N/A"
+        exposure_str = "N/A"
+        high_delivery_risks = "N/A"
+        
+        try:
+            inv_df = agent_tools._get_inventory_df()
+            if not inv_df.empty:
+                # Mock risk evaluation for dashboard
+                low_stock = inv_df[inv_df["current_stock"] < inv_df["reorder_point"]]
+                active_inventory_risks = len(low_stock)
+                
+                if "unit_cost" in inv_df.columns and "current_stock" in inv_df.columns:
+                    exp = low_stock["unit_cost"].sum() * 100
+                    exposure_str = f"₹{exp:,.0f}"
+        except Exception:
+            active_inventory_risks = "Not enough data"
+            
+        try:
+            _, del_df = agent_tools._get_delivery_model()
+            if not del_df.empty and "is_late" in del_df.columns:
+                high_delivery_risks = len(del_df[del_df["is_late"] == 1])
+        except Exception:
+            high_delivery_risks = "Not enough data"
         
         st.markdown("<br>", unsafe_allow_html=True)
         col1, col2, col3, col4 = st.columns(4)
@@ -141,35 +413,53 @@ def render_command_center():
             """, unsafe_allow_html=True)
             if st.button("Investigate →", key="btn_risk2"):
                 st.info("Navigate to 'Create a Decision' to evaluate alternatives.")
-                
     finally:
         session.close()
 
 # --- VIEW: CREATE A DECISION ---
 def render_create_decision():
     st.title("Create a Decision")
-    st.markdown("Tell Sentinel what supply-chain situation you want to evaluate.")
+    st.markdown("Tell Sentinel what supply-chain situation you want to evaluate. Sentinel will automatically fetch the latest numbers from your active dataset.")
     
     with st.container(border=True):
         st.subheader("BUSINESS CONTEXT")
-        col1, col2 = st.columns(2)
         
-        with col1:
-            sku_input = st.text_input("Product / SKU ID", placeholder="e.g., SKU_101")
-            inventory_input = st.number_input("Current Inventory (Units)", min_value=0, value=0, step=10)
-        
-        with col2:
-            demand_input = st.text_input("Expected Demand Context", placeholder="e.g., Sudden spike in region B")
-            supplier_input = st.text_input("Supplier / Lead Time Issues", placeholder="e.g., Delayed by 4 days")
+        try:
+            inv_df = agent_tools._get_inventory_df()
+            sku_list = inv_df["sku_id"].dropna().unique().tolist() if not inv_df.empty else []
+        except:
+            sku_list = []
             
-        constraints = st.text_area("Additional Constraints or Context", placeholder="e.g., Must prioritize enterprise clients.")
+        try:
+            _, del_df = agent_tools._get_delivery_model()
+            del_list = del_df["delivery_id"].dropna().unique().tolist() if not del_df.empty else []
+        except:
+            del_list = []
+            
+        col1, col2 = st.columns(2)
+        with col1:
+            target_type = st.radio("What does this concern?", ["Inventory / Demand Issue", "Delivery / Routing Issue"])
+            
+        with col2:
+            if target_type == "Inventory / Demand Issue":
+                if sku_list:
+                    target_id = st.selectbox("Select Product (SKU)", sku_list)
+                else:
+                    target_id = st.text_input("Product / SKU ID")
+            else:
+                if del_list:
+                    target_id = st.selectbox("Select Delivery (Shipment ID)", del_list)
+                else:
+                    target_id = st.text_input("Delivery ID")
+        
+        situation_text = st.text_area("Describe the situation or business constraints", placeholder="e.g., We just landed a huge enterprise client and demand is going to double. Do we have enough stock, or should we expedite shipments?")
     
     if st.button("Run AI Decision Analysis", type="primary", use_container_width=True):
-        if not sku_input:
-            st.warning("Please specify a Product / SKU ID to proceed.")
+        if not target_id:
+            st.warning("Please specify a Target ID to proceed.")
             return
             
-        situation = f"SKU: {sku_input}. Inventory: {inventory_input}. Demand context: {demand_input}. Supplier info: {supplier_input}. Constraints: {constraints}"
+        situation = f"Target ID: {target_id}. Context: {situation_text}"
         
         status_container = st.status("Initializing AI Analysis...", expanded=True)
         with status_container:
@@ -252,6 +542,58 @@ def render_detailed_decision(trace: DecisionTrace, is_pending: bool):
     # Convert narration into pseudo bullet points if it's just a string, 
     # or just display it cleanly.
     st.write(narration)
+    
+    st.markdown("<br>", unsafe_allow_html=True)
+    
+    st.markdown("### Business Evidence (Calculated from Active Dataset)")
+    has_evidence = False
+    if trace.tools_used:
+        for tool_call in trace.tools_used:
+            tool_name = tool_call.get("tool", "")
+            result = tool_call.get("result", {})
+            if tool_name == "get_inventory_risk" and isinstance(result, dict) and "error" not in result:
+                has_evidence = True
+                sku = result.get('sku_id', 'Unknown')
+                rl = result.get('risk_level', 'NORMAL')
+                rl_badge = "<span class='badge-high'>STOCKOUT_RISK</span>" if "STOCKOUT" in rl else ("<span class='badge-medium'>OVERSTOCK_RISK</span>" if "OVERSTOCK" in rl else "<span class='badge-low'>NORMAL</span>")
+                st.markdown(f"""
+                <div style="background-color: rgba(28, 131, 225, 0.1); border-left: 4px solid #1c83e1; padding: 0.8rem; border-radius: 4px; margin-bottom: 0.8rem;">
+                    <strong>📦 Inventory Profile: {sku}</strong><br/>
+                    • <strong>Risk Status:</strong> {rl_badge}<br/>
+                    • <strong>Current Stock / Coverage:</strong> {result.get('days_of_supply', 0):.1f} Days of Supply<br/>
+                    • <strong>Calculated Reorder Point:</strong> {result.get('reorder_point_units', 0):.0f} Units<br/>
+                    • <strong>Required Safety Stock:</strong> {result.get('safety_stock_units', 0):.0f} Units<br/>
+                    • <strong>Engine Detail:</strong> <em>{result.get('detail', '')}</em>
+                </div>
+                """, unsafe_allow_html=True)
+            elif tool_name == "get_demand_forecast" and isinstance(result, dict) and "error" not in result:
+                has_evidence = True
+                sku = result.get('sku_id', 'Unknown')
+                preds = result.get('predicted_quantities', [])
+                total_pred = sum(preds)
+                st.markdown(f"""
+                <div style="background-color: rgba(28, 131, 225, 0.1); border-left: 4px solid #1c83e1; padding: 0.8rem; border-radius: 4px; margin-bottom: 0.8rem;">
+                    <strong>📈 Demand Forecast: {sku}</strong><br/>
+                    • <strong>Horizon:</strong> {result.get('forecast_horizon_weeks', 0)} Weeks<br/>
+                    • <strong>Total Predicted Demand:</strong> {total_pred:.0f} Units
+                </div>
+                """, unsafe_allow_html=True)
+            elif tool_name == "get_delivery_risk" and isinstance(result, dict) and "error" not in result:
+                has_evidence = True
+                del_id = result.get('delivery_id', 'Unknown')
+                rl = result.get('risk_label', 'LOW')
+                rl_badge = "<span class='badge-high'>HIGH</span>" if "high" in rl.lower() else ("<span class='badge-medium'>MEDIUM</span>" if "medium" in rl.lower() else "<span class='badge-low'>LOW</span>")
+                score = result.get('risk_score', 0) * 100
+                st.markdown(f"""
+                <div style="background-color: rgba(28, 131, 225, 0.1); border-left: 4px solid #1c83e1; padding: 0.8rem; border-radius: 4px; margin-bottom: 0.8rem;">
+                    <strong>🚚 Delivery Profile: {del_id}</strong><br/>
+                    • <strong>Delay Risk:</strong> {rl_badge}<br/>
+                    • <strong>Late Probability:</strong> {score:.1f}%
+                </div>
+                """, unsafe_allow_html=True)
+    
+    if not has_evidence:
+        st.caption("No specific quantitative evidence extracted for this decision.")
     
     st.markdown("<br>", unsafe_allow_html=True)
     
@@ -406,7 +748,7 @@ def render_simulation():
         st.subheader("📦 Inventory Stress-Testing: Demand Shocks & Supplier Delays")
         st.markdown("Simulate how demand spikes or supplier lead time extensions impact Days of Supply and Stockout exposure.")
         
-        sku_options = inv_df["sku_id"].tolist()
+        sku_options = inv_df["sku_id"].dropna().unique().tolist()
         col_ctrl, col_results = st.columns([1, 1.4], gap="large")
         
         with col_ctrl:

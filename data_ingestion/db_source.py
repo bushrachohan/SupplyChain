@@ -18,6 +18,12 @@ class DBDataSource(DataSource):
         if not connection_url:
             connection_url = os.getenv("NEON_DATABASE_URL") or os.getenv("DATABASE_URL")
         if not connection_url:
+            try:
+                import streamlit as st
+                connection_url = st.secrets.get("NEON_DATABASE_URL") or st.secrets.get("DATABASE_URL")
+            except Exception:
+                pass
+        if not connection_url:
             raise ValueError("No database connection URL provided or found in environment variables.")
         
         self.engine = create_engine(connection_url)

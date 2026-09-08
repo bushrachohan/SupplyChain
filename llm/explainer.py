@@ -52,6 +52,12 @@ def get_groq_client(api_key: Optional[str] = None) -> Groq:
     """
     key = api_key or os.getenv("GROQ_API_KEY")
     if not key:
+        try:
+            import streamlit as st
+            key = st.secrets.get("GROQ_API_KEY")
+        except Exception:
+            pass
+    if not key:
         raise ValueError(
             "GROQ_API_KEY not set. Add it to .env (see progress.md Section 6) "
             "or pass api_key explicitly."

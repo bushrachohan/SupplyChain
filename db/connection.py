@@ -6,9 +6,15 @@ from dotenv import load_dotenv
 load_dotenv()
 
 DATABASE_URL = os.getenv("NEON_DATABASE_URL")
+if not DATABASE_URL:
+    try:
+        import streamlit as st
+        DATABASE_URL = st.secrets.get("NEON_DATABASE_URL")
+    except Exception:
+        pass
 
 if not DATABASE_URL:
-    raise ValueError("NEON_DATABASE_URL is not set in .env")
+    raise ValueError("NEON_DATABASE_URL is not set in .env or st.secrets")
 
 engine = create_engine(
     DATABASE_URL,

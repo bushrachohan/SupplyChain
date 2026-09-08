@@ -8,7 +8,12 @@ import pandas as pd
 from typing import List, Dict, Any
 import threading
 
+<<<<<<< HEAD
 from data_ingestion.base import DataSource
+=======
+from datetime import datetime, timezone
+from data_ingestion.active_dataset import active_dataset, DatasetMetadata
+>>>>>>> a707816 (Add: P0 Active Business Dataset Foundation, lifecycle context, and tests)
 from data_ingestion.csv_source import CSVDataSource
 from core.forecasting import train_forecast_model, predict_demand
 from core.inventory_risk import evaluate_sku_risk
@@ -16,6 +21,7 @@ from core.delivery_risk import train_delivery_risk_model, predict_delivery_risk
 from core.logistics_optimizer import optimize_routes as core_optimize_routes
 from core.rag import retrieve_policies as core_retrieve_policies
 
+<<<<<<< HEAD
 # Thread-local state for safe concurrency across Streamlit user sessions
 _state = threading.local()
 
@@ -42,8 +48,47 @@ def set_active_datasource(source: DataSource):
     state.deliveries_df = None
     state.delivery_model = None
     state.inventory_df = None
+=======
+# Cached models and DataFrames (lazy-loaded and automatically invalidated on active dataset change)
+_demand_df = None
+_forecast_model = None
+_deliveries_df = None
+_delivery_model = None
+_inventory_df = None
+>>>>>>> a707816 (Add: P0 Active Business Dataset Foundation, lifecycle context, and tests)
+
+def _invalidate_caches():
+    """Reset cached models and DataFrames when the active dataset changes or is cleared."""
+    global _demand_df, _forecast_model, _deliveries_df, _delivery_model, _inventory_df
+    _demand_df = None
+    _forecast_model = None
+    _deliveries_df = None
+    _delivery_model = None
+    _inventory_df = None
+
+# Register cache invalidation hook
+active_dataset.subscribe(_invalidate_caches)
+
+def _get_active_source():
+    """
+    Returns the configured business dataset. If no dataset is active yet,
+    initializes the default bundled CSV source explicitly into the context.
+    """
+    try:
+        return active_dataset.get_source()
+    except ValueError:
+        default_source = CSVDataSource(data_dir="data")
+        default_meta = DatasetMetadata(
+            source_type="csv",
+            name="Default Bundled CSV Data",
+            status="active",
+            connected_at=datetime.now(timezone.utc).isoformat()
+        )
+        active_dataset.set_active(default_source, default_meta)
+        return active_dataset.get_source()
 
 def _get_demand_model():
+<<<<<<< HEAD
     state = _get_state()
     if state.forecast_model is None:
         state.demand_df = state.source.load_historical_demand()
@@ -62,6 +107,29 @@ def _get_inventory_df():
     if state.inventory_df is None:
         state.inventory_df = state.source.load_inventory_snapshot()
     return state.inventory_df
+=======
+    global _demand_df, _forecast_model
+    if _forecast_model is None:
+        source = _get_active_source()
+        _demand_df = source.load_historical_demand()
+        _forecast_model, _, _ = train_forecast_model(_demand_df)
+    return _forecast_model, _demand_df
+
+def _get_delivery_model():
+    global _deliveries_df, _delivery_model
+    if _delivery_model is None:
+        source = _get_active_source()
+        _deliveries_df = source.load_deliveries()
+        _delivery_model, _, _ = train_delivery_risk_model(_deliveries_df)
+    return _delivery_model, _deliveries_df
+
+def _get_inventory_df():
+    global _inventory_df
+    if _inventory_df is None:
+        source = _get_active_source()
+        _inventory_df = source.load_inventory_snapshot()
+    return _inventory_df
+>>>>>>> a707816 (Add: P0 Active Business Dataset Foundation, lifecycle context, and tests)
 
 # ---------------------------------------------------------------------------
 # Tool Execution Wrappers

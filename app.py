@@ -478,31 +478,31 @@ def render_simulation():
             comp_data = {
                 "Metric": ["Current Stock (units)", "Lead Time (days)", "Avg Daily Demand (units/d)", "14-Day Demand Forecast (units)", "Days of Supply (days)", "Reorder Point (units)", "Operational Risk Status"],
                 "Baseline State": [
-                    f"{before['current_stock']:.0f}",
-                    f"{before['lead_time_days']:.0f}",
-                    f"{before['avg_daily_demand']:.1f}",
-                    f"{before['forecasted_demand']:.1f}",
-                    f"{before['days_of_supply']:.1f}",
-                    f"{before['reorder_point_units']:.1f}",
-                    before['risk_level'].upper()
+                    f"{before.get('current_stock', base_stock):.0f}",
+                    f"{before.get('lead_time_days', base_lead_time):.0f}",
+                    f"{before.get('avg_daily_demand', base_daily):.1f}",
+                    f"{before.get('forecasted_demand', base_forecast_14d):.1f}",
+                    f"{before.get('days_of_supply', 0.0):.1f}",
+                    f"{before.get('reorder_point_units', 0.0):.1f}",
+                    str(before.get('risk_level', 'NORMAL')).upper()
                 ],
                 "Scenario State": [
-                    f"{after['current_stock']:.0f}",
-                    f"{after['lead_time_days']:.0f}",
-                    f"{after['avg_daily_demand']:.1f}",
-                    f"{after['forecasted_demand']:.1f}",
-                    f"{after['days_of_supply']:.1f}",
-                    f"{after['reorder_point_units']:.1f}",
-                    after['risk_level'].upper()
+                    f"{after.get('current_stock', base_stock):.0f}",
+                    f"{after.get('lead_time_days', base_lead_time):.0f}",
+                    f"{after.get('avg_daily_demand', base_daily * demand_mult):.1f}",
+                    f"{after.get('forecasted_demand', base_forecast_14d * demand_mult):.1f}",
+                    f"{after.get('days_of_supply', 0.0):.1f}",
+                    f"{after.get('reorder_point_units', 0.0):.1f}",
+                    str(after.get('risk_level', 'NORMAL')).upper()
                 ],
                 "Observed Delta": [
-                    f"{after['current_stock'] - before['current_stock']:+.0f}",
-                    f"{after['lead_time_days'] - before['lead_time_days']:+.0f}",
-                    f"{after['avg_daily_demand'] - before['avg_daily_demand']:+.1f}",
-                    f"{after['forecasted_demand'] - before['forecasted_demand']:+.1f}",
-                    f"{deltas['days_of_supply_delta']:+.1f}",
-                    f"{deltas['reorder_point_delta']:+.1f}",
-                    "CHANGED ⚠️" if deltas["risk_level_changed"] else "UNCHANGED"
+                    f"{after.get('current_stock', base_stock) - before.get('current_stock', base_stock):+.0f}",
+                    f"{after.get('lead_time_days', base_lead_time) - before.get('lead_time_days', base_lead_time):+.0f}",
+                    f"{after.get('avg_daily_demand', base_daily * demand_mult) - before.get('avg_daily_demand', base_daily):+.1f}",
+                    f"{after.get('forecasted_demand', base_forecast_14d * demand_mult) - before.get('forecasted_demand', base_forecast_14d):+.1f}",
+                    f"{deltas.get('days_of_supply_delta', 0.0):+.1f}",
+                    f"{deltas.get('reorder_point_delta', 0.0):+.1f}",
+                    "CHANGED ⚠️" if deltas.get("risk_level_changed", False) else "UNCHANGED"
                 ]
             }
             st.dataframe(pd.DataFrame(comp_data), hide_index=True, use_container_width=True)
@@ -512,16 +512,16 @@ def render_simulation():
             with a_col1:
                 st.error(f"""
                 **❌ Do Nothing Scenario**
-                - Buffer depleted within **{after['days_of_supply']:.1f} days**.
+                - Buffer depleted within **{after.get('days_of_supply', 0.0):.1f} days**.
                 - Stockout penalty incurred; customer fulfillments backlogged.
                 - Operational exposure of approx **₹{base_stock * unit_cost:,.0f}**.
                 """)
             with a_col2:
-                reorder_qty = max(0.0, after['reorder_point_units'] - after['current_stock'])
+                reorder_qty = max(0.0, after.get('reorder_point_units', 0.0) - after.get('current_stock', base_stock))
                 st.success(f"""
                 **✅ Recommended Action (AI Decision)**
                 - Issue replenishment PO for **{reorder_qty:.0f} units**.
-                - Enforce expedited supplier dispatch to hold lead time to **{after['lead_time_days']:.0f} days**.
+                - Enforce expedited supplier dispatch to hold lead time to **{after.get('lead_time_days', base_lead_time):.0f} days**.
                 - Preserves service level stability and eliminates stockout penalty.
                 """)
 

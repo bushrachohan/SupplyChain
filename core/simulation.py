@@ -60,10 +60,26 @@ def simulate_inventory_scenario(
         safety_stock_days=base_safety_stock_days
     )
 
+    before_dict = before_result.to_dict()
+    before_dict.update({
+        "current_stock": base_current_stock,
+        "lead_time_days": base_lead_time_days,
+        "avg_daily_demand": base_avg_daily_demand,
+        "forecasted_demand": base_forecast_demand,
+    })
+
+    after_dict = after_result.to_dict()
+    after_dict.update({
+        "current_stock": after_stock,
+        "lead_time_days": after_lead_time,
+        "avg_daily_demand": after_avg_daily_demand,
+        "forecasted_demand": after_forecast_demand,
+    })
+
     return {
         "sku_id": sku_id,
-        "before": before_result.to_dict(),
-        "after": after_result.to_dict(),
+        "before": before_dict,
+        "after": after_dict,
         "deltas": {
             "days_of_supply_delta": round(after_result.days_of_supply - before_result.days_of_supply, 2),
             "reorder_point_delta": round(after_result.reorder_point_units - before_result.reorder_point_units, 2),

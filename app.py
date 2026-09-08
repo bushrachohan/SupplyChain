@@ -338,8 +338,20 @@ def render_data_hub():
     with tabs[2]:
         st.subheader("Database Connection")
         st.info("Supported Connections: PostgreSQL (Neon), SQLite")
+        
+        configured_neon = os.getenv("NEON_DATABASE_URL")
+        if not configured_neon:
+            try:
+                configured_neon = st.secrets.get("NEON_DATABASE_URL")
+            except Exception:
+                pass
+        
+        use_configured = False
+        if configured_neon:
+            use_configured = st.checkbox("Use system-configured Neon Database (from Secrets / .env)", value=False)
+        
         with st.form("db_form"):
-            db_url = st.text_input("Database URL", type="password", placeholder="postgresql://user:pass@host/db")
+            db_url = st.text_input("Database URL", type="password", placeholder="postgresql://user:pass@host/db", value=configured_neon if use_configured else "")
             test_conn = st.form_submit_button("Test Connection & Use")
             
             if test_conn:

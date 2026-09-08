@@ -8,7 +8,7 @@
 
 ## Live Demo
 
-🚀 🚀 [Check Out Product](https://supplychain-xiydr3sj8cfn8o5rstpg8t.streamlit.app/)
+🚀 🚀 [Check Out Product](https://supplychain-m6ormyh8hus3tvuep4b5st.streamlit.app/)
 
 ---
 

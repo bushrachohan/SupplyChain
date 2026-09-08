@@ -1,13 +1,14 @@
 # SupplyChain Sentinel AI
 
 > **AI-Powered Supply Chain Risk & Decision Intelligence Platform**
-> An end-to-end system that forecasts demand, detects inventory & delivery risk, optimises routes, retrieves business policies via RAG, and runs a genuine multi-agent deliberation before surfacing recommendations for human approval.
+> **An end-to-end system that forecasts demand, detects inventory & delivery risk, optimises routes, retrieves business policies via RAG, and runs a genuine multi-agent deliberation before surfacing recommendations for human approval.**
 
 ---
 
+
 ## Live Demo
 
-🚀 [Deploy on Streamlit Cloud](#deployment-streamlit-cloud) — see setup instructions below.
+🚀 🚀 [Check Out Product](https://supplychain-xiydr3sj8cfn8o5rstpg8t.streamlit.app/)
 
 ---
 
@@ -24,38 +25,20 @@
 | **Frontend** | Streamlit (production entry point) |
 | **Environment** | `uv` + `pyproject.toml` + `uv.lock` |
 
+
+
 ---
 
 ## Architecture
 
-```
-Data Sources (CSV / Neon DB)
-    ↓
-Data Ingestion Layer (DataSource interface)
-    ↓
-Core ML Modules
-  ├── core/forecasting.py         (LightGBM demand forecast)
-  ├── core/inventory_risk.py      (rule-based stockout/overstock)
-  ├── core/delivery_risk.py       (binary classifier + SHAP)
-  ├── core/logistics_optimizer.py (OR-Tools VRP)
-  ├── core/rag.py                 (ChromaDB + sentence-transformers)
-  └── core/simulation.py          (What-if scenario engine)
-    ↓
-AI Decision Agent (agent/orchestrator.py)
-  └── genuine tool-calling agent — LLM decides which tools to call
-    ↓
-Multi-Agent Critique
-  ├── agent/critics/policy_critic.py   (policy compliance + safety)
-  └── agent/critics/business_critic.py (cost + feasibility)
-    ↓
-Consensus Layer (agent/consensus.py)
-    ↓
-Human Approval Gate (Streamlit UI — Approve / Reject)
-    ↓
-What-If Simulation (Phase 4 — core/simulation.py)
-```
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/54d7b715-72e6-4c83-a794-ab4f4c31ee47"
+       alt="SupplyChain Sentinel AI Architecture"
+       width="700">
+</p>
 
 ---
+
 
 ## Quick Start (Local)
 
@@ -170,7 +153,7 @@ SupplyChain/
 │   ├── excel_source.py        # Excel source
 │   ├── db_source.py           # Neon DB source
 │   └── api_source.py          # API stub (extensible)
-├── policies/                  # Real business policy documents for RAG
+├── policies/                   # Business policy documents for RAG
 ├── data/                      # Synthetic CSV data (dev/test only)
 ├── data_pipeline/             # Seed data generation + Neon DB loader
 ├── tests/                     # 90 tests across all modules

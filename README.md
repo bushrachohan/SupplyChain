@@ -1,198 +1,107 @@
-# SupplyChain Sentinel AI
+# 🛡️ SupplyChain Sentinel AI
 
-> **AI-Powered Supply Chain Risk & Decision Intelligence Platform**
-> An end-to-end system that forecasts demand, detects inventory & delivery risk, optimises routes, retrieves business policies via RAG, and runs a genuine multi-agent deliberation before surfacing recommendations for human approval.
+> **An AI-Powered Supply Chain Risk & Decision Intelligence Platform**
 
----
+Welcome to **SupplyChain Sentinel AI**! This project is designed to act like a highly intelligent supply-chain manager. It looks at your data to predict when things might go wrong (like running out of stock or shipments being delayed) and uses a team of AI agents to recommend the safest, most cost-effective solution for your business.
 
-## Live Demo
-
-🚀 [Deploy on Streamlit Cloud](#deployment-streamlit-cloud) — see setup instructions below.
+**👉 [View the Live Demo Here!](https://supplychain-xiydr3sj8cfn8o5rstpg8t.streamlit.app/)**
 
 ---
 
-## Tech Stack
+## 🌟 What Does It Do?
 
-| Layer | Technology |
-|---|---|
-| **ML / Forecasting** | LightGBM, scikit-learn, SHAP |
-| **Optimisation** | Google OR-Tools (Capacitated VRP) |
-| **RAG / Policy Retrieval** | ChromaDB + sentence-transformers (`all-MiniLM-L6-v2`) |
-| **Agent / LLM** | Groq API — `openai/gpt-oss-120b` (tool/function calling) |
-| **Database** | Neon PostgreSQL (serverless, free tier) |
-| **Backend** | FastAPI + Uvicorn (local dev) |
-| **Frontend** | Streamlit (production entry point) |
-| **Environment** | `uv` + `pyproject.toml` + `uv.lock` |
+1. **Spot Risks Early:** It uses Machine Learning to predict future demand and flag potential inventory shortages or delivery delays.
+2. **Consults the Rulebook:** It reads your company's actual business policies to ensure any action it takes is compliant.
+3. **Multi-Agent Teamwork:** Instead of just trusting one AI, we have multiple!
+   - A **Primary Agent** suggests a solution.
+   - A **Policy Critic** checks if it breaks any rules.
+   - A **Business Critic** checks if it makes financial sense.
+4. **Human-in-the-Loop:** The AI *never* acts on its own. It presents its entire thought process to a human manager for final approval.
 
 ---
 
-## Architecture
+## 🚀 How to Run the Project (Step-by-Step)
 
-```
-Data Sources (CSV / Neon DB)
-    ↓
-Data Ingestion Layer (DataSource interface)
-    ↓
-Core ML Modules
-  ├── core/forecasting.py         (LightGBM demand forecast)
-  ├── core/inventory_risk.py      (rule-based stockout/overstock)
-  ├── core/delivery_risk.py       (binary classifier + SHAP)
-  ├── core/logistics_optimizer.py (OR-Tools VRP)
-  ├── core/rag.py                 (ChromaDB + sentence-transformers)
-  └── core/simulation.py          (What-if scenario engine)
-    ↓
-AI Decision Agent (agent/orchestrator.py)
-  └── genuine tool-calling agent — LLM decides which tools to call
-    ↓
-Multi-Agent Critique
-  ├── agent/critics/policy_critic.py   (policy compliance + safety)
-  └── agent/critics/business_critic.py (cost + feasibility)
-    ↓
-Consensus Layer (agent/consensus.py)
-    ↓
-Human Approval Gate (Streamlit UI — Approve / Reject)
-    ↓
-What-If Simulation (Phase 4 — core/simulation.py)
-```
+If you want to run this project on your own computer, follow these simple steps!
 
----
+### Step 1: Install Prerequisites
+Make sure you have installed:
+- Python (version 3.13 or higher)
+- [uv](https://docs.astral.sh/uv/getting-started/installation/) (a super-fast Python package manager)
 
-## Quick Start (Local)
-
-### Prerequisites
-- Python 3.13+
-- [uv](https://docs.astral.sh/uv/getting-started/installation/) installed
-
-### Setup
-
+### Step 2: Clone the Project
+Open your computer's terminal and download the project:
 ```bash
-# 1. Clone the repo
 git clone https://github.com/bushrachohan/SupplyChain.git
 cd SupplyChain
+```
 
-# 2. Install all dependencies (including dev/test)
+### Step 3: Install Everything
+Use `uv` to automatically download all the required libraries:
+```bash
 uv sync
+```
 
-# 3. Copy the example env file and fill in your secrets
-cp .env.example .env
-# Edit .env with your real GROQ_API_KEY and NEON_DATABASE_URL
+### Step 4: Add Your Secret Keys
+To connect to our AI brain and database, the project needs two secret passwords. 
+1. Copy the template file: `cp .env.example .env` (or just rename `.env.example` to `.env`).
+2. Open `.env` and fill in your keys:
+   - `GROQ_API_KEY`: Get a free key from [Groq](https://console.groq.com)
+   - `NEON_DATABASE_URL`: Get a free Postgres database from [Neon](https://neon.tech)
 
-# 4. Run the Streamlit app
+### Step 5: Start the Dashboard!
+Run this command to launch the beautiful user interface:
+```bash
 uv run streamlit run app.py
 ```
-
-### Run Tests
-
-```bash
-uv run pytest
-# Expected: 90 passed
-```
-
-### Run FastAPI (local dev only)
-
-```bash
-uv run uvicorn api.main:app --reload
-# Visit http://localhost:8000/docs
-```
+Your web browser will automatically open the **Supply Chain Command Center**!
 
 ---
 
-## Secrets Required
+## 🌐 How to Deploy to the Web (Streamlit Cloud)
 
-| Key | Where to get it |
-|---|---|
-| `GROQ_API_KEY` | [console.groq.com](https://console.groq.com) — free tier |
-| `NEON_DATABASE_URL` | [neon.tech](https://neon.tech) — free tier PostgreSQL |
+Want to share this project with the world? You can deploy it for free!
 
-For local dev, place these in a `.env` file (never commit it).
+1. Make sure all your code is pushed to your GitHub `main` branch.
+2. Go to [share.streamlit.io](https://share.streamlit.io) and log in.
+3. Click **New app** and connect your `SupplyChain` repository.
+4. Set the **Main file path** to `app.py`.
+5. Click **Advanced settings → Secrets** and paste your `.env` secrets:
+   ```toml
+   GROQ_API_KEY = "gsk_..."
+   NEON_DATABASE_URL = "postgresql://..."
+   ```
+6. Click **Deploy!**
 
----
-
-## Deployment — Streamlit Cloud
-
-1. **Push repo to GitHub** (already done).
-2. Go to [share.streamlit.io](https://share.streamlit.io) → **New app**.
-3. Connect your GitHub repo: `bushrachohan/SupplyChain`.
-4. Set **Main file path** to: `app.py`.
-5. Set **Python version** to: `3.13`.
-6. Click **Advanced settings → Secrets** and paste:
-
-```toml
-GROQ_API_KEY = "gsk_..."
-NEON_DATABASE_URL = "postgresql://..."
-```
-
-7. Click **Deploy**.
-
-### ChromaDB on Streamlit Cloud
-The `chroma_db/` directory is git-ignored. On each cold start, `core/rag.py` detects the missing index and rebuilds it automatically from `policies/*.md`. No manual action needed.
-
-### Why `requirements.txt` instead of `pyproject.toml`?
-Streamlit Community Cloud uses `pip` for installation and looks for `requirements.txt`. The `requirements.txt` in this repo is auto-generated from `uv.lock` and is the source of truth for production dependencies. Do **not** edit it manually — regenerate with:
-```bash
-uv export --format requirements-txt --no-hashes --no-dev -o requirements.txt
-```
+*(Note: The `requirements.txt` file is used specifically to help Streamlit Cloud install your packages).*
 
 ---
 
-## Project Structure
+## 🛠️ The Technology Behind the Magic
 
-```
-SupplyChain/
-├── app.py                     # Streamlit production entry point
-├── api/main.py                # FastAPI (local dev / testing only)
-├── agent/
-│   ├── orchestrator.py        # Primary decision agent (Groq tool-calling)
-│   ├── tools.py               # Tool wrappers + Groq function schemas
-│   ├── critics/
-│   │   ├── policy_critic.py   # Policy compliance + safety check
-│   │   └── business_critic.py # Cost + feasibility check
-│   ├── consensus.py           # Multi-agent consensus layer
-│   └── decision_trace.py      # Builds + persists full trace to DB
-├── core/
-│   ├── forecasting.py         # LightGBM demand forecast
-│   ├── inventory_risk.py      # Rule-based stockout/overstock
-│   ├── delivery_risk.py       # Binary classifier + SHAP
-│   ├── logistics_optimizer.py # OR-Tools Capacitated VRP
-│   ├── rag.py                 # ChromaDB RAG over policy documents
-│   └── simulation.py          # What-if scenario simulation engine
-├── ml/
-│   ├── evaluation.py          # Time-based split, metrics, baselines
-│   └── explainability.py      # SHAP tree explainer helpers
-├── llm/
-│   └── explainer.py           # Groq narration-only wrapper
-├── db/
-│   ├── models.py              # SQLAlchemy models (15 tables)
-│   └── connection.py          # Neon Postgres engine + session
-├── data_ingestion/
-│   ├── base.py                # Abstract DataSource interface
-│   ├── csv_source.py          # CSV (dev/test synthetic data)
-│   ├── excel_source.py        # Excel source
-│   ├── db_source.py           # Neon DB source
-│   └── api_source.py          # API stub (extensible)
-├── policies/                  # Real business policy documents for RAG
-├── data/                      # Synthetic CSV data (dev/test only)
-├── data_pipeline/             # Seed data generation + Neon DB loader
-├── tests/                     # 90 tests across all modules
-├── .streamlit/config.toml     # Streamlit theme + server config
-├── pyproject.toml             # uv dependency manifest
-├── requirements.txt           # pip-compatible (for Streamlit Cloud)
-└── .env.example               # Secret key template
-```
+For the technical judges and developers, here is what powers the platform under the hood:
+
+- **Machine Learning:** LightGBM, scikit-learn, and SHAP for forecasting and risk detection.
+- **AI Brain:** Groq API running `openai/gpt-oss-120b` for blazingly fast reasoning.
+- **RAG (Retrieval-Augmented Generation):** ChromaDB stores our company policies so the AI can read them instantly.
+- **Database:** Neon Serverless PostgreSQL.
+- **Frontend / Backend:** Streamlit (UI) and FastAPI (Local API).
 
 ---
 
-## Team
+## 👥 Meet the Team
 
-**Bushra** (Team Leader) · **Maryam** · **Shreeya** · **Samiya**
+This project was proudly built by:
+- **Bushra** (Team Leader)
+- **Maryam** 
+- **Shreeya** 
+- **Samiya**
 
-See [`progress.md`](progress.md) for the full task board, build checklist, and session log.
+*(For detailed project tracking, see our `progress.md` file!)*
 
 ---
 
-## Key Design Rules
-
-- **LLM Grounding Constraint**: The LLM only narrates and reasons. Every number traces to a `core/*` tool call — never hallucinated.
-- **Human-in-the-loop**: No business action executes without human approval.
-- **Real agent, not a pipeline**: The LLM decides which tools to call based on the situation. A pure inventory alert must not trigger route optimisation.
-- **Synthetic data**: All `data/*.csv` files are clearly synthetic. Never presented as real company data.
+### ⚠️ Key Design Philosophy
+- **No Hallucinations:** The AI is strictly programmed to pull real numbers from the database. It is not allowed to guess inventory levels.
+- **Safety First:** No action is taken without human approval.
+- **Mock Data:** The CSV data provided in this project is synthetic and built for demonstration purposes.

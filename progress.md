@@ -40,7 +40,7 @@ Data → Prediction → Risk Detection → Scenario Analysis
 
 The current developer session has completed **P0 — Active Business Dataset Foundation**.
 
-Work implemented and verified locally (95/95 tests passing):
+Work implemented and verified locally (100/100 tests passing):
 - `data_ingestion/active_dataset.py`:
   - `DatasetMetadata` & `ActiveDatasetContext`
   - Lifecycle states (`uploaded/connected`, `validated`, `active`, `failed`, `replaced`)
@@ -48,14 +48,16 @@ Work implemented and verified locally (95/95 tests passing):
   - Delegation methods (`load_historical_demand`, `load_inventory_snapshot`, `load_deliveries`)
 - `tests/test_active_dataset.py`:
   - 5 comprehensive tests covering lifecycle, invalidation listeners, CSV delegation, Excel/DB source integration, and downstream cache invalidation.
-- `agent/tools.py`:
-  - Consumes `active_dataset` with automatic cache invalidation on dataset changes.
 - `app.py`:
-  - Simulation resources load from `active_dataset`.
+  - Enterprise Data Hub UI (integrated from branch `Maryam`): CSV, Excel, DB, API, and Demo tabs with interactive column mapping, pre-validation, and dynamic active dataset metrics.
+- `agent/tools.py`:
+  - Consumes `active_dataset` with automatic cache invalidation on dataset changes, and `set_active_datasource` bridge for UI synchronization.
 - `data_ingestion/api_source.py`:
   - Production contract defined with client injection and transparent connection declarations.
+- `tests/test_multi_date_sku_demand.py`:
+  - 5 tests verifying multi-date time series demand, unique SKU dropdowns, chronological history, and lack of cross-SKU leakage.
 
-**Status:** Verified locally across all 95 tests. Ready to be committed and pushed to branch `Bushra`.
+**Status:** Verified locally across all 100 tests. Committed to branch `Bushra`.
 
 
 ### ✅ Completed (merged to main)

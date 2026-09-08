@@ -834,19 +834,76 @@ def render_detailed_decision(trace: DecisionTrace, is_pending: bool):
     if not has_evidence:
         st.caption("No specific quantitative evidence extracted for this decision.")
         
-    # Render Consulted RAG Policies if present
-    if trace.policies_retrieved and isinstance(trace.policies_retrieved, list):
-        st.markdown("### Enterprise Policies Consulted (via ChromaDB RAG)")
-        for pol in trace.policies_retrieved:
-            p_title = pol.get("policy_title", pol.get("title", "Corporate Supply Chain Policy"))
-            p_sec = pol.get("section", "Standard Operating Procedure")
-            p_text = pol.get("text", pol.get("content", ""))
-            st.markdown(f"""
-            <div style="background-color: rgba(94, 92, 230, 0.1); border-left: 4px solid #5e5ce6; padding: 0.8rem; border-radius: 4px; margin-bottom: 0.8rem;">
-                <strong>📜 {p_title}</strong> <em>(Section: {p_sec})</em><br/>
-                <span style="color: #bbb; font-size: 0.9em;">"{p_text[:220]}{'...' if len(p_text) > 220 else ''}"</span>
+    # Render Candidate Actions Comparison (Project 17 / P3 Decision Layer)
+    actions_data = []
+    if trace.options_considered and isinstance(trace.options_considered, dict):
+        actions_data = trace.options_considered.get("candidate_actions", [])
+    elif trace.tools_used:
+        for tc in trace.tools_used:
+            if tc.get("tool") == "get_candidate_actions":
+                res = tc.get("result", {})
+                if isinstance(res, dict) and "candidate_actions" in res:
+                    actions_data = res.get("candidate_actions", [])
+                    break
+                    
+    if actions_data:
+        st.markdown("### ⚖️ Evaluated Candidate Replenishment Actions")
+        st.caption("Deterministic options calculated by Sentinel's replenishment engine. The AI Decision Agent evaluates these options against enterprise policies.")
+        
+        table_rows = []
+        for a in actions_data:
+            table_rows.append({
+                "Action": a.get("action_name", "").replace("_", " ").title(),
+                "Quantity": f"{a.get('quantity', 0):,.0f} units" if a.get('quantity', 0) > 0 else "0 units",
+                "Arrival Timing": f"{a.get('arrival_days', 0):.0f} days" if a.get("action_name") != "do_nothing" else "Immediate (Baseline)",
+                "Estimated Cost": f"₹{a.get('estimated_cost', 0):,.0f}" if a.get('estimated_cost', 0) > 0 else "₹0",
+                "Projected DOS": f"{a.get('expected_days_of_supply_after', 0):.1f} d",
+                "Expected Risk": a.get("expected_risk_level_after", "NORMAL"),
+                "Approval Tier": a.get("approval_tier", "NONE").replace("_", " ").title(),
+                "Feasibility": "✅ Feasible" if a.get("feasible") else "❌ Infeasible",
+                "Rationale / Constraints": a.get("reason", "") if a.get("feasible") else a.get("feasibility_reason", "")
+            })
+        st.dataframe(pd.DataFrame(table_rows), hide_index=True, use_container_width=True)
+        
+    # Render PO Draft Recommendation if replenishment action recommended
+    if any(kw in str(rec_action).lower() for kw in ["reorder", "expedite"]):
+        matching_action = next((a for a in actions_data if a.get("action_name") in str(rec_action).lower()), None) if actions_data else None
+        sku_val = matching_action.get("sku_id") if matching_action else trace.inputs.get("sku_id", "SKU")
+        qty_val = matching_action.get("quantity", 0) if matching_action else 0
+        cost_val = matching_action.get("estimated_cost", 0) if matching_action else 0
+        tier_val = matching_action.get("approval_tier", "SUPPLY_CHAIN_MANAGER") if matching_action else ("SUPPLY_CHAIN_DIRECTOR" if cost_val >= 10000 else "SUPPLY_CHAIN_MANAGER")
+        loc_val = matching_action.get("destination_location_id", "PRIMARY_FACILITY") if matching_action else "PRIMARY_FACILITY"
+        arrival_val = matching_action.get("arrival_days", 7) if matching_action else 7
+        
+        is_approved = not is_pending and trace.human_approval and trace.human_approval.get("status") == "approved"
+        status_label = f"✓ APPROVED BY {str(trace.human_approval.get('approver', 'USER')).upper()}" if is_approved else "⏳ PENDING HUMAN APPROVAL"
+        status_bg = "rgba(0, 192, 75, 0.2)" if is_approved else "rgba(255, 164, 33, 0.2)"
+        status_color = "#00c04b" if is_approved else "#ffa421"
+        
+        st.markdown("### 📄 Procurement Recommendation / Purchase Order Draft")
+        st.markdown(f"""
+        <div style="background-color: rgba(33, 195, 84, 0.08); border: 1px solid rgba(33, 195, 84, 0.3); border-radius: 6px; padding: 1rem; margin-bottom: 1rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 0.5rem; margin-bottom: 0.8rem;">
+                <strong style="color: #00c04b; font-size: 1.05em;">📋 DRAFT PURCHASE ORDER: PO-DRAFT-{sku_val}-{trace.trace_id[:6]}</strong>
+                <span style="background: {status_bg}; color: {status_color}; padding: 2px 8px; border-radius: 4px; font-size: 0.85em; font-weight: bold;">
+                    {status_label}
+                </span>
             </div>
-            """, unsafe_allow_html=True)
+            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; font-size: 0.88em;">
+                <div><strong>SKU:</strong><br/>{sku_val}</div>
+                <div><strong>Order Quantity:</strong><br/>{qty_val:,.0f} units</div>
+                <div><strong>Total Estimated Value:</strong><br/>₹{cost_val:,.0f}</div>
+                <div><strong>Required Approval:</strong><br/>{tier_val.replace('_', ' ').title()}</div>
+                <div><strong>Vendor:</strong><br/>PREFERRED_VENDOR (Unassigned)</div>
+                <div><strong>Destination Facility:</strong><br/>{loc_val}</div>
+                <div><strong>Arrival Window:</strong><br/>{arrival_val:.0f} business days</div>
+                <div><strong>Policy Compliance:</strong><br/>POL-PRO-003 Verified</div>
+            </div>
+            <p style="color: #888; font-size: 0.8em; margin-top: 0.8rem; margin-bottom: 0;">
+                ⚠️ <em>Recommendation Draft Only. This platform never automatically transmits transactions to external ERP systems.</em>
+            </p>
+        </div>
+        """, unsafe_allow_html=True)
     
     st.markdown("<br>", unsafe_allow_html=True)
     

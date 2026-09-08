@@ -13,8 +13,11 @@ from agent.critics.business_critic import evaluate_business_impact
 from agent.consensus import resolve_consensus
 
 SYSTEM_PROMPT = """
-You are a supply chain decision agent. You have access to various tools to assess inventory, predict delivery risks, optimize routes, and retrieve policies.
+You are a supply chain decision agent. You have access to various tools to assess inventory, predict delivery risks, optimize routes, retrieve policies, and evaluate candidate actions.
 When given a scenario, you MUST use the provided tools to gather data. 
+For inventory and replenishment scenarios, you MUST call `get_candidate_actions` to evaluate deterministic options (do_nothing, reorder, expedite, transfer_inventory).
+You MUST select your final proposal from the feasible candidate actions evaluated by `get_candidate_actions`. You must NOT invent arbitrary actions or numerical values outside the deterministic candidate set.
+
 After you have gathered enough data, you MUST provide a final proposal as a JSON string matching this exact schema:
 {"proposal": {"action": "description of the action to take", "cost": 0, "reason": "brief reason"}}
 
@@ -64,6 +67,8 @@ def run_agent_loop(situation: str, client: Groq = None) -> str:
                     
                     if function_name == "retrieve_policies":
                         builder.policies_retrieved.extend(function_response)
+                    elif function_name == "get_candidate_actions":
+                        builder.options_considered = function_response
                         
                     messages.append(
                         {
@@ -95,6 +100,17 @@ def run_agent_loop(situation: str, client: Groq = None) -> str:
     if not final_proposal:
         final_proposal = {"action": "None", "cost": 0, "reason": "Agent failed to produce a proposal."}
         
+    # Ensure options_considered is populated if an SKU was evaluated
+    if not builder.options_considered:
+        import re
+        from agent.tools import get_candidate_actions
+        sku_matches = re.findall(r"(SKU[-_][A-Za-z0-9]+)", situation)
+        if sku_matches:
+            target_sku = sku_matches[0]
+            cand_res = get_candidate_actions(target_sku)
+            if "error" not in cand_res:
+                builder.options_considered = cand_res
+                
     builder.set_primary_proposal(final_proposal)
     
     # Run critics

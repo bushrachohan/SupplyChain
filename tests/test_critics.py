@@ -6,10 +6,10 @@ from agent.critics.business_critic import evaluate_business_impact
 from agent.consensus import resolve_consensus
 
 def test_evaluate_business_impact():
-    res1 = evaluate_business_impact({"cost": 500})
+    res1 = evaluate_business_impact({"cost": 5000})
     assert res1["approved"] is True
     
-    res2 = evaluate_business_impact({"cost": 1500})
+    res2 = evaluate_business_impact({"cost": 15000})
     assert res2["approved"] is False
 
 def test_resolve_consensus():

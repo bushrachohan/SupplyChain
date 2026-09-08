@@ -9,6 +9,7 @@ from agent.tools import (
     TOOL_FUNCTIONS,
     get_demand_forecast,
     get_inventory_risk,
+    get_candidate_actions,
     get_delivery_risk,
     optimize_routes,
     retrieve_policies
@@ -17,7 +18,7 @@ from agent.tools import (
 def test_tools_schema_format():
     """Verify that all tools in TOOLS follow the Groq/OpenAI function calling schema."""
     assert isinstance(TOOLS, list)
-    assert len(TOOLS) == 5
+    assert len(TOOLS) == 6
     
     for tool in TOOLS:
         assert tool["type"] == "function"

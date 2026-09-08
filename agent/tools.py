@@ -146,6 +146,23 @@ def get_inventory_risk(sku_id: str) -> Dict[str, Any]:
     )
     return risk.to_dict()
 
+def get_candidate_actions(sku_id: str) -> Dict[str, Any]:
+    """Deterministically generate replenishment candidate actions (reorder, expedite, transfer_inventory, do_nothing) for an SKU."""
+    inv_df = _get_inventory_df()
+    forecast = get_demand_forecast(sku_id)
+    demand_df = _demand_df
+    try:
+        from core.candidate_actions import generate_inventory_candidate_actions
+        candidate_set = generate_inventory_candidate_actions(
+            sku_id=sku_id,
+            inv_df=inv_df,
+            demand_forecast=forecast if "error" not in forecast else None,
+            demand_df=demand_df
+        )
+        return candidate_set.to_dict()
+    except Exception as e:
+        return {"error": str(e)}
+
 def get_delivery_risk(delivery_id: str) -> Dict[str, Any]:
     """Predict if a specific delivery will be late and return risk drivers."""
     model, df = _get_delivery_model()
@@ -260,6 +277,23 @@ TOOLS = [
     {
         "type": "function",
         "function": {
+            "name": "get_candidate_actions",
+            "description": "Generate deterministic replenishment candidate actions (do_nothing, reorder, expedite, transfer_inventory) with calculated quantities, timing, cost, and feasibility for an SKU under risk.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "sku_id": {
+                        "type": "string",
+                        "description": "The ID of the SKU, e.g., SKU_101"
+                    }
+                },
+                "required": ["sku_id"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
             "name": "retrieve_policies",
             "description": "Search and retrieve business, procurement, and logistics policies relevant to the current situation to ensure constraints are respected.",
             "parameters": {
@@ -280,6 +314,7 @@ TOOLS = [
 TOOL_FUNCTIONS = {
     "get_demand_forecast": get_demand_forecast,
     "get_inventory_risk": get_inventory_risk,
+    "get_candidate_actions": get_candidate_actions,
     "get_delivery_risk": get_delivery_risk,
     "optimize_routes": optimize_routes,
     "retrieve_policies": retrieve_policies,

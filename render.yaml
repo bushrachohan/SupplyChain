@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: sentinelflow-api
+    env: python
+    region: oregon
+    plan: standard
+    buildCommand: "pip install uv && uv sync"
+    startCommand: "uv run uvicorn api.main:app --host 0.0.0.0 --port $PORT"
+    envVars:
+      - key: ENVIRONMENT
+        value: production
+      - key: RENDER
+        value: "true"
+      - key: NEON_DATABASE_URL
+        sync: false
+      - key: GROQ_API_KEY
+        sync: false
+      - key: FRONTEND_URL
+        sync: false

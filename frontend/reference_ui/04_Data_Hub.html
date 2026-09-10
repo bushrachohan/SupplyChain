@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+
+<html lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet"/><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&amp;family=Hanken+Grotesk:wght@600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = {"darkMode":"class","theme":{"extend":{"colors":{"primary-fixed-dim":"#b6c4ff","inverse-primary":"#b6c4ff","on-tertiary-fixed-variant":"#005137","tertiary-fixed":"#85f8c4","on-surface":"#131b2e","on-secondary-fixed-variant":"#003ea8","surface-container-lowest":"#ffffff","on-primary-container":"#90a8ff","error-container":"#ffdad6","secondary-fixed-dim":"#b4c5ff","on-tertiary-fixed":"#002114","on-primary-fixed":"#00164e","primary-container":"#1e3a8a","on-tertiary-container":"#4ac08f","inverse-on-surface":"#eef0ff","tertiary-container":"#004a32","on-error-container":"#93000a","surface-tint":"#4059aa","surface-container":"#eaedff","outline":"#757682","surface-dim":"#d2d9f4","surface-container-high":"#e2e7ff","primary":"#00236f","secondary":"#0051d5","surface-container-low":"#f2f3ff","surface-variant":"#dae2fd","secondary-fixed":"#dbe1ff","inverse-surface":"#283044","secondary-container":"#316bf3","surface-container-highest":"#dae2fd","background":"#faf8ff","outline-variant":"#c5c5d3","error":"#ba1a1a","on-tertiary":"#ffffff","on-error":"#ffffff","tertiary":"#003120","surface-bright":"#faf8ff","on-background":"#131b2e","on-primary":"#ffffff","tertiary-fixed-dim":"#68dba9","on-secondary-fixed":"#00174b","on-secondary-container":"#fefcff","surface":"#faf8ff","on-surface-variant":"#444651","on-primary-fixed-variant":"#264191","primary-fixed":"#dce1ff","on-secondary":"#ffffff"},"borderRadius":{"DEFAULT":"0.125rem","lg":"0.25rem","xl":"0.5rem","full":"0.75rem"},"spacing":{"margin-desktop":"2rem","gutter-desktop":"1.5rem","space-xs":"0.25rem","space-md":"0.75rem","gutter":"1rem","margin":"1rem","space-lg":"1rem","space-sm":"0.5rem","space-xl":"1.5rem"},"fontFamily":{"label-sm":["Geist"],"body-md":["Geist"],"headline-lg":["Hanken Grotesk"],"tabular-metric-md":["Geist"],"label-md":["Geist"],"body-sm":["Geist"],"code-sm":["Geist"],"headline-sm":["Hanken Grotesk"],"tabular-metric-lg":["Geist"],"headline-xl":["Hanken Grotesk"],"body-lg":["Geist"]},"fontSize":{"label-sm":["0.6875rem",{"lineHeight":"0.875rem","letterSpacing":"0.03em","fontWeight":"500"}],"body-md":["0.875rem",{"lineHeight":"1.25rem","fontWeight":"400"}],"headline-lg":["1.375rem",{"lineHeight":"1.75rem","letterSpacing":"-0.015em","fontWeight":"600"}],"tabular-metric-md":["1.125rem",{"lineHeight":"1.375rem","letterSpacing":"-0.01em","fontWeight":"600"}],"label-md":["0.75rem",{"lineHeight":"1rem","letterSpacing":"0.04em","fontWeight":"600"}],"body-sm":["0.8125rem",{"lineHeight":"1.125rem","fontWeight":"400"}],"code-sm":["0.75rem",{"lineHeight":"1rem","fontWeight":"400"}],"headline-sm":["1.125rem",{"lineHeight":"1.5rem","letterSpacing":"-0.01em","fontWeight":"600"}],"tabular-metric-lg":["1.5rem",{"lineHeight":"1.75rem","letterSpacing":"-0.02em","fontWeight":"600"}],"headline-xl":["1.75rem",{"lineHeight":"2.25rem","letterSpacing":"-0.02em","fontWeight":"700"}],"body-lg":["0.9375rem",{"lineHeight":"1.375rem","fontWeight":"400"}]}}}};</script></head><body class="bg-surface font-body-md text-on-surface antialiased"><aside class="fixed left-0 top-0 h-full w-72 bg-surface-container-lowest border-r border-outline-variant/30 z-50 flex flex-col justify-between shadow-[0_1px_8px_rgba(0,0,0,0.02)]"><div class="flex flex-col"><div class="px-space-xl pt-space-xl pb-space-lg border-b border-outline-variant/20"><div class="flex items-center gap-space-sm mb-space-xs"><div class="w-7 h-7 rounded-lg bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">shield_with_house</span></div><span class="font-headline-sm text-headline-sm text-primary font-bold tracking-tight">SupplyChain Sentinel AI</span></div><p class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider pl-9">AI Decision Intelligence</p></div><div class="px-space-lg py-space-sm m-space-md rounded-lg bg-surface-container-low border border-outline-variant/30 flex items-center gap-space-sm"><span class="w-2 h-2 rounded-full bg-tertiary-fixed-dim animate-pulse"></span><div class="flex flex-col min-w-0"><span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wide font-semibold">DATA SOURCE</span><span class="font-body-sm text-body-sm text-on-surface truncate font-medium">Company Supply Chain — Connected</span></div></div><nav class="flex flex-col gap-space-xs px-space-md py-space-sm overflow-y-auto" data-active-classes="bg-primary-container text-on-primary font-semibold shadow-sm"><div class="px-space-sm pt-space-xs pb-space-xs"><a class="flex items-center gap-space-md px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all" data-path="command-center" href="#"><span class="material-symbols-outlined text-[20px]">grid_view</span><span class="font-body-md text-body-md">Command Center</span></a></div><div class="pt-space-md px-space-sm pb-space-xs font-label-md text-label-md text-on-surface-variant/80 uppercase tracking-wider">Data</div><a aria-current="page" class="flex items-center gap-space-md px-space-md py-space-sm rounded-lg transition-all bg-primary-container text-on-primary font-semibold shadow-sm" data-path="data-hub" href="#"><span class="material-symbols-outlined text-[20px]">hub</span><span class="font-body-md text-body-md">Data Hub</span></a><div class="pt-space-md px-space-sm pb-space-xs font-label-md text-label-md text-on-surface-variant/80 uppercase tracking-wider">Decisions</div><a class="flex items-center gap-space-md px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all" data-path="create-decision" href="#"><span class="material-symbols-outlined text-[20px]">add_task</span><span class="font-body-md text-body-md">Create a Decision</span></a><a class="flex items-center gap-space-md px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all" data-path="approval-queue" href="#"><span class="material-symbols-outlined text-[20px]">assignment_turned_in</span><span class="font-body-md text-body-md">Approval Queue</span></a><a class="flex items-center gap-space-md px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all" data-path="decision-history" href="#"><span class="material-symbols-outlined text-[20px]">history</span><span class="font-body-md text-body-md">Decision History</span></a><div class="pt-space-md px-space-sm pb-space-xs font-label-md text-label-md text-on-surface-variant/80 uppercase tracking-wider">Analysis</div><a class="flex items-center gap-space-md px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all" data-path="simulation" href="#"><span class="material-symbols-outlined text-[20px]">query_stats</span><span class="font-body-md text-body-md">What-If Simulation</span></a></nav></div><div class="p-space-md border-t border-outline-variant/20 bg-surface-container-lowest"><div class="flex items-center justify-between px-space-sm py-space-xs text-on-surface-variant"><span class="font-code-sm text-code-sm">v2.4.1-rc</span><span class="font-label-sm text-label-sm uppercase bg-surface-container px-space-xs py-0.5 rounded text-on-surface font-semibold">Audited</span></div></div></aside><div class="pl-72"><header class="fixed top-0 left-72 right-0 h-16 bg-surface-container-lowest/90 backdrop-blur-md border-b border-outline-variant/30 z-40 px-space-xl flex items-center justify-between shadow-[0_1px_6px_rgba(0,0,0,0.02)]"><div class="flex items-center gap-space-md"><div class="flex items-center gap-space-sm px-space-md py-1.5 rounded-lg bg-surface-container-low border border-outline-variant/20"><span class="w-2 h-2 rounded-full bg-tertiary-fixed-dim"></span><span class="font-body-sm text-body-sm text-on-surface font-medium">Engine Status: Nominal</span><span class="text-outline-variant">|</span><span class="font-body-sm text-body-sm text-on-surface-variant">SHAP &amp; Policy RAG Active</span></div></div><div class="flex items-center gap-space-lg"><div class="flex items-center gap-space-sm text-right"><div class="flex flex-col"><span class="font-body-sm text-body-sm font-semibold text-on-surface">Ops Lead</span><span class="font-label-sm text-label-sm text-on-surface-variant">(Reviewer)</span></div><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></div></header><main class="relative pt-16 bg-surface min-h-screen w-full px-space-xl py-space-xl"><div class="flex flex-col w-full">
+<div class="flex flex-col gap-space-xl">
+<!-- Top Execution & Progress Ribbon -->
+<div class="flex flex-col lg:flex-row lg:items-center justify-between gap-space-md pb-space-md">
+<div>
+<div class="flex items-center gap-space-xs text-primary font-label-md uppercase tracking-wider mb-space-xs">
+<span class="material-symbols-outlined text-[16px]">tune</span>
+          Ingestion &amp; Schema Pipeline
+        </div>
+<h1 class="font-headline-xl text-headline-xl text-on-surface font-bold tracking-tight">Data Hub</h1>
+<p class="font-body-md text-body-md text-on-surface-variant max-w-3xl">
+          Manage data ingestion, inspect uploaded workbooks, map source columns to the required schema, validate, and activate datasets.
+        </p>
+</div>
+<!-- Linear Workflow Tracker -->
+<div class="bg-surface-container-lowest p-space-sm rounded-xl shadow-sm flex items-center gap-space-xs overflow-x-auto min-w-0">
+<div class="flex items-center gap-space-xs px-space-sm py-1 rounded bg-surface-container-high text-primary">
+<span class="font-code-sm text-code-sm font-semibold">01</span>
+<span class="font-label-sm text-label-sm font-semibold uppercase">Upload</span>
+<span class="material-symbols-outlined text-[14px]">check_circle</span>
+</div>
+<span class="text-outline-variant text-[12px]">→</span>
+<div class="flex items-center gap-space-xs px-space-sm py-1 rounded bg-surface-container-high text-primary">
+<span class="font-code-sm text-code-sm font-semibold">02</span>
+<span class="font-label-sm text-label-sm font-semibold uppercase">Inspect</span>
+<span class="material-symbols-outlined text-[14px]">check_circle</span>
+</div>
+<span class="text-outline-variant text-[12px]">→</span>
+<div class="flex items-center gap-space-xs px-space-sm py-1 rounded bg-primary-container text-on-primary shadow-sm">
+<span class="font-code-sm text-code-sm font-semibold">03</span>
+<span class="font-label-sm text-label-sm font-semibold uppercase">Select Sheet</span>
+</div>
+<span class="text-outline-variant text-[12px]">→</span>
+<div class="flex items-center gap-space-xs px-space-sm py-1 rounded bg-secondary-container text-on-secondary-container">
+<span class="font-code-sm text-code-sm font-semibold">04</span>
+<span class="font-label-sm text-label-sm font-semibold uppercase">Map Schema</span>
+</div>
+<span class="text-outline-variant text-[12px]">→</span>
+<div class="flex items-center gap-space-xs px-space-sm py-1 rounded bg-surface-container text-on-surface-variant">
+<span class="font-code-sm text-code-sm">05</span>
+<span class="font-label-sm text-label-sm uppercase">Validate</span>
+</div>
+<span class="text-outline-variant text-[12px]">→</span>
+<div class="flex items-center gap-space-xs px-space-sm py-1 rounded bg-surface-container text-on-surface-variant">
+<span class="font-code-sm text-code-sm">06</span>
+<span class="font-label-sm text-label-sm uppercase">Activate</span>
+</div>
+</div>
+</div>
+<!-- Supported Data Sources Tabs -->
+<div class="bg-surface-container-lowest p-space-xs rounded-xl shadow-sm flex items-center justify-between overflow-x-auto">
+<div class="flex items-center gap-space-xs">
+<button class="flex items-center gap-space-sm px-space-lg py-2.5 rounded-lg bg-primary text-on-primary font-label-md text-label-md transition-all shadow-sm">
+<span class="material-symbols-outlined text-[18px]">table_chart</span>
+          Excel Upload
+        </button>
+<button class="flex items-center gap-space-sm px-space-lg py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface font-label-md text-label-md transition-all">
+<span class="material-symbols-outlined text-[18px]">description</span>
+          CSV Upload
+        </button>
+<button class="flex items-center gap-space-sm px-space-lg py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface font-label-md text-label-md transition-all">
+<span class="material-symbols-outlined text-[18px]">database</span>
+          Database Connection
+        </button>
+<button class="flex items-center gap-space-sm px-space-lg py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface font-label-md text-label-md transition-all">
+<span class="material-symbols-outlined text-[18px]">api</span>
+          API Connection
+        </button>
+<button class="flex items-center gap-space-sm px-space-lg py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface font-label-md text-label-md transition-all">
+<span class="material-symbols-outlined text-[18px]">dataset</span>
+          Demo Dataset
+        </button>
+</div>
+<div class="pr-space-md hidden sm:flex items-center gap-space-xs font-label-sm text-label-sm text-on-surface-variant">
+<span class="material-symbols-outlined text-[16px] text-tertiary-fixed-dim">verified_user</span>
+        In-Memory RAG Parser Active
+      </div>
+</div>
+<!-- Workbook Inspection Section -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-space-lg">
+<!-- File Metadata Card -->
+<div class="lg:col-span-4 bg-surface-container-lowest rounded-xl p-space-lg shadow-sm flex flex-col justify-between">
+<div class="flex flex-col gap-space-sm">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-on-surface-variant font-semibold">Active Workbook File</span>
+<span class="px-space-sm py-0.5 rounded bg-tertiary-container text-tertiary-fixed font-label-sm text-label-sm uppercase font-semibold">Ready</span>
+</div>
+<div class="flex items-center gap-space-md mt-space-xs">
+<div class="w-12 h-12 rounded-xl bg-surface-container-high flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-secondary text-[26px]">grid_on</span>
+</div>
+<div class="min-w-0">
+<div class="font-headline-sm text-headline-sm text-on-surface truncate font-semibold">supply_chain_operations_master.xlsx</div>
+<div class="font-body-sm text-body-sm text-on-surface-variant">File size: 2.4 MB • Uploaded: Today, 09:14 AM</div>
+</div>
+</div>
+</div>
+<div class="mt-space-lg pt-space-md bg-surface-container-low rounded-lg p-space-md flex flex-col gap-space-xs">
+<div class="flex items-center justify-between font-label-sm text-label-sm text-on-surface-variant">
+<span>Workbook Hash (SHA-256)</span>
+<span class="font-code-sm text-code-sm text-on-surface">d98f7e2c...41ba</span>
+</div>
+<div class="flex items-center justify-between font-label-sm text-label-sm text-on-surface-variant">
+<span>Total Parsed Rows</span>
+<span class="font-tabular-metric-md text-tabular-metric-md text-on-surface font-semibold">5,630 rows</span>
+</div>
+<div class="flex items-center justify-between font-label-sm text-label-sm text-on-surface-variant">
+<span>Detected Sheets</span>
+<span class="font-tabular-metric-md text-tabular-metric-md text-on-surface font-semibold">5 sheets</span>
+</div>
+</div>
+</div>
+<!-- Detected Sheets Selector Pills -->
+<div class="lg:col-span-8 bg-surface-container-lowest rounded-xl p-space-lg shadow-sm flex flex-col justify-between">
+<div class="flex flex-col gap-space-xs">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-on-surface-variant font-semibold">Detected Sheets in Workbook</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Click to toggle active target schema</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Select the target sheet to run the heuristic schema auto-mapping against Sentinel core entities.</p>
+</div>
+<div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-space-sm mt-space-md">
+<!-- Sheet 1 -->
+<div class="p-space-md rounded-lg bg-surface-container-low hover:bg-surface-container-high transition-all cursor-pointer flex flex-col gap-1">
+<div class="flex items-center justify-between">
+<span class="font-headline-sm text-headline-sm text-on-surface font-medium">README</span>
+<span class="px-space-xs py-0.5 rounded bg-surface-container-highest text-on-surface-variant font-label-sm text-label-sm uppercase font-semibold">Info</span>
+</div>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Workbook instructions &amp; legend</span>
+</div>
+<!-- Sheet 2 -->
+<div class="p-space-md rounded-lg bg-surface-container-low hover:bg-surface-container-high transition-all cursor-pointer flex flex-col gap-1">
+<div class="flex items-center justify-between">
+<span class="font-headline-sm text-headline-sm text-on-surface font-medium">historical_demand</span>
+<span class="font-tabular-metric-md text-tabular-metric-md text-on-surface-variant">3,240</span>
+</div>
+<span class="font-body-sm text-body-sm text-on-surface-variant">SKU velocity by distribution tier</span>
+</div>
+<!-- Sheet 3 -->
+<div class="p-space-md rounded-lg bg-surface-container-low hover:bg-surface-container-high transition-all cursor-pointer flex flex-col gap-1">
+<div class="flex items-center justify-between">
+<span class="font-headline-sm text-headline-sm text-on-surface font-medium">inventory_snapshot</span>
+<span class="font-tabular-metric-md text-tabular-metric-md text-on-surface-variant">820</span>
+</div>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Current DC inventory &amp; reorder points</span>
+</div>
+<!-- Sheet 4 (SELECTED) -->
+<div class="p-space-md rounded-lg bg-primary-container text-on-primary shadow-sm relative flex flex-col gap-1 ring-2 ring-secondary-container">
+<div class="flex items-center justify-between">
+<span class="font-headline-sm text-headline-sm font-semibold flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-[18px]">radio_button_checked</span>
+                deliveries
+              </span>
+<span class="px-space-xs py-0.5 rounded bg-surface-container-lowest text-primary font-label-sm text-label-sm uppercase font-bold">SELECTED</span>
+</div>
+<div class="flex items-center justify-between text-on-primary-container font-body-sm text-body-sm">
+<span>1,450 rows ingested</span>
+<span class="font-code-sm text-code-sm text-on-primary">10 Columns</span>
+</div>
+</div>
+<!-- Sheet 5 -->
+<div class="p-space-md rounded-lg bg-surface-container-low hover:bg-surface-container-high transition-all cursor-pointer flex flex-col gap-1">
+<div class="flex items-center justify-between">
+<span class="font-headline-sm text-headline-sm text-on-surface font-medium">demo_scenarios</span>
+<span class="font-tabular-metric-md text-tabular-metric-md text-on-surface-variant">120</span>
+</div>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Synthetic stress test conditions</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Dataset Preview Card -->
+<div class="bg-surface-container-lowest rounded-xl p-space-lg shadow-sm flex flex-col gap-space-md">
+<div class="flex items-center justify-between flex-wrap gap-space-sm">
+<div class="flex items-center gap-space-sm">
+<div class="w-8 h-8 rounded-lg bg-secondary/10 flex items-center justify-center text-secondary">
+<span class="material-symbols-outlined text-[20px]">preview</span>
+</div>
+<div>
+<h2 class="font-headline-sm text-headline-sm text-on-surface font-semibold">Dataset Preview (deliveries)</h2>
+<p class="font-body-sm text-body-sm text-on-surface-variant">First 4 records of 1,450 ingested items. Showing raw source column naming.</p>
+</div>
+</div>
+<div class="flex items-center gap-space-sm">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Displaying</span>
+<span class="px-space-sm py-1 rounded bg-surface-container font-code-sm text-code-sm text-on-surface font-semibold">Rows 1 - 4 of 1,450</span>
+</div>
+</div>
+<!-- Compact Preview Table -->
+<div class="overflow-x-auto rounded-lg bg-surface-container-low">
+<table class="w-full text-left font-body-sm text-body-sm min-w-[960px]">
+<thead class="bg-surface-container font-label-md text-label-md uppercase tracking-wider text-on-surface-variant">
+<tr>
+<th class="py-space-sm px-space-md">delivery_id</th>
+<th class="py-space-sm px-space-md">carrier_id</th>
+<th class="py-space-sm px-space-md">origin_hub</th>
+<th class="py-space-sm px-space-md">destination_dc</th>
+<th class="py-space-sm px-space-md">distance_km</th>
+<th class="py-space-sm px-space-md">sched_date</th>
+<th class="py-space-sm px-space-md">actual_delivery_date</th>
+<th class="py-space-sm px-space-md">is_late</th>
+<th class="py-space-sm px-space-md">weather_alert_level</th>
+<th class="py-space-sm px-space-md">traffic_delay_hrs</th>
+</tr>
+</thead>
+<tbody class="divide-y-0 text-on-surface font-code-sm text-code-sm">
+<tr class="bg-surface-container-lowest hover:bg-surface-container-low transition-colors">
+<td class="py-space-sm px-space-md font-semibold text-primary">DEL-98241</td>
+<td class="py-space-sm px-space-md">CAR-PAC-04</td>
+<td class="py-space-sm px-space-md">SEA-HUB-01</td>
+<td class="py-space-sm px-space-md">PDX-DC-02</td>
+<td class="py-space-sm px-space-md">280</td>
+<td class="py-space-sm px-space-md">2024-10-24</td>
+<td class="py-space-sm px-space-md">2024-10-24</td>
+<td class="py-space-sm px-space-md"><span class="px-space-xs py-0.5 rounded bg-surface-container-highest text-on-surface">FALSE</span></td>
+<td class="py-space-sm px-space-md">NONE</td>
+<td class="py-space-sm px-space-md text-outline">null</td>
+</tr>
+<tr class="bg-surface-container-lowest hover:bg-surface-container-low transition-colors">
+<td class="py-space-sm px-space-md font-semibold text-primary">DEL-98242</td>
+<td class="py-space-sm px-space-md">CAR-LOG-12</td>
+<td class="py-space-sm px-space-md">CHI-HUB-04</td>
+<td class="py-space-sm px-space-md">DET-DC-01</td>
+<td class="py-space-sm px-space-md">455</td>
+<td class="py-space-sm px-space-md">2024-10-24</td>
+<td class="py-space-sm px-space-md">2024-10-25</td>
+<td class="py-space-sm px-space-md"><span class="px-space-xs py-0.5 rounded bg-error-container text-on-error-container font-semibold">TRUE</span></td>
+<td class="py-space-sm px-space-md text-error">LEVEL_2_STORM</td>
+<td class="py-space-sm px-space-md text-outline">null</td>
+</tr>
+<tr class="bg-surface-container-lowest hover:bg-surface-container-low transition-colors">
+<td class="py-space-sm px-space-md font-semibold text-primary">DEL-98243</td>
+<td class="py-space-sm px-space-md">CAR-ATL-09</td>
+<td class="py-space-sm px-space-md">ATL-HUB-02</td>
+<td class="py-space-sm px-space-md">MIA-DC-03</td>
+<td class="py-space-sm px-space-md">1,070</td>
+<td class="py-space-sm px-space-md">2024-10-23</td>
+<td class="py-space-sm px-space-md">2024-10-23</td>
+<td class="py-space-sm px-space-md"><span class="px-space-xs py-0.5 rounded bg-surface-container-highest text-on-surface">FALSE</span></td>
+<td class="py-space-sm px-space-md">NONE</td>
+<td class="py-space-sm px-space-md text-outline">null</td>
+</tr>
+<tr class="bg-surface-container-lowest hover:bg-surface-container-low transition-colors">
+<td class="py-space-sm px-space-md font-semibold text-primary">DEL-98244</td>
+<td class="py-space-sm px-space-md">CAR-EXP-01</td>
+<td class="py-space-sm px-space-md">DAL-HUB-03</td>
+<td class="py-space-sm px-space-md">HOU-DC-05</td>
+<td class="py-space-sm px-space-md">390</td>
+<td class="py-space-sm px-space-md">2024-10-24</td>
+<td class="py-space-sm px-space-md">2024-10-24</td>
+<td class="py-space-sm px-space-md"><span class="px-space-xs py-0.5 rounded bg-surface-container-highest text-on-surface">FALSE</span></td>
+<td class="py-space-sm px-space-md">MODERATE_RAIN</td>
+<td class="py-space-sm px-space-md text-outline">null</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<!-- Schema Column Mapping Engine Section -->
+<div class="bg-surface-container-lowest rounded-xl p-space-lg shadow-sm flex flex-col gap-space-lg">
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-space-md">
+<div>
+<div class="flex items-center gap-space-xs text-secondary font-label-md uppercase tracking-wider mb-space-xs">
+<span class="material-symbols-outlined text-[16px]">sync_alt</span>
+            Schema Mapping
+          </div>
+<h2 class="font-headline-lg text-headline-lg text-on-surface font-bold">Schema Column Mapping — Selected Dataset</h2>
+<p class="font-body-md text-body-md text-on-surface-variant">Map source columns from <code class="font-code-sm bg-surface-container px-1 py-0.5 rounded text-primary">deliveries</code> sheet to Sentinel required model schema.</p>
+</div>
+<!-- Engine Score Badge -->
+<div class="flex items-center gap-space-md bg-surface-container-low px-space-md py-space-sm rounded-lg">
+<div class="flex flex-col text-right">
+<span class="font-label-sm text-label-sm uppercase text-on-surface-variant font-semibold">Schema Mapping Status</span>
+<span class="font-tabular-metric-md text-tabular-metric-md text-on-surface font-bold">92.4%</span>
+</div>
+<div class="w-9 h-9 rounded-full bg-secondary-container text-on-secondary-container flex items-center justify-center font-bold font-label-md">
+            9/10
+          </div>
+</div>
+</div>
+<!-- Column Mapping Table -->
+<div class="overflow-x-auto rounded-lg bg-surface-container-low">
+<table class="w-full text-left font-body-sm text-body-sm">
+<thead class="bg-surface-container font-label-md text-label-md uppercase tracking-wider text-on-surface-variant">
+<tr>
+<th class="py-space-md px-space-lg">Required Model Field</th>
+<th class="py-space-md px-space-md">Requirement</th>
+<th class="py-space-md px-space-lg">Source Column (Dropdown)</th>
+<th class="py-space-md px-space-lg">Mapping Status</th>
+</tr>
+</thead>
+<tbody class="divide-y-0">
+<!-- Row 1: delivery_id -->
+<tr class="bg-surface-container-lowest hover:bg-surface-container-low transition-colors">
+<td class="py-space-md px-space-lg">
+<div class="flex flex-col">
+<span class="font-code-sm text-code-sm font-semibold text-on-surface">Source delivery_id</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Unique delivery tracking code</span>
+</div>
+</td>
+<td class="py-space-md px-space-md">
+<span class="px-space-xs py-0.5 rounded bg-primary-container text-on-primary font-label-sm text-label-sm uppercase font-semibold">Required</span>
+</td>
+<td class="py-space-md px-space-lg">
+<select class="w-full max-w-xs bg-surface-container-low text-on-surface rounded p-2 font-code-sm text-code-sm focus:outline-none">
+<option selected="">delivery_id</option>
+<option>carrier_id</option>
+<option>origin_hub</option>
+</select>
+</td>
+<td class="py-space-md px-space-lg">
+<span class="inline-flex items-center gap-space-xs px-space-sm py-1 rounded bg-tertiary-container text-tertiary-fixed font-label-sm text-label-sm font-semibold">
+<span class="material-symbols-outlined text-[14px]">check</span>
+                  ✓ Exact Match
+                </span>
+</td>
+</tr>
+<!-- Row 2: carrier_id -->
+<tr class="bg-surface-container-lowest hover:bg-surface-container-low transition-colors">
+<td class="py-space-md px-space-lg">
+<div class="flex flex-col">
+<span class="font-code-sm text-code-sm font-semibold text-on-surface">carrier_id</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Logistics service provider ID</span>
+</div>
+</td>
+<td class="py-space-md px-space-md">
+<span class="px-space-xs py-0.5 rounded bg-primary-container text-on-primary font-label-sm text-label-sm uppercase font-semibold">Required</span>
+</td>
+<td class="py-space-md px-space-lg">
+<select class="w-full max-w-xs bg-surface-container-low text-on-surface rounded p-2 font-code-sm text-code-sm focus:outline-none">
+<option selected="">carrier_id</option>
+<option>delivery_id</option>
+<option>destination_dc</option>
+</select>
+</td>
+<td class="py-space-md px-space-lg">
+<span class="inline-flex items-center gap-space-xs px-space-sm py-1 rounded bg-tertiary-container text-tertiary-fixed font-label-sm text-label-sm font-semibold">
+<span class="material-symbols-outlined text-[14px]">check</span>
+                  ✓ Exact Match
+                </span>
+</td>
+</tr>
+<!-- Row 3: origin -->
+<tr class="bg-surface-container-lowest hover:bg-surface-container-low transition-colors">
+<td class="py-space-md px-space-lg">
+<div class="flex flex-col">
+<span class="font-code-sm text-code-sm font-semibold text-on-surface">origin</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Origin dispatch terminal / airport</span>
+</div>
+</td>
+<td class="py-space-md px-space-md">
+<span class="px-space-xs py-0.5 rounded bg-primary-container text-on-primary font-label-sm text-label-sm uppercase font-semibold">Required</span>
+</td>
+<td class="py-space-md px-space-lg">
+<select class="w-full max-w-xs bg-surface-container-low text-on-surface rounded p-2 font-code-sm text-code-sm focus:outline-none">
+<option selected="">origin_hub</option>
+<option>destination_dc</option>
+<option>delivery_id</option>
+</select>
+</td>
+<td class="py-space-md px-space-lg">
+<span class="inline-flex items-center gap-space-xs px-space-sm py-1 rounded bg-secondary-fixed text-on-secondary-fixed-variant font-label-sm text-label-sm font-semibold">
+<span class="material-symbols-outlined text-[14px]">info</span>
+                  ⚠ Alias Detected (origin_hub → origin)
+                </span>
+</td>
+</tr>
+<!-- Row 4: destination -->
+<tr class="bg-surface-container-lowest hover:bg-surface-container-low transition-colors">
+<td class="py-space-md px-space-lg">
+<div class="flex flex-col">
+<span class="font-code-sm text-code-sm font-semibold text-on-surface">destination</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Receiving distribution node</span>
+</div>
+</td>
+<td class="py-space-md px-space-md">
+<span class="px-space-xs py-0.5 rounded bg-primary-container text-on-primary font-label-sm text-label-sm uppercase font-semibold">Required</span>
+</td>
+<td class="py-space-md px-space-lg">
+<select class="w-full max-w-xs bg-surface-container-low text-on-surface rounded p-2 font-code-sm text-code-sm focus:outline-none">
+<option selected="">destination_dc</option>
+<option>origin_hub</option>
+<option>carrier_id</option>
+</select>
+</td>
+<td class="py-space-md px-space-lg">
+<span class="inline-flex items-center gap-space-xs px-space-sm py-1 rounded bg-secondary-fixed text-on-secondary-fixed-variant font-label-sm text-label-sm font-semibold">
+<span class="material-symbols-outlined text-[14px]">info</span>
+                  ⚠ Alias Detected (destination_dc → destination)
+                </span>
+</td>
+</tr>
+<!-- Row 5: distance_km -->
+<tr class="bg-surface-container-lowest hover:bg-surface-container-low transition-colors">
+<td class="py-space-md px-space-lg">
+<div class="flex flex-col">
+<span class="font-code-sm text-code-sm font-semibold text-on-surface">distance_km</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Transit path distance in kilometers</span>
+</div>
+</td>
+<td class="py-space-md px-space-md">
+<span class="px-space-xs py-0.5 rounded bg-primary-container text-on-primary font-label-sm text-label-sm uppercase font-semibold">Required</span>
+</td>
+<td class="py-space-md px-space-lg">
+<select class="w-full max-w-xs bg-surface-container-low text-on-surface rounded p-2 font-code-sm text-code-sm focus:outline-none">
+<option selected="">distance_km</option>
+<option>traffic_delay_hrs</option>
+<option>actual_delivery_date</option>
+</select>
+</td>
+<td class="py-space-md px-space-lg">
+<span class="inline-flex items-center gap-space-xs px-space-sm py-1 rounded bg-tertiary-container text-tertiary-fixed font-label-sm text-label-sm font-semibold">
+<span class="material-symbols-outlined text-[14px]">check</span>
+                  ✓ Exact Match
+                </span>
+</td>
+</tr>
+<!-- Row 6: scheduled_date -->
+<tr class="bg-surface-container-lowest hover:bg-surface-container-low transition-colors">
+<td class="py-space-md px-space-lg">
+<div class="flex flex-col">
+<span class="font-code-sm text-code-sm font-semibold text-on-surface">scheduled_date</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Committed delivery deadline</span>
+</div>
+</td>
+<td class="py-space-md px-space-md">
+<span class="px-space-xs py-0.5 rounded bg-primary-container text-on-primary font-label-sm text-label-sm uppercase font-semibold">Required</span>
+</td>
+<td class="py-space-md px-space-lg">
+<select class="w-full max-w-xs bg-surface-container-low text-on-surface rounded p-2 font-code-sm text-code-sm focus:outline-none">
+<option selected="">sched_date</option>
+<option>actual_delivery_date</option>
+</select>
+</td>
+<td class="py-space-md px-space-lg">
+<span class="inline-flex items-center gap-space-xs px-space-sm py-1 rounded bg-secondary-fixed text-on-secondary-fixed-variant font-label-sm text-label-sm font-semibold">
+<span class="material-symbols-outlined text-[14px]">info</span>
+                  ⚠ Alias Detected
+                </span>
+</td>
+</tr>
+<!-- Row 7: actual_date -->
+<tr class="bg-surface-container-lowest hover:bg-surface-container-low transition-colors">
+<td class="py-space-md px-space-lg">
+<div class="flex flex-col">
+<span class="font-code-sm text-code-sm font-semibold text-on-surface">actual_date</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Observed physical delivery timestamp</span>
+</div>
+</td>
+<td class="py-space-md px-space-md">
+<span class="px-space-xs py-0.5 rounded bg-surface-container-highest text-on-surface-variant font-label-sm text-label-sm uppercase font-semibold">Optional</span>
+</td>
+<td class="py-space-md px-space-lg">
+<select class="w-full max-w-xs bg-surface-container-low text-on-surface rounded p-2 font-code-sm text-code-sm focus:outline-none">
+<option selected="">actual_delivery_date</option>
+<option>sched_date</option>
+</select>
+</td>
+<td class="py-space-md px-space-lg">
+<span class="inline-flex items-center gap-space-xs px-space-sm py-1 rounded bg-tertiary-container text-tertiary-fixed font-label-sm text-label-sm font-semibold">
+<span class="material-symbols-outlined text-[14px]">check</span>
+                  ✓ Matched
+                </span>
+</td>
+</tr>
+<!-- Row 8: is_late -->
+<tr class="bg-surface-container-lowest hover:bg-surface-container-low transition-colors">
+<td class="py-space-md px-space-lg">
+<div class="flex flex-col">
+<span class="font-code-sm text-code-sm font-semibold text-on-surface">is_late</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">SLA breach boolean indicator</span>
+</div>
+</td>
+<td class="py-space-md px-space-md">
+<span class="px-space-xs py-0.5 rounded bg-primary-container text-on-primary font-label-sm text-label-sm uppercase font-semibold">Required</span>
+</td>
+<td class="py-space-md px-space-lg">
+<select class="w-full max-w-xs bg-surface-container-low text-on-surface rounded p-2 font-code-sm text-code-sm focus:outline-none">
+<option selected="">is_late</option>
+<option>weather_alert_level</option>
+</select>
+</td>
+<td class="py-space-md px-space-lg">
+<span class="inline-flex items-center gap-space-xs px-space-sm py-1 rounded bg-tertiary-container text-tertiary-fixed font-label-sm text-label-sm font-semibold">
+<span class="material-symbols-outlined text-[14px]">check</span>
+                  ✓ Exact Match
+                </span>
+</td>
+</tr>
+<!-- Row 9: weather_condition -->
+<tr class="bg-surface-container-lowest hover:bg-surface-container-low transition-colors">
+<td class="py-space-md px-space-lg">
+<div class="flex flex-col">
+<span class="font-code-sm text-code-sm font-semibold text-on-surface">weather_condition</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Route corridor atmospheric classification</span>
+</div>
+</td>
+<td class="py-space-md px-space-md">
+<span class="px-space-xs py-0.5 rounded bg-surface-container-highest text-on-surface-variant font-label-sm text-label-sm uppercase font-semibold">Optional</span>
+</td>
+<td class="py-space-md px-space-lg">
+<select class="w-full max-w-xs bg-surface-container-low text-on-surface rounded p-2 font-code-sm text-code-sm focus:outline-none">
+<option selected="">weather_alert_level</option>
+<option>traffic_delay_hrs</option>
+</select>
+</td>
+<td class="py-space-md px-space-lg">
+<span class="inline-flex items-center gap-space-xs px-space-sm py-1 rounded bg-secondary-fixed text-on-secondary-fixed-variant font-label-sm text-label-sm font-semibold">
+<span class="material-symbols-outlined text-[14px]">info</span>
+                  ⚠ Alias Detected
+                </span>
+</td>
+</tr>
+<!-- Row 10: traffic_delay_hrs -->
+<tr class="bg-surface-container-lowest hover:bg-surface-container-low transition-colors">
+<td class="py-space-md px-space-lg">
+<div class="flex flex-col">
+<span class="font-code-sm text-code-sm font-semibold text-on-surface">traffic_delay_hrs</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Observed congestion variance in hours</span>
+</div>
+</td>
+<td class="py-space-md px-space-md">
+<span class="px-space-xs py-0.5 rounded bg-surface-container-highest text-on-surface-variant font-label-sm text-label-sm uppercase font-semibold">Optional</span>
+</td>
+<td class="py-space-md px-space-lg">
+<select class="w-full max-w-xs bg-surface-container-low text-on-surface rounded p-2 font-code-sm text-code-sm focus:outline-none text-outline">
+<option selected="">-- Missing mapping --</option>
+<option>traffic_delay_hrs</option>
+<option>distance_km</option>
+</select>
+</td>
+<td class="py-space-md px-space-lg">
+<span class="inline-flex items-center gap-space-xs px-space-sm py-1 rounded bg-error-container text-on-error-container font-label-sm text-label-sm font-semibold">
+<span class="material-symbols-outlined text-[14px]">close</span>
+                  ✕ Not Mapped
+                </span>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Validation Feedback Box & Execution Controls -->
+<div class="flex flex-col gap-space-md pt-space-sm">
+<!-- Status Banner -->
+<div class="p-space-md rounded-xl bg-surface-container flex items-center justify-between flex-wrap gap-space-md">
+<div class="flex items-center gap-space-md">
+<div class="w-10 h-10 rounded-lg bg-tertiary-container text-tertiary-fixed flex items-center justify-center">
+<span class="material-symbols-outlined text-[24px]">verified</span>
+</div>
+<div class="flex flex-col">
+<span class="font-headline-sm text-headline-sm text-on-surface font-semibold">✓ Schema Validation Passed with Warnings</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">(All 6 Required Fields Mapped. 1 Optional Field Missing)</span>
+</div>
+</div>
+<div class="flex items-center gap-space-sm">
+<span class="px-space-sm py-1 rounded bg-surface-container-lowest text-on-surface font-code-sm text-code-sm">Non-blocking Warning</span>
+</div>
+</div>
+<!-- Action Bar -->
+<div class="flex items-center justify-between flex-wrap gap-space-md pt-space-xs">
+<div class="flex items-center gap-space-xs text-on-surface-variant font-label-sm text-label-sm">
+<span class="material-symbols-outlined text-[16px] text-tertiary-fixed-dim">lock</span>
+            Audited execution session • Model schema version 2.4-STABLE
+          </div>
+<div class="flex items-center gap-space-md">
+<button class="flex items-center gap-space-sm px-space-lg py-2.5 rounded-lg bg-surface-container-lowest hover:bg-surface-container-high text-on-surface font-label-md text-label-md transition-all shadow-sm">
+<span class="material-symbols-outlined text-[18px]">replay</span>
+              Re-inspect Sheet
+            </button>
+<button class="flex items-center gap-space-sm px-space-xl py-2.5 rounded-lg bg-primary-container hover:bg-primary text-on-primary font-label-md text-label-md transition-all shadow-md" id="activate-dataset-btn">
+<span class="material-symbols-outlined text-[18px]">bolt</span>
+              Activate Dataset
+            </button>
+</div>
+</div>
+</div>
+</div>
+<!-- Bottom Section: Active Dataset Status -->
+<div class="bg-surface-container-lowest rounded-xl p-space-lg shadow-sm flex flex-col gap-space-md">
+<div class="flex items-center justify-between flex-wrap gap-space-sm">
+<div class="flex items-center gap-space-sm">
+<span class="w-3 h-3 rounded-full bg-tertiary-fixed-dim animate-ping"></span>
+<h2 class="font-headline-sm text-headline-sm text-on-surface font-bold">Active Dataset Status</h2>
+</div>
+<div class="flex items-center gap-space-sm">
+<span class="px-space-sm py-0.5 rounded bg-tertiary-container text-tertiary-fixed font-label-sm text-label-sm uppercase font-semibold">Active In Sentinel Cache</span>
+<span class="font-code-sm text-code-sm text-on-surface-variant">Ref: ACT-DS-8821</span>
+</div>
+</div>
+<!-- Detail Card Metrics -->
+<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-space-md">
+<!-- Metric 1 -->
+<div class="p-space-md rounded-lg bg-surface-container-low flex flex-col gap-space-xs">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider font-semibold">Dataset Identifier</span>
+<span class="font-headline-sm text-headline-sm text-primary font-bold">Master Supply Chain Q3</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Format: Excel</span>
+</div>
+<!-- Metric 2 -->
+<div class="p-space-md rounded-lg bg-surface-container-low flex flex-col gap-space-xs">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider font-semibold">Total Records Activated</span>
+<span class="font-tabular-metric-lg text-tabular-metric-lg text-on-surface font-bold">1,450</span>
+<div class="flex items-center gap-space-xs text-tertiary-fixed-variant font-label-sm text-label-sm font-semibold">
+<span class="material-symbols-outlined text-[14px]">check_circle</span>
+            100% Ingest Integrity
+          </div>
+</div>
+<!-- Metric 3 -->
+<div class="p-space-md rounded-lg bg-surface-container-low flex flex-col gap-space-xs">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider font-semibold">Loaded Entities</span>
+<div class="flex items-baseline gap-space-xs">
+<span class="font-tabular-metric-lg text-tabular-metric-lg text-on-surface font-bold">48</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Carriers</span>
+<span class="text-outline-variant font-body-sm">•</span>
+<span class="font-tabular-metric-lg text-tabular-metric-lg text-on-surface font-bold">12</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Hubs</span>
+</div>
+<span class="font-body-sm text-body-sm text-on-surface-variant">114 Active Corridors</span>
+</div>
+<!-- Metric 4: Inline Topology Sparkline / Visual Component -->
+<div class="p-space-md rounded-lg bg-surface-container-low flex flex-col justify-between">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider font-semibold">Network Density</span>
+<span class="font-tabular-metric-md text-tabular-metric-md text-secondary font-bold">114 Routes</span>
+</div>
+<!-- Inline Sparkline Representation -->
+<div class="h-8 flex items-end gap-1 pt-2">
+<div class="bg-secondary/40 w-full h-[40%] rounded-t"></div>
+<div class="bg-secondary/50 w-full h-[60%] rounded-t"></div>
+<div class="bg-secondary/60 w-full h-[45%] rounded-t"></div>
+<div class="bg-secondary/70 w-full h-[85%] rounded-t"></div>
+<div class="bg-secondary/60 w-full h-[70%] rounded-t"></div>
+<div class="bg-secondary w-full h-[95%] rounded-t"></div>
+<div class="bg-secondary/80 w-full h-[65%] rounded-t"></div>
+<div class="bg-secondary/50 w-full h-[50%] rounded-t"></div>
+<div class="bg-secondary w-full h-[100%] rounded-t"></div>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Strictly computed from active dataset</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<script>
+  // Micro-interaction for dataset activation
+  const activateBtn = document.getElementById('activate-dataset-btn');
+  if (activateBtn) {
+    activateBtn.addEventListener('click', function() {
+      const originalHTML = this.innerHTML;
+      this.disabled = true;
+      this.innerHTML = '<span class="material-symbols-outlined animate-spin text-[18px]">progress_activity</span> Activating Pipeline...';
+      this.classList.add('opacity-80');
+      
+      setTimeout(() => {
+        this.innerHTML = '<span class="material-symbols-outlined text-[18px]">done_all</span> Dataset Operational';
+        this.classList.remove('bg-primary-container', 'opacity-80');
+        this.classList.add('bg-tertiary-container', 'text-tertiary-fixed');
+      }, 900);
+    });
+  }
+</script></main></div></body></html> 

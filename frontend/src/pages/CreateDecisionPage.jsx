@@ -192,7 +192,7 @@ export default function CreateDecisionPage() {
 <span className="w-6 h-6 rounded bg-surface-container flex items-center justify-center text-primary font-headline-sm text-headline-sm">1</span>
 <div>
 <h2 className="font-headline-sm text-headline-sm text-on-surface font-bold">Stage 01 — Business Context &amp; Operational Scope</h2>
-<p className="font-body-sm text-body-sm text-on-surface-variant">Validated against Master Data Management (SAP S/4HANA Sync: 2 mins ago)</p>
+<p className="font-body-sm text-body-sm text-on-surface-variant">Validated against Master Data Management</p>
 </div>
 </div>
 <span className="material-symbols-outlined text-on-tertiary-container">verified</span>
@@ -243,19 +243,19 @@ export default function CreateDecisionPage() {
 <div className="flex flex-col gap-space-xs">
 <label className="font-label-md text-label-md text-on-surface-variant uppercase">Primary Facility</label>
 <div className="flex items-center justify-between bg-surface-container-low px-space-md py-space-sm rounded-lg">
-<span className="font-body-md text-body-md text-on-surface font-medium truncate">Central Distribution Center - Chicago</span>
+<span className="font-body-md text-body-md text-on-surface font-medium truncate">Primary Assigned Facility</span>
 <span className="material-symbols-outlined text-on-surface-variant text-[18px]">warehouse</span>
 </div>
-<span className="font-code-sm text-code-sm text-on-surface-variant">Facility Code: US-ORD-DC01</span>
+<span className="font-code-sm text-code-sm text-on-surface-variant">System Assigned</span>
 </div>
 {/* Field 4: Operating Horizon */}
 <div className="flex flex-col gap-space-xs">
 <label className="font-label-md text-label-md text-on-surface-variant uppercase">Operating Horizon</label>
 <div className="flex items-center justify-between bg-surface-container-low px-space-md py-space-sm rounded-lg">
-<span className="font-body-md text-body-md text-on-surface font-medium">Next 14 Days</span>
+<span className="font-body-md text-body-md text-on-surface font-medium">Standard Operating Horizon</span>
 <span className="material-symbols-outlined text-on-surface-variant text-[18px]">calendar_today</span>
 </div>
-<span className="font-code-sm text-code-sm text-on-surface-variant">Dec 01 – Dec 14 UTC</span>
+<span className="font-code-sm text-code-sm text-on-surface-variant">Dependent on context</span>
 </div>
 </div>
 {/* Situation Description */}
@@ -281,7 +281,7 @@ export default function CreateDecisionPage() {
 <span className="w-6 h-6 rounded bg-secondary-container text-on-secondary flex items-center justify-center font-headline-sm text-headline-sm">2</span>
 <div>
 <h2 className="font-headline-sm text-headline-sm text-on-surface font-bold">Stage 02 — Unified Situation Assessment</h2>
-<p className="font-body-sm text-body-sm text-on-surface-variant">Multi-modal risk engine aggregation (Bayesian Net + SHAP)</p>
+<p className="font-body-sm text-body-sm text-on-surface-variant">Real-time analytical risk aggregation</p>
 </div>
 </div>
 <span className={`font-label-sm text-label-sm uppercase px-space-sm py-1 rounded-lg flex items-center gap-space-xs ${
@@ -318,10 +318,10 @@ export default function CreateDecisionPage() {
 <div className="flex flex-col gap-space-xs my-space-md">
 <div className="flex justify-between font-code-sm text-code-sm text-on-surface-variant">
 <span>Threat Level</span>
-<span className="text-error font-semibold">87% Threshold</span>
+<span className="text-error font-semibold">{previewLoading ? '...' : preview ? 'Elevated' : 'Pending'}</span>
 </div>
 <div className="w-full bg-surface-container h-2 rounded-full overflow-hidden">
-<div className="bg-error h-full rounded-full" style={{ width: '87%' }}></div>
+<div className={`bg-error h-full rounded-full transition-all ${preview ? 'w-[85%]' : 'w-0'}`}></div>
 </div>
 </div>
 <div className="flex items-center gap-space-xs bg-error-container/30 px-space-sm py-space-xs rounded text-error">
@@ -441,7 +441,7 @@ export default function CreateDecisionPage() {
 </div>
 <div className="flex justify-between font-code-sm text-code-sm text-on-surface-variant">
 <span>Day 1 (Today)</span>
-<span className="text-secondary font-semibold">Day 6 (Spike Apex)</span>
+<span className="text-secondary font-semibold">Evaluation Range</span>
 <span>Day 14</span>
 </div>
 </div>

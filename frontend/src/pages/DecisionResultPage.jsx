@@ -114,10 +114,10 @@ export default function DecisionResultPage() {
 <div className="flex items-center gap-space-xs">
 <span className="font-label-md text-label-md uppercase tracking-wider text-secondary-fixed font-bold">Sentinel Primary Prescriptive Directive</span>
 <span className="text-outline-variant/60 font-code-sm">|</span>
-<span className="font-code-sm text-code-sm text-on-primary-container">Action Vector: {trace?.recommended_action || 'EXPEDITE + REORDER'}</span>
+<span className="font-code-sm text-code-sm text-on-primary-container">Action Vector: {trace?.primary_proposal?.action || 'EXPEDITE + REORDER'}</span>
 </div>
 <h2 className="font-headline-sm text-headline-sm font-bold text-on-primary mt-0.5 tracking-tight">
-              {trace?.recommended_action || 'EXPEDITE INBOUND SHIPMENT & PARTIAL AIR-FREIGHT REORDER'}
+              {trace?.primary_proposal?.action || 'No Action Recommended'}
             </h2>
 </div>
 </div>
@@ -131,7 +131,7 @@ export default function DecisionResultPage() {
 <div className="lg:col-span-8 flex flex-col gap-space-xs">
 <span className="font-label-md text-label-md uppercase tracking-wider text-secondary-fixed-dim">Decision Rationale</span>
 <p className="font-body-md text-body-md text-on-primary/90 leading-relaxed">
-            {trace?.situation_summary || `Prevents assembly line stoppage by advancing arrival time. Secures continuous manufacturing schedule and maintains replenishment buffer above strict threshold minimum.`}
+            {trace?.primary_proposal?.reason || 'No specific reason provided by the decision engine.'}
           </p>
 </div>
 {/* Financial trade-off matrix pill */}
@@ -143,7 +143,7 @@ export default function DecisionResultPage() {
 <div className="flex items-baseline justify-between mt-space-xs">
 <div>
 <span className="font-label-sm text-label-sm text-secondary-fixed-dim block">Expedite Premium</span>
-<span className="font-tabular-metric-md text-tabular-metric-md font-bold text-on-primary">$4,850</span>
+<span className="font-tabular-metric-md text-tabular-metric-md font-bold text-on-primary">${trace?.primary_proposal?.cost?.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) || "0.00"}</span>
 </div>
 <span className="font-label-md text-label-md text-on-primary-container">vs.</span>
 <div className="text-right">
@@ -165,17 +165,17 @@ export default function DecisionResultPage() {
 </div>
 <div className="my-space-xs">
 <div className="flex items-baseline gap-space-xs">
-<span className="font-tabular-metric-lg text-tabular-metric-lg text-on-surface font-bold">140</span>
+<span className="font-tabular-metric-lg text-tabular-metric-lg text-on-surface font-bold">{trace?.options_considered?.current_stock ?? "140"}</span>
 <span className="font-body-sm text-body-sm text-on-surface-variant font-medium">units</span>
 </div>
 <div className="flex items-center gap-space-xs text-error font-body-sm text-body-sm mt-0.5">
 <span className="material-symbols-outlined text-[14px]">south</span>
-<span>60% below Safety Stock (350 u)</span>
+<span>{trace?.options_considered?.safety_stock ? `Safety Stock: ${trace.options_considered.safety_stock} u` : "Below Safety Stock"}</span>
 </div>
 </div>
 <div className="pt-space-xs border-t border-outline-variant/20 flex justify-between font-label-sm text-label-sm text-on-surface-variant">
-<span>Reorder Pt: <strong className="text-on-surface">420 u</strong></span>
-<span>Burn Rate: <strong className="text-on-surface">50 u/day</strong></span>
+<span>Reorder Pt: <strong className="text-on-surface">{trace?.options_considered?.reorder_point ?? "420"} u</strong></span>
+<span>Burn Rate: <strong className="text-on-surface">{trace?.options_considered?.projected_daily_demand?.toFixed(1) ?? "50"} u/day</strong></span>
 </div>
 </div>
 {/* Projected Days of Supply Card */}
@@ -186,7 +186,7 @@ export default function DecisionResultPage() {
 </div>
 <div className="my-space-xs">
 <div className="flex items-baseline gap-space-xs">
-<span className="font-tabular-metric-lg text-tabular-metric-lg text-on-surface font-bold">2.8</span>
+<span className="font-tabular-metric-lg text-tabular-metric-lg text-on-surface font-bold">{trace?.options_considered?.current_days_of_supply?.toFixed(1) ?? "2.8"}</span>
 <span className="font-body-sm text-body-sm text-on-surface-variant font-medium">Days of Supply</span>
 </div>
 <div className="flex items-center gap-space-xs text-error font-body-sm text-body-sm mt-0.5">
@@ -203,14 +203,14 @@ export default function DecisionResultPage() {
 <div className="bg-surface-container-lowest rounded-xl p-space-md border border-outline-variant/30 flex flex-col justify-between shadow-sm">
 <div className="flex items-center justify-between">
 <span className="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Active Inbound Shipment</span>
-<span className="font-code-sm text-code-sm bg-surface-container px-space-xs py-0.5 rounded text-on-surface">PO #881290-A</span>
+<span className="font-code-sm text-code-sm bg-surface-container px-space-xs py-0.5 rounded text-on-surface">Active Replenishment</span>
 </div>
 <div className="my-space-xs">
 <div className="flex items-baseline gap-space-xs">
-<span className="font-headline-sm text-headline-sm text-on-surface font-bold">TransLogix Intermodal</span>
+<span className="font-headline-sm text-headline-sm text-on-surface font-bold">Assigned Carrier</span>
 </div>
 <div className="font-body-sm text-body-sm text-on-surface-variant mt-0.5 truncate">
-          Tracking: TLX-SEA-88902-US
+          Tracking: Pending
         </div>
 </div>
 <div className="pt-space-xs border-t border-outline-variant/20 flex justify-between font-label-sm text-label-sm text-on-surface-variant">
@@ -221,17 +221,17 @@ export default function DecisionResultPage() {
 {/* Delay Risk Profile */}
 <div className="bg-surface-container-lowest rounded-xl p-space-md border border-outline-variant/30 flex flex-col justify-between shadow-sm">
 <div className="flex items-center justify-between">
-<span className="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Customs Port Risk Factor</span>
-<span className="font-tabular-metric-md text-tabular-metric-md text-error font-bold">84%</span>
+<span className="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Delivery Risk Factor</span>
+<span className="font-tabular-metric-md text-tabular-metric-md text-error font-bold">{trace?.inputs?.situation?.match(/(\d+\.\d+)% delay probability/)?.[1] || '--'}%</span>
 </div>
 <div className="my-space-xs">
 <div className="flex items-baseline gap-space-xs">
-<span className="font-tabular-metric-lg text-tabular-metric-lg text-error font-bold">+96.0</span>
-<span className="font-body-sm text-body-sm text-error font-medium">hrs late delta</span>
+<span className="font-tabular-metric-lg text-tabular-metric-lg text-error font-bold">High Risk</span>
+<span className="font-body-sm text-body-sm text-error font-medium">delay expected</span>
 </div>
 <div className="flex items-center gap-space-xs text-on-surface-variant font-body-sm text-body-sm mt-0.5">
 <span className="material-symbols-outlined text-[14px] text-error">traffic</span>
-<span className="truncate">West Coast Port Drayage Congestion</span>
+<span className="truncate">Delay detected in scenario</span>
 </div>
 </div>
 <div className="pt-space-xs border-t border-outline-variant/20 flex justify-between font-label-sm text-label-sm text-on-surface-variant">
@@ -271,166 +271,60 @@ export default function DecisionResultPage() {
 </tr>
 </thead>
 <tbody className="font-body-sm text-body-sm divide-y divide-outline-variant/20">
-{/* Candidate 1 (Recommended) */}
-<tr className="bg-surface-container-lowest border-l-4 border-l-primary hover:bg-surface-container-low/50 transition-colors">
-<td className="py-space-sm px-space-md">
-<div className="flex items-center gap-space-xs">
-<span className="px-1.5 py-0.5 rounded text-[10px] uppercase font-bold tracking-wider bg-primary text-on-primary">Recommended</span>
-<span className="font-body-md text-body-md font-semibold text-on-surface">Expedite &amp; Air Reorder</span>
-</div>
-<span className="font-label-sm text-label-sm text-on-surface-variant block mt-0.5">Customs clearance split + DHL air dispatch from Tier-1 Depot</span>
-</td>
-<td className="py-space-sm px-space-sm font-tabular-metric-md text-tabular-metric-md font-medium text-on-surface">300 u</td>
-<td className="py-space-sm px-space-sm">
-<span className="font-tabular-metric-md text-tabular-metric-md font-semibold text-on-surface">+36 hrs</span>
-<span className="font-label-sm text-label-sm text-tertiary-container block font-medium">(Day 2.0)</span>
-</td>
-<td className="py-space-sm px-space-sm text-right font-tabular-metric-md text-tabular-metric-md font-bold text-on-surface">$4,850</td>
-<td className="py-space-sm px-space-sm">
-<div className="flex items-center gap-1.5">
-<span className="font-tabular-metric-md text-tabular-metric-md font-bold text-tertiary-container">6.8 Days</span>
-<span className="text-tertiary-container text-[12px] font-bold">▲</span>
-</div>
-<span className="font-label-sm text-label-sm text-on-surface-variant block">&gt; 5.0 Buffer</span>
-</td>
-<td className="py-space-sm px-space-sm">
-<div className="flex items-center gap-2">
-<div className="w-16 h-1.5 rounded-full bg-surface-container overflow-hidden">
-<div className="bg-tertiary-container h-full w-[12%]"></div>
-</div>
-<span className="font-label-sm text-label-sm font-bold text-tertiary-container">Low (12%)</span>
-</div>
-</td>
-<td className="py-space-sm px-space-sm text-center">
-<span className="px-2 py-0.5 rounded-full text-label-sm font-semibold bg-tertiary-container text-on-tertiary">Feasible</span>
-</td>
-<td className="py-space-sm px-space-sm text-center">
-<span className="font-label-sm text-label-sm font-semibold text-on-surface px-1.5 py-0.5 bg-surface-container rounded">Tier-1</span>
-</td>
-<td className="py-space-sm px-space-md text-right">
-<span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-tertiary-container/10 text-tertiary-container font-label-md text-label-md font-bold">
-<span className="material-symbols-outlined text-[14px]">done_all</span>
-                Approved (4/4)
-              </span>
-</td>
-</tr>
-{/* Candidate 2 */}
-<tr className="bg-surface-container-lowest hover:bg-surface-container-low/50 transition-colors">
-<td className="py-space-sm px-space-md">
-<span className="font-body-md text-body-md font-medium text-on-surface">Regional Inter-Facility Transfer</span>
-<span className="font-label-sm text-label-sm text-on-surface-variant block mt-0.5">Reallocate from Hub East (Cleveland Distribution)</span>
-</td>
-<td className="py-space-sm px-space-sm font-tabular-metric-md text-tabular-metric-md text-on-surface">180 u</td>
-<td className="py-space-sm px-space-sm">
-<span className="font-tabular-metric-md text-tabular-metric-md text-on-surface">+60 hrs</span>
-<span className="font-label-sm text-label-sm text-on-surface-variant block">(Day 3.5)</span>
-</td>
-<td className="py-space-sm px-space-sm text-right font-tabular-metric-md text-tabular-metric-md text-on-surface font-semibold">$1,920</td>
-<td className="py-space-sm px-space-sm">
-<div className="flex items-center gap-1.5">
-<span className="font-tabular-metric-md text-tabular-metric-md font-semibold text-on-surface">4.4 Days</span>
-</div>
-<span className="font-label-sm text-label-sm text-error font-medium block">&lt; 5.0 Min Buffer</span>
-</td>
-<td className="py-space-sm px-space-sm">
-<div className="flex items-center gap-2">
-<div className="w-16 h-1.5 rounded-full bg-surface-container overflow-hidden">
-<div className="bg-secondary h-full w-[38%]"></div>
-</div>
-<span className="font-label-sm text-label-sm font-bold text-secondary">Med (38%)</span>
-</div>
-</td>
-<td className="py-space-sm px-space-sm text-center">
-<span className="px-2 py-0.5 rounded-full text-label-sm font-semibold bg-tertiary-container text-on-tertiary">Feasible</span>
-</td>
-<td className="py-space-sm px-space-sm text-center">
-<span className="font-label-sm text-label-sm font-semibold text-on-surface px-1.5 py-0.5 bg-surface-container rounded">Tier-1</span>
-</td>
-<td className="py-space-sm px-space-md text-right">
-<span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-surface-container text-on-surface-variant font-label-md text-label-md">
-                Conditional (Hub Deficit)
-              </span>
-</td>
-</tr>
-{/* Candidate 3 */}
-<tr className="bg-surface-container-lowest hover:bg-surface-container-low/50 transition-colors">
-<td className="py-space-sm px-space-md">
-<span className="font-body-md text-body-md font-medium text-on-surface">Standard Ground PO Reorder</span>
-<span className="font-label-sm text-label-sm text-on-surface-variant block mt-0.5">New replenishment ticket via regular freight carrier</span>
-</td>
-<td className="py-space-sm px-space-sm font-tabular-metric-md text-tabular-metric-md text-on-surface">500 u</td>
-<td className="py-space-sm px-space-sm">
-<span className="font-tabular-metric-md text-tabular-metric-md text-on-surface">+144 hrs</span>
-<span className="font-label-sm text-label-sm text-error block">(Day 6.0)</span>
-</td>
-<td className="py-space-sm px-space-sm text-right font-tabular-metric-md text-tabular-metric-md text-on-surface font-semibold">$850</td>
-<td className="py-space-sm px-space-sm">
-<div className="flex items-center gap-1.5">
-<span className="font-tabular-metric-md text-tabular-metric-md font-bold text-error">0.4 Days</span>
-<span className="text-error text-[12px] font-bold">▼</span>
-</div>
-<span className="font-label-sm text-label-sm text-error block">Stockout Event</span>
-</td>
-<td className="py-space-sm px-space-sm">
-<div className="flex items-center gap-2">
-<div className="w-16 h-1.5 rounded-full bg-surface-container overflow-hidden">
-<div className="bg-error h-full w-[89%]"></div>
-</div>
-<span className="font-label-sm text-label-sm font-bold text-error">Critical (89%)</span>
-</div>
-</td>
-<td className="py-space-sm px-space-sm text-center">
-<span className="px-2 py-0.5 rounded-full text-label-sm font-semibold bg-error-container text-on-error-container">Infeasible</span>
-</td>
-<td className="py-space-sm px-space-sm text-center">
-<span className="font-label-sm text-label-sm font-semibold text-on-surface px-1.5 py-0.5 bg-surface-container rounded">Tier-2</span>
-</td>
-<td className="py-space-sm px-space-md text-right">
-<span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-error-container/40 text-error font-label-md text-label-md font-semibold">
-<span className="material-symbols-outlined text-[14px]">cancel</span>
-                Rejected (Violates SLA)
-              </span>
-</td>
-</tr>
-{/* Candidate 4 */}
-<tr className="bg-surface-container-lowest hover:bg-surface-container-low/50 transition-colors">
-<td className="py-space-sm px-space-md">
-<span className="font-body-md text-body-md font-medium text-on-surface">Do Nothing / Status Quo</span>
-<span className="font-label-sm text-label-sm text-on-surface-variant block mt-0.5">Rely strictly on delayed shipment arrival</span>
-</td>
-<td className="py-space-sm px-space-sm font-tabular-metric-md text-tabular-metric-md text-on-surface">0 u</td>
-<td className="py-space-sm px-space-sm">
-<span className="font-tabular-metric-md text-tabular-metric-md text-on-surface-variant">N/A</span>
-<span className="font-label-sm text-label-sm text-on-surface-variant block">—</span>
-</td>
-<td className="py-space-sm px-space-sm text-right font-tabular-metric-md text-tabular-metric-md text-on-surface font-semibold">$0</td>
-<td className="py-space-sm px-space-sm">
-<div className="flex items-center gap-1.5">
-<span className="font-tabular-metric-md text-tabular-metric-md font-bold text-error">0.0 Days</span>
-</div>
-<span className="font-label-sm text-label-sm text-error block">3.2 Days Down</span>
-</td>
-<td className="py-space-sm px-space-sm">
-<div className="flex items-center gap-2">
-<div className="w-16 h-1.5 rounded-full bg-surface-container overflow-hidden">
-<div className="bg-error h-full w-[98%]"></div>
-</div>
-<span className="font-label-sm text-label-sm font-bold text-error">Severe (98%)</span>
-</div>
-</td>
-<td className="py-space-sm px-space-sm text-center">
-<span className="px-2 py-0.5 rounded-full text-label-sm font-semibold bg-error-container text-on-error-container">Infeasible</span>
-</td>
-<td className="py-space-sm px-space-sm text-center">
-<span className="font-label-sm text-label-sm font-semibold text-on-surface px-1.5 py-0.5 bg-surface-container rounded">Tier-1</span>
-</td>
-<td className="py-space-sm px-space-md text-right">
-<span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-error-container/40 text-error font-label-md text-label-md font-semibold">
-<span className="material-symbols-outlined text-[14px]">block</span>
-                Rejected (Breach)
-              </span>
-</td>
-</tr>
+  {trace?.options_considered?.candidate_actions?.map((action, index) => {
+    const isRecommended = trace?.primary_proposal?.action?.includes(action.action_name) || action.action_name === 'expedite' && index === 2; // Rough heuristic, or maybe trace has a recommended action id.
+    const isRecommendedByEngine = action.action_name === 'expedite' || action.action_name === 'reorder'; // In reality we'd have it in trace.
+    // For now we'll just check if it's the recommended one, but actually the trace just says "action": "Expedite order..."
+    const isRecommendedAction = trace?.primary_proposal?.action?.toLowerCase().includes(action.action_name.toLowerCase().replace('_', ' '));
+    
+    return (
+      <tr key={index} className={`bg-surface-container-lowest hover:bg-surface-container-low/50 transition-colors ${isRecommendedAction ? 'border-l-4 border-l-primary' : ''}`}>
+        <td className="py-space-sm px-space-md">
+          <div className="flex items-center gap-space-xs">
+            {isRecommendedAction && <span className="px-1.5 py-0.5 rounded text-[10px] uppercase font-bold tracking-wider bg-primary text-on-primary">Recommended</span>}
+            <span className="font-body-md text-body-md font-semibold text-on-surface">{action.action_name.toUpperCase().replace('_', ' ')}</span>
+          </div>
+          <span className="font-label-sm text-label-sm text-on-surface-variant block mt-0.5">{action.reason || 'Candidate action'}</span>
+        </td>
+        <td className="py-space-sm px-space-sm font-tabular-metric-md text-tabular-metric-md font-medium text-on-surface">{action.quantity} u</td>
+        <td className="py-space-sm px-space-sm">
+          <span className="font-tabular-metric-md text-tabular-metric-md font-semibold text-on-surface">{action.arrival_days} days</span>
+        </td>
+        <td className="py-space-sm px-space-sm text-right font-tabular-metric-md text-tabular-metric-md font-bold text-on-surface">${action.estimated_cost?.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+        <td className="py-space-sm px-space-sm">
+          <div className="flex items-center gap-1.5">
+            <span className={`font-tabular-metric-md text-tabular-metric-md font-bold ${action.expected_days_of_supply_after > 5 ? 'text-tertiary-container' : 'text-error'}`}>{action.expected_days_of_supply_after?.toFixed(1)} Days</span>
+          </div>
+          <span className="font-label-sm text-label-sm text-on-surface-variant block">{action.expected_risk_level_after}</span>
+        </td>
+        <td className="py-space-sm px-space-sm">
+          <div className="flex items-center gap-2">
+            <span className={`font-label-sm text-label-sm font-bold ${action.expected_risk_level_after === 'NORMAL' ? 'text-tertiary-container' : 'text-error'}`}>
+              {action.expected_risk_level_after}
+            </span>
+          </div>
+        </td>
+        <td className="py-space-sm px-space-sm text-center">
+          <span className={`px-2 py-0.5 rounded-full text-label-sm font-semibold ${action.feasible ? 'bg-tertiary-container text-on-tertiary' : 'bg-error-container text-on-error-container'}`}>
+            {action.feasible ? 'Feasible' : 'Infeasible'}
+          </span>
+        </td>
+        <td className="py-space-sm px-space-sm text-center">
+          <span className="font-label-sm text-label-sm font-semibold text-on-surface px-1.5 py-0.5 bg-surface-container rounded">{action.approval_tier}</span>
+        </td>
+        <td className="py-space-sm px-space-md text-right">
+          <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded font-label-md text-label-md font-semibold ${action.feasible ? 'bg-tertiary-container/10 text-tertiary-container' : 'bg-error-container/40 text-error'}`}>
+            {action.feasible ? 'Candidate' : 'Rejected'}
+          </span>
+        </td>
+      </tr>
+    );
+  })}
+  {!trace?.options_considered?.candidate_actions && (
+    <tr>
+      <td colSpan="9" className="py-space-md text-center text-on-surface-variant">Loading candidates...</td>
+    </tr>
+  )}
 </tbody>
 </table>
 </div>
@@ -576,7 +470,7 @@ export default function DecisionResultPage() {
 </div>
 </div>
 <div className="flex flex-col sm:flex-row items-center gap-space-sm lg:border-l lg:border-outline-variant/30 lg:pl-space-lg shrink-0">
-<button className="w-full sm:w-auto px-space-md py-2 rounded-lg bg-surface-container-high text-on-surface hover:bg-surface-container font-label-md text-label-md font-semibold flex items-center justify-center gap-space-xs transition-colors border border-outline-variant/30" onClick={() => navigator.clipboard.writeText('PO-DRAFT-2024-9981')} type="button">
+<button className="w-full sm:w-auto px-space-md py-2 rounded-lg bg-surface-container-high text-on-surface hover:bg-surface-container font-label-md text-label-md font-semibold flex items-center justify-center gap-space-xs transition-colors border border-outline-variant/30" onClick={() => navigator.clipboard.writeText(trace?.trace_id ? `PO-DRAFT-${trace.trace_id.substring(0, 8).toUpperCase()}` : 'PO-DRAFT-PENDING')} type="button">
 <span className="material-symbols-outlined text-[16px]">content_copy</span>
 <span>Copy Draft Payload</span>
 </button>
@@ -698,28 +592,21 @@ export default function DecisionResultPage() {
 <span className="font-code-sm text-code-sm text-on-surface-variant">Vector Match Score: &gt; 0.91</span>
 </div>
 <div className="flex flex-col gap-space-xs font-body-sm text-body-sm">
-{/* Policy 1 */}
-<div className="bg-surface-container-low p-space-sm rounded-lg border-l-2 border-l-secondary flex flex-col gap-0.5">
-<div className="flex items-center justify-between">
-<span className="font-code-sm text-code-sm text-primary font-bold">Policy #SLA-INV-401 (Section 4.2)</span>
-<span className="font-label-sm text-label-sm px-1 rounded bg-surface-container text-on-surface font-semibold">Mandatory</span>
-</div>
-<p className="font-body-sm text-body-sm text-on-surface font-medium mt-1">
-                “Automated line-stoppage prevention protocols mandate expedite intervention whenever unmitigated projected Days of Supply falls below 3.0 days within 72 hours.”
-              </p>
-<span className="font-label-sm text-label-sm text-on-surface-variant mt-1">Source: Configured supply-chain policy</span>
-</div>
-{/* Policy 2 */}
-<div className="bg-surface-container-low p-space-sm rounded-lg border-l-2 border-l-primary flex flex-col gap-0.5">
-<div className="flex items-center justify-between">
-<span className="font-code-sm text-code-sm text-primary font-bold">Policy #FIN-AUTH-109 (Tier-1 Air Freight)</span>
-<span className="font-label-sm text-label-sm px-1 rounded bg-surface-container text-on-surface font-semibold">Cost Threshold</span>
-</div>
-<p className="font-body-sm text-body-sm text-on-surface font-medium mt-1">
-                “Discretionary spot air freight is pre-authorized up to $10,000 USD where downtime avoidance cost exceeds 10x the incremental freight surcharge.”
-              </p>
-<span className="font-label-sm text-label-sm text-on-surface-variant mt-1">Source: Global Procurement Delegation of Authority (DoA)</span>
-</div>
+  {trace?.policies_retrieved?.map((policy, idx) => (
+    <div key={idx} className="bg-surface-container-low p-space-sm rounded-lg border-l-2 border-l-primary flex flex-col gap-0.5">
+      <div className="flex items-center justify-between">
+        <span className="font-code-sm text-code-sm text-primary font-bold">{policy.document_id || 'Policy Document'}</span>
+        <span className="font-label-sm text-label-sm px-1 rounded bg-surface-container text-on-surface font-semibold">Matched: {(policy.relevance_score * 100).toFixed(1)}%</span>
+      </div>
+      <p className="font-body-sm text-body-sm text-on-surface font-medium mt-1">
+        "{policy.text.length > 250 ? policy.text.substring(0, 250) + '...' : policy.text}"
+      </p>
+      <span className="font-label-sm text-label-sm text-on-surface-variant mt-1">Source: {policy.source_file || 'Policy Database'} - {policy.section_title}</span>
+    </div>
+  ))}
+  {!trace?.policies_retrieved?.length && (
+    <div className="p-space-sm text-on-surface-variant">No explicit policies retrieved for this trace.</div>
+  )}
 </div>
 </div>
 </div>

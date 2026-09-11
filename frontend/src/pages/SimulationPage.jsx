@@ -8,6 +8,13 @@ export default function SimulationPage() {
     demand_multiplier: 1.35,
     stock_override: 260,
     lead_time_override: 4,
+    delivery_id: '',
+    distance_override: 100,
+    speed_override: 60,
+    weather_delay: 2,
+    region: 'North',
+    trucks_override: 10,
+    drivers_override: 10,
   });
   const [result, setResult] = useState(null);
   const [running, setRunning] = useState(false);
@@ -220,81 +227,151 @@ export default function SimulationPage() {
 </div>
 {/* Before vs. Scenario Comparative Metric Grid */}
 <div className="grid grid-cols-1 md:grid-cols-3 gap-space-md">
-{/* Metric 1: Days of Supply */}
-<div className="bg-surface-container-lowest border border-outline-variant/30 rounded-lg p-space-md flex flex-col justify-between shadow-sm">
-<div className="flex items-center justify-between mb-space-xs">
-<span className="font-label-md text-label-md text-on-surface-variant uppercase tracking-wide">Days of Supply (DOS)</span>
-<span className="w-2 h-2 rounded-full bg-tertiary-fixed-dim"></span>
-</div>
-<div className="flex items-baseline gap-space-xs my-space-xs">
-<span className="font-tabular-metric-lg text-tabular-metric-lg text-on-surface font-bold">{result ? result.after?.days_of_supply?.toFixed(1) : '5.4'}</span>
-<span className="font-body-sm text-body-sm text-on-surface-variant">Days</span>
-</div>
-<div className="flex flex-col gap-0.5 border-t border-outline-variant/20 pt-space-xs mt-space-xs">
-<div className="flex justify-between font-code-sm text-code-sm">
-<span className="text-on-surface-variant">Baseline:</span>
-<span className="text-error font-medium">{result ? result.before?.days_of_supply?.toFixed(1) : '2.8'} Days</span>
-</div>
-<div className="flex justify-between font-code-sm text-code-sm">
-<span className="text-on-surface-variant">Threshold:</span>
-<span className="text-on-surface">5.0d Safe Line</span>
-</div>
-<div className="flex items-center justify-between font-label-sm text-label-sm font-semibold text-tertiary mt-0.5">
-<span>Net Delta:</span>
-<span>{result ? (result.deltas?.days_of_supply_delta > 0 ? '▲ +' : '▼ ') + result.deltas?.days_of_supply_delta?.toFixed(1) + ' Days' : '▲ +2.6 Days'}</span>
-</div>
-</div>
-</div>
-{/* Metric 2: Stockout Probability */}
-<div className="bg-surface-container-lowest border border-outline-variant/30 rounded-lg p-space-md flex flex-col justify-between shadow-sm">
-<div className="flex items-center justify-between mb-space-xs">
-<span className="font-label-md text-label-md text-on-surface-variant uppercase tracking-wide">Stockout Risk Prob.</span>
-<span className="w-2 h-2 rounded-full bg-tertiary-fixed-dim"></span>
-</div>
-<div className="flex items-baseline gap-space-xs my-space-xs">
-<span className="font-tabular-metric-lg text-tabular-metric-lg text-on-surface font-bold">{result ? Math.round(result.after?.stockout_probability * 100) : '18'}%</span>
-<span className="font-body-sm text-body-sm text-tertiary font-semibold">{result ? (result.after?.stockout_probability < 0.2 ? 'Low Risk' : 'High Risk') : 'Low Risk'}</span>
-</div>
-<div className="flex flex-col gap-0.5 border-t border-outline-variant/20 pt-space-xs mt-space-xs">
-<div className="flex justify-between font-code-sm text-code-sm">
-<span className="text-on-surface-variant">Baseline:</span>
-<span className="text-error font-medium">{result ? Math.round(result.before?.stockout_probability * 100) : '87'}%</span>
-</div>
-<div className="flex justify-between font-code-sm text-code-sm">
-<span className="text-on-surface-variant">Target SLA:</span>
-<span className="text-on-surface">&lt; 20%</span>
-</div>
-<div className="flex items-center justify-between font-label-sm text-label-sm font-semibold text-tertiary mt-0.5">
-<span>Net Delta:</span>
-<span>{result ? (result.deltas?.stockout_probability_delta > 0 ? '▲ +' : '▼ ') + Math.round(result.deltas?.stockout_probability_delta * 100) + '%' : '▼ -69% Risk'}</span>
-</div>
-</div>
-</div>
-{/* Metric 3: Reorder Point Req */}
-<div className="bg-surface-container-lowest border border-outline-variant/30 rounded-lg p-space-md flex flex-col justify-between shadow-sm">
-<div className="flex items-center justify-between mb-space-xs">
-<span className="font-label-md text-label-md text-on-surface-variant uppercase tracking-wide">Reorder Requirement</span>
-<span className="w-2 h-2 rounded-full bg-secondary-container"></span>
-</div>
-<div className="flex items-baseline gap-space-xs my-space-xs">
-<span className="font-tabular-metric-lg text-tabular-metric-lg text-on-surface font-bold">{result ? Math.round(result.after?.reorder_point_units) : '560'}</span>
-<span className="font-body-sm text-body-sm text-on-surface-variant">Units</span>
-</div>
-<div className="flex flex-col gap-0.5 border-t border-outline-variant/20 pt-space-xs mt-space-xs">
-<div className="flex justify-between font-code-sm text-code-sm">
-<span className="text-on-surface-variant">Baseline:</span>
-<span className="text-on-surface">{result ? Math.round(result.before?.reorder_point_units) : '420'} Units</span>
-</div>
-<div className="flex justify-between font-code-sm text-code-sm">
-<span className="text-on-surface-variant">Drift Offset:</span>
-<span className="text-on-surface">+{params.lead_time_override}d Vendor Drift</span>
-</div>
-<div className="flex items-center justify-between font-label-sm text-label-sm font-semibold text-primary mt-0.5">
-<span>Net Delta:</span>
-<span>{result ? (result.deltas?.reorder_point_delta > 0 ? '▲ +' : '▼ ') + Math.round(result.deltas?.reorder_point_delta) + ' Units' : '▲ +140 Units Buffer'}</span>
-</div>
-</div>
-</div>
+
+{simType === 'inventory' && (
+  <>
+    {/* Metric 1: Days of Supply */}
+    <div className="bg-surface-container-lowest border border-outline-variant/30 rounded-lg p-space-md flex flex-col justify-between shadow-sm">
+      <div className="flex items-center justify-between mb-space-xs">
+        <span className="font-label-md text-label-md text-on-surface-variant uppercase tracking-wide">Days of Supply (DOS)</span>
+        <span className="w-2 h-2 rounded-full bg-tertiary-fixed-dim"></span>
+      </div>
+      <div className="flex items-baseline gap-space-xs my-space-xs">
+        <span className="font-tabular-metric-lg text-tabular-metric-lg text-on-surface font-bold">{result ? result.after?.days_of_supply?.toFixed(1) : '5.4'}</span>
+        <span className="font-body-sm text-body-sm text-on-surface-variant">Days</span>
+      </div>
+      <div className="flex flex-col gap-0.5 border-t border-outline-variant/20 pt-space-xs mt-space-xs">
+        <div className="flex justify-between font-code-sm text-code-sm">
+          <span className="text-on-surface-variant">Baseline:</span>
+          <span className="text-error font-medium">{result ? result.before?.days_of_supply?.toFixed(1) : '2.8'} Days</span>
+        </div>
+        <div className="flex justify-between font-code-sm text-code-sm">
+          <span className="text-on-surface-variant">Threshold:</span>
+          <span className="text-on-surface">5.0d Safe Line</span>
+        </div>
+        <div className="flex items-center justify-between font-label-sm text-label-sm font-semibold text-tertiary mt-0.5">
+          <span>Net Delta:</span>
+          <span>{result ? (result.deltas?.days_of_supply_delta > 0 ? '▲ +' : '▼ ') + result.deltas?.days_of_supply_delta?.toFixed(1) + ' Days' : '▲ +2.6 Days'}</span>
+        </div>
+      </div>
+    </div>
+
+    {/* Metric 2: Stockout Probability */}
+    <div className="bg-surface-container-lowest border border-outline-variant/30 rounded-lg p-space-md flex flex-col justify-between shadow-sm">
+      <div className="flex items-center justify-between mb-space-xs">
+        <span className="font-label-md text-label-md text-on-surface-variant uppercase tracking-wide">Stockout Risk Prob.</span>
+        <span className="w-2 h-2 rounded-full bg-tertiary-fixed-dim"></span>
+      </div>
+      <div className="flex items-baseline gap-space-xs my-space-xs">
+        <span className="font-tabular-metric-lg text-tabular-metric-lg text-on-surface font-bold">{result ? Math.round(result.after?.stockout_probability * 100) : '18'}%</span>
+      </div>
+      <div className="flex flex-col gap-0.5 border-t border-outline-variant/20 pt-space-xs mt-space-xs">
+        <div className="flex justify-between font-code-sm text-code-sm">
+          <span className="text-on-surface-variant">Baseline:</span>
+          <span className="text-error font-medium">{result ? Math.round(result.before?.stockout_probability * 100) : '87'}%</span>
+        </div>
+        <div className="flex items-center justify-between font-label-sm text-label-sm font-semibold text-tertiary mt-0.5">
+          <span>Net Delta:</span>
+          <span>{result ? (result.deltas?.stockout_probability_delta > 0 ? '▲ +' : '▼ ') + Math.round(result.deltas?.stockout_probability_delta * 100) + '%' : '▼ -69% Risk'}</span>
+        </div>
+      </div>
+    </div>
+
+    {/* Metric 3: Shortfall Units */}
+    <div className="bg-surface-container-lowest border border-outline-variant/30 rounded-lg p-space-md flex flex-col justify-between shadow-sm">
+      <div className="flex items-center justify-between mb-space-xs">
+        <span className="font-label-md text-label-md text-on-surface-variant uppercase tracking-wide">Shortfall Units</span>
+        <span className="w-2 h-2 rounded-full bg-tertiary-fixed-dim"></span>
+      </div>
+      <div className="flex items-baseline gap-space-xs my-space-xs">
+        <span className="font-tabular-metric-lg text-tabular-metric-lg text-on-surface font-bold">{result ? Math.round(result.after?.shortfall_units || 0) : '0'}</span>
+      </div>
+      <div className="flex flex-col gap-0.5 border-t border-outline-variant/20 pt-space-xs mt-space-xs">
+        <div className="flex justify-between font-code-sm text-code-sm">
+          <span className="text-on-surface-variant">Baseline:</span>
+          <span className="text-error font-medium">{result ? Math.round(result.before?.shortfall_units || 0) : '150'}</span>
+        </div>
+      </div>
+    </div>
+  </>
+)}
+
+{simType === 'delivery' && (
+  <>
+    {/* Metric 1: Delivery Time */}
+    <div className="bg-surface-container-lowest border border-outline-variant/30 rounded-lg p-space-md flex flex-col justify-between shadow-sm">
+      <div className="flex items-center justify-between mb-space-xs">
+        <span className="font-label-md text-label-md text-on-surface-variant uppercase tracking-wide">Delivery Time (hrs)</span>
+        <span className="w-2 h-2 rounded-full bg-tertiary-fixed-dim"></span>
+      </div>
+      <div className="flex items-baseline gap-space-xs my-space-xs">
+        <span className="font-tabular-metric-lg text-tabular-metric-lg text-on-surface font-bold">{result ? result.after?.delivery_time_hrs?.toFixed(1) : '--'}</span>
+      </div>
+      <div className="flex flex-col gap-0.5 border-t border-outline-variant/20 pt-space-xs mt-space-xs">
+        <div className="flex justify-between font-code-sm text-code-sm">
+          <span className="text-on-surface-variant">Baseline:</span>
+          <span className="text-error font-medium">{result ? result.before?.delivery_time_hrs?.toFixed(1) : '--'}</span>
+        </div>
+      </div>
+    </div>
+
+    {/* Metric 2: Delay */}
+    <div className="bg-surface-container-lowest border border-outline-variant/30 rounded-lg p-space-md flex flex-col justify-between shadow-sm">
+      <div className="flex items-center justify-between mb-space-xs">
+        <span className="font-label-md text-label-md text-on-surface-variant uppercase tracking-wide">Delay (hrs)</span>
+        <span className="w-2 h-2 rounded-full bg-tertiary-fixed-dim"></span>
+      </div>
+      <div className="flex items-baseline gap-space-xs my-space-xs">
+        <span className="font-tabular-metric-lg text-tabular-metric-lg text-on-surface font-bold">{result ? result.after?.delay_hrs?.toFixed(1) : '--'}</span>
+      </div>
+      <div className="flex flex-col gap-0.5 border-t border-outline-variant/20 pt-space-xs mt-space-xs">
+        <div className="flex justify-between font-code-sm text-code-sm">
+          <span className="text-on-surface-variant">Baseline:</span>
+          <span className="text-error font-medium">{result ? result.before?.delay_hrs?.toFixed(1) : '--'}</span>
+        </div>
+      </div>
+    </div>
+  </>
+)}
+
+{simType === 'logistics' && (
+  <>
+    {/* Metric 1: Fleet Utilization */}
+    <div className="bg-surface-container-lowest border border-outline-variant/30 rounded-lg p-space-md flex flex-col justify-between shadow-sm">
+      <div className="flex items-center justify-between mb-space-xs">
+        <span className="font-label-md text-label-md text-on-surface-variant uppercase tracking-wide">Fleet Util.</span>
+        <span className="w-2 h-2 rounded-full bg-tertiary-fixed-dim"></span>
+      </div>
+      <div className="flex items-baseline gap-space-xs my-space-xs">
+        <span className="font-tabular-metric-lg text-tabular-metric-lg text-on-surface font-bold">{result ? Math.round(result.after?.fleet_utilization * 100) : '--'}%</span>
+      </div>
+      <div className="flex flex-col gap-0.5 border-t border-outline-variant/20 pt-space-xs mt-space-xs">
+        <div className="flex justify-between font-code-sm text-code-sm">
+          <span className="text-on-surface-variant">Baseline:</span>
+          <span className="text-error font-medium">{result ? Math.round(result.before?.fleet_utilization * 100) : '--'}%</span>
+        </div>
+      </div>
+    </div>
+
+    {/* Metric 2: Success Rate */}
+    <div className="bg-surface-container-lowest border border-outline-variant/30 rounded-lg p-space-md flex flex-col justify-between shadow-sm">
+      <div className="flex items-center justify-between mb-space-xs">
+        <span className="font-label-md text-label-md text-on-surface-variant uppercase tracking-wide">Success Rate</span>
+        <span className="w-2 h-2 rounded-full bg-tertiary-fixed-dim"></span>
+      </div>
+      <div className="flex items-baseline gap-space-xs my-space-xs">
+        <span className="font-tabular-metric-lg text-tabular-metric-lg text-on-surface font-bold">{result ? Math.round(result.after?.delivery_success_rate * 100) : '--'}%</span>
+      </div>
+      <div className="flex flex-col gap-0.5 border-t border-outline-variant/20 pt-space-xs mt-space-xs">
+        <div className="flex justify-between font-code-sm text-code-sm">
+          <span className="text-on-surface-variant">Baseline:</span>
+          <span className="text-error font-medium">{result ? Math.round(result.before?.delivery_success_rate * 100) : '--'}%</span>
+        </div>
+      </div>
+    </div>
+  </>
+)}
+
 </div>
 {/* Comparative Run-Rate Chart / Vector Visualization */}
 <div className="bg-surface-container-lowest border border-outline-variant/30 rounded-lg p-space-lg flex flex-col shadow-sm">

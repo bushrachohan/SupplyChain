@@ -9,12 +9,25 @@ export default function DecisionHistoryPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  const [page, setPage] = useState(1);
+  const [statusFilter, setStatusFilter] = useState('ALL');
+  const [hasMore, setHasMore] = useState(true);
+  const limit = 10;
+
   useEffect(() => {
-    api.getHistory()
-      .then(data => setHistory(data?.history || data || []))
-      .catch(err => setError(err.message))
-      .finally(() => setLoading(false));
-  }, []);
+    setLoading(true);
+    const timeoutId = setTimeout(() => {
+      api.getHistory({ query: search, status: statusFilter, skip: (page - 1) * limit, limit })
+        .then(data => {
+          const records = data?.history || data || [];
+          setHistory(records);
+          setHasMore(records.length === limit);
+        })
+        .catch(err => setError(err.message))
+        .finally(() => setLoading(false));
+    }, 300); // basic debounce
+    return () => clearTimeout(timeoutId);
+  }, [search, statusFilter, page]);
 
   const handleExportCsv = () => {
     window.location.href = api.exportHistoryCsvUrl();
@@ -22,9 +35,9 @@ export default function DecisionHistoryPage() {
 
   const downloadCSVReport = () => {
     if (api.exportHistoryCsvUrl) {
-      window.location.href = api.exportHistoryCsvUrl();
+      window.location.href = api.exportHistoryCsvUrl({ query: search, status: statusFilter });
     } else {
-      window.location.href = '/api/history/export';
+      window.location.href = `/api/history/export?query=${encodeURIComponent(search)}&status=${encodeURIComponent(statusFilter)}`;
     }
   };
 
@@ -75,69 +88,14 @@ export default function DecisionHistoryPage() {
       </button>
 </div>
 </div>
-{/* Top Metrics Bar */}
-<div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-space-md mb-space-lg">
-<div className="p-space-md bg-surface-container-lowest rounded shadow-sm flex flex-col justify-between">
-<div className="flex items-center justify-between mb-1">
-<span className="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Total Audited Decisions</span>
-<span className="material-symbols-outlined text-primary text-[20px]">fact_check</span>
-</div>
-<div className="flex items-baseline gap-space-sm mt-1">
-<span className="font-tabular-metric-lg text-tabular-metric-lg font-bold text-on-surface">1,420</span>
-<span className="font-code-sm text-code-sm text-on-surface-variant">All time</span>
-</div>
-<div className="mt-2 flex items-center gap-1 text-primary">
-<span className="font-code-sm text-code-sm font-medium">100% cryptographic trace retention</span>
-</div>
-</div>
-<div className="p-space-md bg-surface-container-lowest rounded shadow-sm flex flex-col justify-between">
-<div className="flex items-center justify-between mb-1">
-<span className="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Human Approved</span>
-<span className="w-2.5 h-2.5 rounded-full bg-tertiary-fixed-dim"></span>
-</div>
-<div className="flex items-baseline gap-space-sm mt-1">
-<span className="font-tabular-metric-lg text-tabular-metric-lg font-bold text-on-surface">1,288</span>
-<span className="font-code-sm text-code-sm font-semibold text-tertiary-container bg-tertiary-fixed/30 px-1.5 py-0.5 rounded">90.7%</span>
-</div>
-<div className="mt-2 text-on-surface-variant font-body-sm text-body-sm flex items-center gap-1">
-<span>▲ 1.4% vs prev 30d baseline</span>
-</div>
-</div>
-<div className="p-space-md bg-surface-container-lowest rounded shadow-sm flex flex-col justify-between">
-<div className="flex items-center justify-between mb-1">
-<span className="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Rejected / Overridden</span>
-<span className="w-2.5 h-2.5 rounded-full bg-error"></span>
-</div>
-<div className="flex items-baseline gap-space-sm mt-1">
-<span className="font-tabular-metric-lg text-tabular-metric-lg font-bold text-on-surface">132</span>
-<span className="font-code-sm text-code-sm font-semibold text-error bg-error-container/40 px-1.5 py-0.5 rounded">9.3%</span>
-</div>
-<div className="mt-2 text-on-surface-variant font-body-sm text-body-sm flex items-center gap-1">
-<span>Primary cause: Local buffer reallocation</span>
-</div>
-</div>
-<div className="p-space-md bg-surface-container-lowest rounded shadow-sm flex flex-col justify-between">
-<div className="flex items-center justify-between mb-1">
-<span className="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Regulatory Compliance Mode</span>
-<span className="material-symbols-outlined text-secondary text-[20px]">policy</span>
-</div>
-<div className="mt-1">
-<span className="font-body-md text-body-md font-bold text-primary">Tier-1 SOX / Ops Audit</span>
-<p className="font-code-sm text-code-sm text-on-surface-variant mt-0.5 truncate">PCAOB &amp; ISO 27001 Validated</p>
-</div>
-<div className="mt-2 flex items-center gap-1 text-on-surface font-label-sm text-label-sm">
-<span className="w-1.5 h-1.5 rounded-full bg-tertiary-fixed-dim"></span>
-<span>Decision Trace Recorded</span>
-</div>
-</div>
-</div>
+
 {/* Filter & Control Panel */}
 <div className="bg-surface-container-lowest rounded shadow-sm p-space-md mb-space-lg">
 <div className="grid grid-cols-1 md:grid-cols-12 gap-space-sm items-center">
 {/* Search Input */}
 <div className="md:col-span-4 relative">
 <span className="material-symbols-outlined absolute left-3 top-2.5 text-on-surface-variant text-[18px]">search</span>
-<input value={search} onChange={e => setSearch(e.target.value)} className="w-full pl-9 pr-3 py-2 bg-surface-container-low text-on-surface font-body-sm text-body-sm rounded outline-none focus:bg-surface-container-lowest focus:ring-1 focus:ring-secondary transition-all" id="record-search" placeholder="Search by SKU, PO, or Decision ID..." type="text" />
+<input value={search} onChange={e => { setSearch(e.target.value); setPage(1); }} className="w-full pl-9 pr-3 py-2 bg-surface-container-low text-on-surface font-body-sm text-body-sm rounded outline-none focus:bg-surface-container-lowest focus:ring-1 focus:ring-secondary transition-all" id="record-search" placeholder="Search by ID, Situation, or Action..." type="text" />
 </div>
 {/* Date Range Filter */}
 <div className="md:col-span-3 flex items-center gap-2 bg-surface-container-low px-3 py-2 rounded">
@@ -152,7 +110,7 @@ export default function DecisionHistoryPage() {
 {/* Decision Status */}
 <div className="md:col-span-2 flex items-center gap-2 bg-surface-container-low px-3 py-2 rounded">
 <span className="material-symbols-outlined text-on-surface-variant text-[18px]">tune</span>
-<select className="w-full bg-transparent font-body-sm text-body-sm text-on-surface outline-none cursor-pointer" id="status-filter" onChange={(e) => filterStatus(e.target.value)}>
+<select value={statusFilter} onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }} className="w-full bg-transparent font-body-sm text-body-sm text-on-surface outline-none cursor-pointer" id="status-filter">
 <option value="ALL">Status: All</option>
 <option value="APPROVED">Approved Only</option>
 <option value="REJECTED">Rejected Only</option>
@@ -231,20 +189,16 @@ export default function DecisionHistoryPage() {
 {/* Pagination & Ledger Summary Controls */}
 <div className="mt-space-lg bg-surface-container-lowest rounded shadow-sm p-space-md flex flex-col sm:flex-row items-center justify-between gap-space-md">
 <div className="flex items-center gap-space-sm text-on-surface-variant font-code-sm text-code-sm">
-<span>Showing <strong>1-4</strong> of <strong>1,420</strong> verified decision events</span>
+<span>Showing Page <strong>{page}</strong></span>
 <span className="text-outline-variant">|</span>
-<span>Ledger Hash: <strong className="text-primary font-mono">0x4a18..bb90</strong></span>
+<span>Ledger Verified</span>
 </div>
 <div className="flex items-center gap-space-xs">
-<button className="px-space-sm py-1.5 rounded bg-surface-container-low text-on-surface-variant hover:bg-surface-container font-code-sm text-code-sm flex items-center gap-1 cursor-pointer">
+<button disabled={page === 1} onClick={() => setPage(p => p - 1)} className="px-space-sm py-1.5 rounded bg-surface-container-low text-on-surface-variant hover:bg-surface-container font-code-sm text-code-sm flex items-center gap-1 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
 <span className="material-symbols-outlined text-[16px]">chevron_left</span> Previous
       </button>
-<button className="px-space-md py-1.5 rounded bg-primary text-on-primary font-code-sm text-code-sm font-bold shadow-sm">1</button>
-<button className="px-space-md py-1.5 rounded bg-surface-container-low text-on-surface hover:bg-surface-container font-code-sm text-code-sm">2</button>
-<button className="px-space-md py-1.5 rounded bg-surface-container-low text-on-surface hover:bg-surface-container font-code-sm text-code-sm">3</button>
-<span className="px-1 text-on-surface-variant font-code-sm text-code-sm">...</span>
-<button className="px-space-md py-1.5 rounded bg-surface-container-low text-on-surface hover:bg-surface-container font-code-sm text-code-sm">355</button>
-<button className="px-space-sm py-1.5 rounded bg-surface-container-low text-on-surface-variant hover:bg-surface-container font-code-sm text-code-sm flex items-center gap-1 cursor-pointer">
+<button className="px-space-md py-1.5 rounded bg-primary text-on-primary font-code-sm text-code-sm font-bold shadow-sm">{page}</button>
+<button disabled={!hasMore} onClick={() => setPage(p => p + 1)} className="px-space-sm py-1.5 rounded bg-surface-container-low text-on-surface-variant hover:bg-surface-container font-code-sm text-code-sm flex items-center gap-1 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
         Next <span className="material-symbols-outlined text-[16px]">chevron_right</span>
 </button>
 </div>

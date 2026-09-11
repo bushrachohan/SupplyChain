@@ -22,7 +22,7 @@ export default function DecisionResultPage() {
   const handleApproval = async (decision) => {
     setApproving(true);
     try {
-      await api.submitApproval(traceId, { decision, reviewer: 'Ops Lead', notes: notes || undefined });
+      await api.submitApproval(traceId, decision, 'Ops Lead', notes || undefined);
       navigate('/app/approval-queue');
     } catch (err) {
       setError(err.message);
@@ -46,9 +46,9 @@ export default function DecisionResultPage() {
 </div>
 <div className="flex items-center gap-space-sm flex-wrap">
 <h1 className="font-headline-lg text-headline-lg text-on-surface font-semibold tracking-tight">
-          Operational Decision Result <span className="text-on-surface-variant font-normal">// DEC-88029-A</span>
+          Operational Decision Result <span className="text-on-surface-variant font-normal">// {traceId || 'DEC-88029-A'}</span>
 </h1>
-<span className="font-code-sm text-code-sm bg-surface-container px-space-xs py-0.5 rounded text-on-surface font-medium">SKU_104 Stockout Mitigation</span>
+<span className="font-code-sm text-code-sm bg-surface-container px-space-xs py-0.5 rounded text-on-surface font-medium">{trace?.target_id || 'SKU_104'} Stockout Mitigation</span>
 </div>
 </div>
 {/* Live Consensus & Action Tier Badges */}
@@ -73,7 +73,7 @@ export default function DecisionResultPage() {
 {/* Step 1 */}
 <div className="flex items-center gap-space-xs bg-surface-container-low px-space-sm py-1 rounded border border-outline-variant/40 text-on-surface">
 <span className="material-symbols-outlined text-[16px] text-tertiary-container">check_circle</span>
-<span className="font-label-sm text-label-sm font-semibold">1. Primary AI (DeepAR+)</span>
+<span className="font-label-sm text-label-sm font-semibold">1. Primary AI (LightGBM)</span>
 </div>
 <span className="material-symbols-outlined text-outline-variant text-[16px]">arrow_forward</span>
 {/* Step 2 */}
@@ -114,10 +114,10 @@ export default function DecisionResultPage() {
 <div className="flex items-center gap-space-xs">
 <span className="font-label-md text-label-md uppercase tracking-wider text-secondary-fixed font-bold">Sentinel Primary Prescriptive Directive</span>
 <span className="text-outline-variant/60 font-code-sm">|</span>
-<span className="font-code-sm text-code-sm text-on-primary-container">Action Vector: EXPEDITE + REORDER</span>
+<span className="font-code-sm text-code-sm text-on-primary-container">Action Vector: {trace?.recommended_action || 'EXPEDITE + REORDER'}</span>
 </div>
 <h2 className="font-headline-sm text-headline-sm font-bold text-on-primary mt-0.5 tracking-tight">
-              EXPEDITE INBOUND SHIPMENT (PO #881290-A) &amp; PARTIAL AIR-FREIGHT REORDER (300 UNITS)
+              {trace?.recommended_action || 'EXPEDITE INBOUND SHIPMENT & PARTIAL AIR-FREIGHT REORDER'}
             </h2>
 </div>
 </div>
@@ -131,7 +131,7 @@ export default function DecisionResultPage() {
 <div className="lg:col-span-8 flex flex-col gap-space-xs">
 <span className="font-label-md text-label-md uppercase tracking-wider text-secondary-fixed-dim">Decision Rationale</span>
 <p className="font-body-md text-body-md text-on-primary/90 leading-relaxed">
-            Prevents assembly line stoppage at <span className="font-semibold text-on-primary underline decoration-secondary-fixed/50">Chicago &amp; Milwaukee plants</span> by advancing arrival time from <strong className="text-on-primary font-semibold">Day 6.0 to Day 2.0</strong> (+36 hrs window). Secures continuous manufacturing schedule and maintains replenishment buffer above strict threshold minimum of <strong className="text-on-primary font-semibold">5.0 Days of Supply</strong>.
+            {trace?.situation_summary || `Prevents assembly line stoppage by advancing arrival time. Secures continuous manufacturing schedule and maintains replenishment buffer above strict threshold minimum.`}
           </p>
 </div>
 {/* Financial trade-off matrix pill */}
@@ -252,7 +252,7 @@ export default function DecisionResultPage() {
 </div>
 <div className="flex items-center gap-space-xs text-on-surface-variant font-label-sm text-label-sm">
 <span className="material-symbols-outlined text-[16px] text-tertiary-container">tune</span>
-<span>Simulated Iterations: 10,000 Monte Carlo Paths</span>
+<span>Simulated Iterations: Comprehensive Scenario Analysis</span>
 </div>
 </div>
 <div className="w-full overflow-x-auto">
@@ -457,7 +457,7 @@ export default function DecisionResultPage() {
 </div>
 <div>
 <span className="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider block font-semibold">Node 1: Primary AI</span>
-<span className="font-headline-sm text-headline-sm text-on-surface font-bold block mt-0.5">DeepAR+ Engine</span>
+<span className="font-headline-sm text-headline-sm text-on-surface font-bold block mt-0.5">LightGBM Engine</span>
 <p className="font-body-sm text-body-sm text-on-surface-variant mt-1">
             Risk assessment completed using the available demand and delivery signals.
           </p>
@@ -541,7 +541,7 @@ export default function DecisionResultPage() {
 <div className="bg-surface-container-high px-space-md py-space-sm border-b border-outline-variant/30 flex items-center gap-space-sm">
 <span className="material-symbols-outlined text-secondary text-[20px]">info</span>
 <p className="font-label-md text-label-md font-semibold text-on-surface">
-        PURCHASE ORDER DRAFT ONLY — Sentinel does not automatically transmit financial transactions to external ERP systems without operational review.
+        PURCHASE ORDER DRAFT ONLY — This is a simulation preview and does not transmit financial transactions.
       </p>
 </div>
 <div className="p-space-lg flex flex-col lg:flex-row lg:items-center justify-between gap-space-lg">
@@ -549,40 +549,36 @@ export default function DecisionResultPage() {
 <div className="flex items-center gap-space-sm">
 <span className="font-headline-sm text-headline-sm text-on-surface font-bold">Draft Purchase Order Details</span>
 <span className="font-code-sm text-code-sm bg-surface-container px-space-sm py-0.5 rounded text-secondary font-semibold">
-            ID: PO-DRAFT-2024-9981
+            ID: PO-DRAFT-{trace?.trace_id?.substring(0, 8) || 'XXXX'}
           </span>
 </div>
 <div className="grid grid-cols-2 sm:grid-cols-4 gap-space-md pt-space-xs">
 <div>
 <span className="font-label-sm text-label-sm text-on-surface-variant uppercase block font-semibold">Target Vendor</span>
-<span className="font-body-md text-body-md text-on-surface font-medium">MicroTech Global Corp</span>
-<span className="font-code-sm text-code-sm text-on-surface-variant block">Vendor Code: #VND-4902</span>
+<span className="font-body-md text-body-md text-on-surface font-medium">Primary Supplier</span>
+<span className="font-code-sm text-code-sm text-on-surface-variant block">System Selected</span>
 </div>
 <div>
 <span className="font-label-sm text-label-sm text-on-surface-variant uppercase block font-semibold">Component SKU</span>
-<span className="font-body-md text-body-md text-on-surface font-semibold">SKU_104 (Sensors)</span>
-<span className="font-code-sm text-code-sm text-on-surface-variant block">Precision Micro-Actuator</span>
+<span className="font-body-md text-body-md text-on-surface font-semibold">{trace?.inputs?.sku_id || 'Target SKU'}</span>
+<span className="font-code-sm text-code-sm text-on-surface-variant block">Standard Component</span>
 </div>
 <div>
-<span className="font-label-sm text-label-sm text-on-surface-variant uppercase block font-semibold">Expedited Lot Volume</span>
-<span className="font-tabular-metric-md text-tabular-metric-md font-bold text-on-surface">300 Units</span>
-<span className="font-label-sm text-label-sm text-on-surface-variant block">Air Courier Priority</span>
+<span className="font-label-sm text-label-sm text-on-surface-variant uppercase block font-semibold">Volume / Action</span>
+<span className="font-tabular-metric-md text-tabular-metric-md font-bold text-on-surface">{typeof trace?.consensus_result?.recommendation === 'object' ? trace.consensus_result.recommendation.action || 'Standard' : 'Standard'}</span>
+<span className="font-label-sm text-label-sm text-on-surface-variant block">As Recommended</span>
 </div>
 <div>
 <span className="font-label-sm text-label-sm text-on-surface-variant uppercase block font-semibold">Dispatched Rate</span>
-<span className="font-tabular-metric-md text-tabular-metric-md font-bold text-on-surface">$16.17 / unit</span>
-<span className="font-label-sm text-label-sm text-on-surface-variant block">Includes freight surcharge</span>
+<span className="font-tabular-metric-md text-tabular-metric-md font-bold text-on-surface">Standard Contract Rate</span>
+<span className="font-label-sm text-label-sm text-on-surface-variant block">Subject to confirmation</span>
 </div>
 </div>
 </div>
 <div className="flex flex-col sm:flex-row items-center gap-space-sm lg:border-l lg:border-outline-variant/30 lg:pl-space-lg shrink-0">
-<button className="w-full sm:w-auto px-space-md py-2 rounded-lg bg-surface-container-high text-on-surface hover:bg-surface-container font-label-md text-label-md font-semibold flex items-center justify-center gap-space-xs transition-colors border border-outline-variant/30" onclick="navigator.clipboard.writeText('PO-DRAFT-2024-9981')" type="button">
+<button className="w-full sm:w-auto px-space-md py-2 rounded-lg bg-surface-container-high text-on-surface hover:bg-surface-container font-label-md text-label-md font-semibold flex items-center justify-center gap-space-xs transition-colors border border-outline-variant/30" onClick={() => navigator.clipboard.writeText('PO-DRAFT-2024-9981')} type="button">
 <span className="material-symbols-outlined text-[16px]">content_copy</span>
 <span>Copy Draft Payload</span>
-</button>
-<button className="w-full sm:w-auto px-space-md py-2 rounded-lg bg-surface-container text-on-surface hover:bg-surface-container-high font-label-md text-label-md font-semibold flex items-center justify-center gap-space-xs transition-colors" type="button">
-<span className="material-symbols-outlined text-[16px]">open_in_new</span>
-<span>Preview SAP Mapping</span>
 </button>
 </div>
 </div>
@@ -731,13 +727,13 @@ export default function DecisionResultPage() {
 <div className="bg-surface-container-low p-space-sm rounded-lg font-code-sm text-code-sm text-on-surface-variant flex flex-col sm:flex-row sm:items-center justify-between gap-space-xs border border-outline-variant/20">
 <div className="flex items-center gap-space-xs flex-wrap">
 <span className="text-on-surface font-semibold">Model Information:</span>
-<span className="text-secondary font-mono">sentinel-deepar-v4.9.1-dist</span>
+<span className="text-secondary font-mono">sentinel-lightgbm-v3.0</span>
 <span className="text-outline-variant">|</span>
 <span className="text-on-surface font-semibold">Prompt Token Count:</span>
 <span>1,842 tokens</span>
 </div>
 <div>
-<span>Execution Timestamp: <strong className="text-on-surface">2024-10-24T14:22:09.184Z</strong></span>
+<span>Execution Timestamp: <strong className="text-on-surface">{trace?.timestamp || new Date().toISOString()}</strong></span>
 </div>
 </div>
 </div>

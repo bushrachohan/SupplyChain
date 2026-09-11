@@ -71,10 +71,9 @@ export default function ApprovalQueuePage() {
 <span className="w-2 h-2 rounded-full bg-error"></span>
 </div>
 <div className="flex items-baseline gap-space-xs">
-<span className="font-tabular-metric-lg text-tabular-metric-lg text-error font-bold">2</span>
+<span className="font-tabular-metric-lg text-tabular-metric-lg text-error font-bold">{approvals.filter(a => a.severity === 'CRITICAL' || a.severity === 'STOCKOUT_RISK').length}</span>
 <span className="font-label-sm text-label-sm text-error/80">urgent</span>
 </div>
-<span className="font-code-sm text-code-sm text-on-surface-variant mt-1">&lt; 18h buffer expiry</span>
 </button>
 <button className="flex flex-col text-left p-space-md rounded-xl bg-surface-container-lowest shadow-sm hover:shadow transition-all group">
 <div className="flex items-center justify-between w-full mb-space-xs">
@@ -82,21 +81,19 @@ export default function ApprovalQueuePage() {
 <span className="w-2 h-2 rounded-full bg-secondary-container"></span>
 </div>
 <div className="flex items-baseline gap-space-xs">
-<span className="font-tabular-metric-lg text-tabular-metric-lg text-on-surface font-bold">1</span>
-<span className="font-label-sm text-label-sm text-on-surface-variant">item</span>
+<span className="font-tabular-metric-lg text-tabular-metric-lg text-on-surface font-bold">{approvals.filter(a => a.severity === 'HIGH').length}</span>
+<span className="font-label-sm text-label-sm text-on-surface-variant">items</span>
 </div>
-<span className="font-code-sm text-code-sm text-on-surface-variant mt-1">Imbalance risk</span>
 </button>
 <button className="flex flex-col text-left p-space-md rounded-xl bg-surface-container-lowest shadow-sm hover:shadow transition-all group">
 <div className="flex items-center justify-between w-full mb-space-xs">
-<span className="font-label-md text-label-md uppercase tracking-wider text-on-surface-variant font-semibold">Medium Severity</span>
+<span className="font-label-md text-label-md uppercase tracking-wider text-on-surface-variant font-semibold">Medium/Low</span>
 <span className="w-2 h-2 rounded-full bg-outline"></span>
 </div>
 <div className="flex items-baseline gap-space-xs">
-<span className="font-tabular-metric-lg text-tabular-metric-lg text-on-surface font-bold">1</span>
-<span className="font-label-sm text-label-sm text-on-surface-variant">item</span>
+<span className="font-tabular-metric-lg text-tabular-metric-lg text-on-surface font-bold">{approvals.filter(a => ['MEDIUM', 'LOW'].includes(a.severity)).length}</span>
+<span className="font-label-sm text-label-sm text-on-surface-variant">items</span>
 </div>
-<span className="font-code-sm text-code-sm text-on-surface-variant mt-1">Lead time drift</span>
 </button>
 <div className="flex flex-col justify-between p-space-md rounded-xl bg-surface-container-low shadow-sm">
 <div className="flex items-center justify-between">

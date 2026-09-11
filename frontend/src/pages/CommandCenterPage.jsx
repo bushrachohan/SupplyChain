@@ -6,13 +6,37 @@ export default function CommandCenterPage() {
   const navigate = useNavigate();
   const [kpis, setKpis] = useState(null);
   const [priorityRisks, setPriorityRisks] = useState({ inventory: null, delivery: null });
+  const [forecastData, setForecastData] = useState(null);
   const [loading, setLoading] = useState(true);
+
+  const generatePoints = (key) => {
+    if (!forecastData?.aligned_observations?.length) return "";
+    const obs = forecastData.aligned_observations;
+    const maxVal = Math.max(...obs.map(o => Math.max(o['Actual Demand'] || 0, o['Forecast Demand'] || 0)), 1);
+    const minVal = 0; // Fixed at 0 for cleaner visuals
+    const range = maxVal - minVal || 1;
+    
+    return obs.map((o, i) => {
+      const val = o[key];
+      if (val == null) return null;
+      const x = 50 + (i / (obs.length - 1)) * 884; // mapped to 50 - 934 width
+      const y = 200 - ((val - minVal) / range) * 150; // mapped to 50 - 200 height
+      return `${x},${y}`;
+    }).filter(Boolean).join(" ");
+  };
 
   useEffect(() => {
     api.getDashboard()
       .then(data => {
         if (data?.metrics) setKpis(data.metrics);
-        if (data?.priority_risks) setPriorityRisks(data.priority_risks);
+        if (data?.priority_risks) {
+          setPriorityRisks(data.priority_risks);
+          if (data.priority_risks.inventory?.sku_id) {
+            api.getForecastVsActual(data.priority_risks.inventory.sku_id)
+              .then(fData => setForecastData(fData))
+              .catch(err => console.error('Forecast error:', err));
+          }
+        }
       })
       .catch(err => console.error('Dashboard error:', err))
       .finally(() => setLoading(false));
@@ -297,19 +321,19 @@ export default function CommandCenterPage() {
             </div>
             <div className="px-space-md py-space-xs rounded-lg bg-surface-container-low flex flex-col">
               <span className="font-label-sm text-label-sm text-on-surface-variant uppercase font-semibold">Actual Avg</span>
-              <span className="font-tabular-metric-md text-tabular-metric-md text-on-surface font-bold">428 u/day</span>
+              <span className="font-tabular-metric-md text-tabular-metric-md text-on-surface font-bold">{forecastData?.actual_avg ? Math.round(forecastData.actual_avg) : '--'} u/day</span>
             </div>
             <div className="px-space-md py-space-xs rounded-lg bg-surface-container-low flex flex-col">
               <span className="font-label-sm text-label-sm text-on-surface-variant uppercase font-semibold">Forecast Avg</span>
-              <span className="font-tabular-metric-md text-tabular-metric-md text-primary font-bold">445 u/day</span>
+              <span className="font-tabular-metric-md text-tabular-metric-md text-primary font-bold">{forecastData?.forecast_avg ? Math.round(forecastData.forecast_avg) : '--'} u/day</span>
             </div>
             <div className="px-space-md py-space-xs rounded-lg bg-surface-container-low flex flex-col">
               <span className="font-label-sm text-label-sm text-on-surface-variant uppercase font-semibold">Error (MAPE)</span>
-              <span className="font-tabular-metric-md text-tabular-metric-md text-error font-bold">3.9%</span>
+              <span className="font-tabular-metric-md text-tabular-metric-md text-error font-bold">{forecastData?.mape ? forecastData.mape + '%' : '--'}</span>
             </div>
             <div className="px-space-md py-space-xs rounded-lg bg-surface-container-low flex flex-col">
               <span className="font-label-sm text-label-sm text-on-surface-variant uppercase font-semibold">Accuracy</span>
-              <span className="font-tabular-metric-md text-tabular-metric-md text-tertiary-container font-bold">96.1%</span>
+              <span className="font-tabular-metric-md text-tabular-metric-md text-tertiary-container font-bold">{forecastData?.mape ? (100 - forecastData.mape).toFixed(1) + '%' : '--'}</span>
             </div>
           </div>
         </div>
@@ -331,7 +355,7 @@ export default function CommandCenterPage() {
           </div>
           <div className="flex items-center gap-space-xs text-on-surface-variant">
             <span className="material-symbols-outlined text-[16px]">info</span>
-            <span>Model: LightGBM + Multi-Head Temporal Attention (Retrained: 04:00 UTC)</span>
+            <span>Model: LightGBM</span>
           </div>
         </div>
         {/* SVG Clean Functional Visual Chart (Actual vs Forecast) */}
@@ -359,28 +383,19 @@ export default function CommandCenterPage() {
             934,110 866,120 798,130 730,140 662,130 594,145 526,155 458,160 390,175 322,165 254,180 186,195 118,185 50,200
           "></polygon>
               {/* Forecast Line (Dashed Navy) */}
-              <polyline fill="none" points="
-              50,175 118,160 186,170 254,150 322,135 390,145 458,125 526,120 594,110 662,100 730,105 798,92 866,85 934,78
-            " stroke="#1e3a8a" strokeDasharray="5,4" strokeWidth="2.5"></polyline>
+              <polyline fill="none" points={generatePoints('Forecast Demand') || "50,175 934,78"} stroke="#1e3a8a" strokeDasharray="5,4" strokeWidth="2.5"></polyline>
               {/* Actual Demand Line (Solid Cobalt with Nodes) */}
-              <polyline fill="none" points="
-              50,180 118,155 186,165 254,142 322,148 390,138 458,130 526,115 594,118 662,94 730,112 798,88 866,82 934,70
-            " stroke="#0051d5" strokeWidth="3"></polyline>
+              <polyline fill="none" points={generatePoints('Actual Demand') || "50,180 934,70"} stroke="#0051d5" strokeWidth="3"></polyline>
+              
               {/* Actual Demand Interactive Point Markers */}
-              <circle className="hover:r-6 cursor-pointer transition-all" cx="50" cy="180" fill="#0051d5" r="4.5"></circle>
-              <circle className="hover:r-6 cursor-pointer transition-all" cx="118" cy="155" fill="#0051d5" r="4.5"></circle>
-              <circle className="hover:r-6 cursor-pointer transition-all" cx="186" cy="165" fill="#0051d5" r="4.5"></circle>
-              <circle className="hover:r-6 cursor-pointer transition-all" cx="254" cy="142" fill="#0051d5" r="4.5"></circle>
-              <circle className="hover:r-6 cursor-pointer transition-all" cx="322" cy="148" fill="#0051d5" r="4.5"></circle>
-              <circle className="hover:r-6 cursor-pointer transition-all" cx="390" cy="138" fill="#0051d5" r="4.5"></circle>
-              <circle className="hover:r-6 cursor-pointer transition-all" cx="458" cy="130" fill="#0051d5" r="4.5"></circle>
-              <circle className="hover:r-6 cursor-pointer transition-all" cx="526" cy="115" fill="#0051d5" r="4.5"></circle>
-              <circle className="hover:r-6 cursor-pointer transition-all" cx="594" cy="118" fill="#0051d5" r="4.5"></circle>
-              <circle className="hover:r-6 cursor-pointer transition-all" cx="662" cy="94" fill="#0051d5" r="4.5"></circle>
-              <circle className="hover:r-6 cursor-pointer transition-all" cx="730" cy="112" fill="#0051d5" r="4.5"></circle>
-              <circle className="hover:r-6 cursor-pointer transition-all" cx="798" cy="88" fill="#0051d5" r="4.5"></circle>
-              <circle className="hover:r-6 cursor-pointer transition-all" cx="866" cy="82" fill="#0051d5" r="4.5"></circle>
-              <circle className="hover:r-6 cursor-pointer transition-all" cx="934" cy="70" fill="#0051d5" r="4.5"></circle>
+              {forecastData?.aligned_observations?.map((o, i) => {
+                const val = o['Actual Demand'];
+                if (val == null) return null;
+                const maxVal = Math.max(...forecastData.aligned_observations.map(o => Math.max(o['Actual Demand'] || 0, o['Forecast Demand'] || 0)), 1);
+                const x = 50 + (i / (forecastData.aligned_observations.length - 1)) * 884;
+                const y = 200 - ((val - 0) / maxVal) * 150;
+                return <circle key={i} className="hover:r-6 cursor-pointer transition-all" cx={x} cy={y} fill="#0051d5" r="4.5"><title>{`Day ${i+1}: ${val}`}</title></circle>;
+              })}
               {/* X-Axis Day Labels */}
               <text fill="#444651" textAnchor="middle" x="50" y="228">Day 1</text>
               <text fill="#444651" textAnchor="middle" x="118" y="228">Day 2</text>

@@ -18,6 +18,7 @@ export default function CreateDecisionPage() {
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState(null);
   const [optionsLoading, setOptionsLoading] = useState(true);
+  const [forecastData, setForecastData] = useState(null);
 
   // Derived: the actual target_id based on targetType
   const targetId = targetType === 'Inventory / Demand Issue' ? selectedSku : selectedDelivery;
@@ -43,10 +44,17 @@ export default function CreateDecisionPage() {
     if (!targetId) return;
     setPreviewLoading(true);
     setPreview(null);
+    setForecastData(null);
     api.getDecisionPreview(targetType, targetId)
       .then(data => setPreview(data))
       .catch(err => console.error('Preview error:', err))
       .finally(() => setPreviewLoading(false));
+      
+    if (targetType === 'Inventory / Demand Issue') {
+      api.getForecastVsActual(targetId)
+        .then(data => setForecastData(data))
+        .catch(err => console.error('Forecast error:', err));
+    }
   }, [targetType, targetId]);
 
   const handleCreateDecision = async () => {
@@ -64,6 +72,22 @@ export default function CreateDecisionPage() {
     } finally {
       setCreating(false);
     }
+  };
+
+  const generateSparklinePoints = (key) => {
+    if (!forecastData?.aligned_observations?.length) return "";
+    const obs = forecastData.aligned_observations;
+    const maxVal = Math.max(...obs.map(o => Math.max(o['Actual Demand'] || 0, o['Forecast Demand'] || 0)), 1);
+    const minVal = 0;
+    const range = maxVal - minVal || 1;
+    
+    return obs.map((o, i) => {
+      const val = o[key];
+      if (val == null) return null;
+      const x = (i / (obs.length - 1)) * 400;
+      const y = 50 - ((val - minVal) / range) * 45; // fit within 5-50 y-bounds
+      return `${x},${y}`;
+    }).filter(Boolean).join(" ");
   };
 
   return (
@@ -297,7 +321,7 @@ export default function CreateDecisionPage() {
 <span className="text-error font-semibold">87% Threshold</span>
 </div>
 <div className="w-full bg-surface-container h-2 rounded-full overflow-hidden">
-<div className="bg-error h-full rounded-full" style="width: 87%;"></div>
+<div className="bg-error h-full rounded-full" style={{ width: '87%' }}></div>
 </div>
 </div>
 <div className="flex items-center gap-space-xs bg-error-container/30 px-space-sm py-space-xs rounded text-error">
@@ -356,7 +380,7 @@ export default function CreateDecisionPage() {
 <span className="w-6 h-6 rounded bg-surface-container flex items-center justify-center text-primary font-headline-sm text-headline-sm">3</span>
 <div>
 <h2 className="font-headline-sm text-headline-sm text-on-surface font-bold">Stage 03 — Forecast &amp; Risk Evidence Synthesis</h2>
-<p className="font-body-sm text-body-sm text-on-surface-variant">Cross-validated parametric models from Oracle NetSuite &amp; AWS Forecast</p>
+<p className="font-body-sm text-body-sm text-on-surface-variant">Validated parametric models</p>
 </div>
 </div>
 <div className="flex items-center gap-space-xs text-on-surface-variant">
@@ -373,23 +397,23 @@ export default function CreateDecisionPage() {
 <span className="material-symbols-outlined text-secondary">trending_up</span>
 <h3 className="font-headline-sm text-headline-sm text-on-surface font-semibold">Demand Forecast Context</h3>
 </div>
-<span className="font-label-sm text-label-sm uppercase bg-surface-container px-space-sm py-0.5 rounded text-on-surface-variant font-semibold">Model: DeepAR+</span>
+<span className="font-label-sm text-label-sm uppercase bg-surface-container px-space-sm py-0.5 rounded text-on-surface-variant font-semibold">Model: LightGBM</span>
 </div>
 <div className="grid grid-cols-3 gap-space-md">
 <div className="flex flex-col p-space-md rounded-lg bg-surface-container-low">
 <span className="font-label-sm text-label-sm text-on-surface-variant uppercase">Expected Demand</span>
-<span className="font-tabular-metric-lg text-tabular-metric-lg text-on-surface mt-space-xs font-bold">620 <span className="font-label-sm text-label-sm font-normal text-on-surface-variant">units</span></span>
+<span className="font-tabular-metric-lg text-tabular-metric-lg text-on-surface mt-space-xs font-bold">{forecastData?.forecast_avg ? Math.round(forecastData.forecast_avg * 14) : '--'} <span className="font-label-sm text-label-sm font-normal text-on-surface-variant">units</span></span>
 <span className="font-code-sm text-code-sm text-on-surface-variant mt-1">14-day aggregate</span>
 </div>
 <div className="flex flex-col p-space-md rounded-lg bg-surface-container-low">
 <span className="font-label-sm text-label-sm text-on-surface-variant uppercase">Forecast Variance</span>
-<span className="font-tabular-metric-lg text-tabular-metric-lg text-secondary mt-space-xs font-bold">±4.2%</span>
+<span className="font-tabular-metric-lg text-tabular-metric-lg text-secondary mt-space-xs font-bold">±{forecastData?.mape || '--'}%</span>
 <span className="font-code-sm text-code-sm text-on-surface-variant mt-1">Assessment Summary</span>
 </div>
 <div className="flex flex-col p-space-md rounded-lg bg-surface-container-low">
 <span className="font-label-sm text-label-sm text-on-surface-variant uppercase">Daily Burn</span>
-<span className="font-tabular-metric-lg text-tabular-metric-lg text-on-surface mt-space-xs font-bold">44 <span className="font-label-sm text-label-sm font-normal text-on-surface-variant">u/day</span></span>
-<span className="font-code-sm text-code-sm text-error font-medium mt-1">▲ +18% peak</span>
+<span className="font-tabular-metric-lg text-tabular-metric-lg text-on-surface mt-space-xs font-bold">{forecastData?.forecast_avg ? Math.round(forecastData.forecast_avg) : '--'} <span className="font-label-sm text-label-sm font-normal text-on-surface-variant">u/day</span></span>
+<span className="font-code-sm text-code-sm text-error font-medium mt-1"></span>
 </div>
 </div>
 {/* Inline Demand Run-rate Sparkline Chart SVG */}
@@ -404,11 +428,15 @@ export default function CreateDecisionPage() {
 <line stroke="#CBD5E1" stroke-dasharray="3 3" strokeWidth="1" x1="0" x2="400" y1="50" y2="50"></line>
 <line stroke="#CBD5E1" stroke-dasharray="3 3" strokeWidth="1" x1="0" x2="400" y1="20" y2="20"></line>
 {/* Baseline curve */}
-<path d="M0,45 C80,42 160,38 240,32 C320,28 360,25 400,20" fill="none" stroke="#757682" stroke-dasharray="4 4" strokeWidth="2"></path>
+<polyline fill="none" points={generateSparklinePoints('Forecast Demand') || "0,45 80,42 160,38 240,32 320,28 360,25 400,20"} stroke="#757682" strokeDasharray="4 4" strokeWidth="2"></polyline>
 {/* Forecast Spike Curve */}
-<path d="M0,45 C60,45 120,40 180,26 C240,12 320,8 400,4" fill="none" stroke="#0051d5" strokeWidth="2.5"></path>
+<polyline fill="none" points={generateSparklinePoints('Actual Demand') || "0,45 60,45 120,40 180,26 240,12 320,8 400,4"} stroke="#0051d5" strokeWidth="2.5"></polyline>
 {/* Current Day Marker */}
-<circle cx="180" cy="26" fill="#0051d5" r="4"></circle>
+{forecastData?.aligned_observations && forecastData.aligned_observations[forecastData.aligned_observations.length - 1] ? (
+  <circle cx="400" cy={50 - ((forecastData.aligned_observations[forecastData.aligned_observations.length - 1]['Actual Demand'] || 0) / Math.max(...forecastData.aligned_observations.map(o => Math.max(o['Actual Demand'] || 0, o['Forecast Demand'] || 0)), 1)) * 45} fill="#0051d5" r="4"></circle>
+) : (
+  <circle cx="180" cy="26" fill="#0051d5" r="4"></circle>
+)}
 </svg>
 </div>
 <div className="flex justify-between font-code-sm text-code-sm text-on-surface-variant">
@@ -465,9 +493,9 @@ export default function CreateDecisionPage() {
 <span className="font-code-sm text-code-sm text-error font-semibold">Projected Zero: T+68h</span>
 </div>
 <div className="w-full bg-surface-container h-3 rounded-full overflow-hidden flex">
-<div className="bg-error h-full" style="width: 20%;" title="On-Hand (2.8d)"></div>
-<div className="bg-outline-variant h-full" style="width: 40%;" title="Stockout Risk Gap"></div>
-<div className="bg-surface-dim h-full" style="width: 40%;" title="Target Safety Range"></div>
+<div className="bg-error h-full" style={{ width: '20%' }} title="On-Hand (2.8d)"></div>
+<div className="bg-outline-variant h-full" style={{ width: '40%' }} title="Stockout Risk Gap"></div>
+<div className="bg-surface-dim h-full" style={{ width: '40%' }} title="Target Safety Range"></div>
 </div>
 <div className="flex justify-between font-code-sm text-code-sm text-on-surface-variant">
 <span className="text-error font-semibold">0d (140u)</span>

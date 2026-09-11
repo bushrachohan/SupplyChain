@@ -38,9 +38,9 @@ export default function SimulationPage() {
 <div className="flex flex-col gap-space-xs pb-space-lg">
 <div className="flex items-center justify-between">
 <div className="flex items-center gap-space-sm">
-<span className="font-code-sm text-code-sm text-on-surface-variant uppercase tracking-wider">SIM-ID: 2024-MC-8821</span>
+<span className="font-code-sm text-code-sm text-on-surface-variant uppercase tracking-wider">SIM-ID: 2024-SIM-8821</span>
 <span className="text-outline-variant">/</span>
-<span className="font-label-sm text-label-sm bg-surface-container px-space-xs py-0.5 rounded text-primary font-semibold">Stochastic Kernel v4.2</span>
+<span className="font-label-sm text-label-sm bg-surface-container px-space-xs py-0.5 rounded text-primary font-semibold">Scenario Engine v1.0</span>
 </div>
 <div className="flex items-center gap-space-sm">
 <span className="font-label-sm text-label-sm text-on-surface-variant">Last Compute: Today, 14:22:08 UTC</span>
@@ -80,7 +80,7 @@ export default function SimulationPage() {
 <span className="material-symbols-outlined text-primary text-[20px]">tune</span>
 <span className="font-headline-sm text-headline-sm text-on-surface">Scenario Overrides</span>
 </div>
-<span className="font-code-sm text-code-sm text-on-surface-variant bg-surface-container-low px-space-xs py-0.5 rounded">N=5,000 Iterations</span>
+<span className="font-code-sm text-code-sm text-on-surface-variant bg-surface-container-low px-space-xs py-0.5 rounded">Scenario Analysis</span>
 </div>
 <form className="flex flex-col gap-space-lg" onSubmit={(e) => e.preventDefault()}>
 {/* Target SKU Selector */}
@@ -178,7 +178,7 @@ export default function SimulationPage() {
 <div className="flex items-center gap-space-md pt-space-xs">
 <button onClick={handleRunSimulation} className="flex-1 bg-primary text-on-primary hover:bg-primary-container px-space-md py-space-sm rounded-lg font-body-md text-body-md font-semibold flex items-center justify-center gap-space-sm transition-all shadow-sm" type="button">
 <span className="material-symbols-outlined text-[18px]">{running ? 'refresh' : 'play_arrow'}</span>
-<span>{running ? 'Running Simulation...' : 'Run Monte Carlo Simulation'}</span>
+<span>{running ? 'Running Simulation...' : 'Run Scenario Simulation'}</span>
 </button>
 <button className="bg-surface-container-lowest border border-outline-variant/40 hover:bg-surface-container-low text-on-surface px-space-md py-space-sm rounded-lg font-body-md text-body-md font-medium flex items-center gap-space-xs transition-colors" type="button">
 <span className="material-symbols-outlined text-[16px]">restart_alt</span>
@@ -191,7 +191,7 @@ export default function SimulationPage() {
 <div className="border border-outline-variant/20 rounded-lg p-space-md bg-surface-container-lowest flex items-center justify-between">
 <div className="flex items-center gap-space-sm">
 <span className="material-symbols-outlined text-outline text-[18px]">verified_user</span>
-<span className="font-code-sm text-code-sm text-on-surface-variant">Entropy Seed: 0x88F2A14E</span>
+<span className="font-code-sm text-code-sm text-on-surface-variant">Deterministic Mode: Enabled</span>
 </div>
 <span className="font-label-sm text-label-sm text-on-tertiary-container bg-tertiary-fixed/30 px-space-xs py-0.5 rounded font-medium">Scenario Assessment</span>
 </div>
@@ -360,7 +360,7 @@ export default function SimulationPage() {
 </svg>
 </div>
 <div className="flex items-center justify-between pt-space-md mt-space-xs text-on-surface-variant font-code-sm text-code-sm">
-<span>*Calculated under Gaussian Lead-Time Variance (σ = 1.15)</span>
+<span>*Calculated using expected variance</span>
 <span className="text-primary font-medium">Forecast Range</span>
 </div>
 </div>

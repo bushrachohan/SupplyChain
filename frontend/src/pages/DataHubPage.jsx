@@ -334,7 +334,6 @@ export default function DataHubPage() {
 <button onClick={() => setActiveTab('excel')} className={activeTab === 'excel' ? "flex items-center gap-space-sm px-space-lg py-2.5 rounded-lg bg-primary text-on-primary font-label-md text-label-md transition-all shadow-sm" : "flex items-center gap-space-sm px-space-lg py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface font-label-md text-label-md transition-all"}>Excel Upload</button>
 <button onClick={() => setActiveTab('csv')} className={activeTab === 'csv' ? "flex items-center gap-space-sm px-space-lg py-2.5 rounded-lg bg-primary text-on-primary font-label-md text-label-md transition-all shadow-sm" : "flex items-center gap-space-sm px-space-lg py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface font-label-md text-label-md transition-all"}>CSV Upload</button>
 <button onClick={() => setActiveTab('db')} className={activeTab === 'db' ? "flex items-center gap-space-sm px-space-lg py-2.5 rounded-lg bg-primary text-on-primary font-label-md text-label-md transition-all shadow-sm" : "flex items-center gap-space-sm px-space-lg py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface font-label-md text-label-md transition-all"}>Database Connection</button>
-<button onClick={() => setActiveTab('api')} className={activeTab === 'api' ? "flex items-center gap-space-sm px-space-lg py-2.5 rounded-lg bg-primary text-on-primary font-label-md text-label-md transition-all shadow-sm" : "flex items-center gap-space-sm px-space-lg py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface font-label-md text-label-md transition-all"}>API Connection</button>
 <button onClick={() => setActiveTab('demo')} className={activeTab === 'demo' ? "flex items-center gap-space-sm px-space-lg py-2.5 rounded-lg bg-primary text-on-primary font-label-md text-label-md transition-all shadow-sm" : "flex items-center gap-space-sm px-space-lg py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface font-label-md text-label-md transition-all"}>Demo Dataset</button>
 </div>
 <div className="pr-space-md hidden sm:flex items-center gap-space-xs font-label-sm text-label-sm text-on-surface-variant">
@@ -689,30 +688,6 @@ export default function DataHubPage() {
 </div>
 )}
 
-{/* ===== API SOURCE TAB ===== */}
-{activeTab === 'api' && (
-<div className="bg-surface-container-lowest rounded-xl p-space-lg shadow-sm flex flex-col gap-space-lg">
-<div className="flex items-center gap-space-sm">
-<span className="w-8 h-8 rounded-lg bg-surface-container-high flex items-center justify-center">
-  <span className="material-symbols-outlined text-outline text-[20px]">api</span>
-</span>
-<div>
-<h2 className="font-headline-sm text-headline-sm text-on-surface font-bold">API Connection — Not Available</h2>
-<p className="font-body-sm text-body-sm text-on-surface-variant">The API data source requires live enterprise ERP/WMS credentials (SAP, NetSuite, Oracle, etc.) and an active API endpoint.</p>
-</div>
-</div>
-<div className="p-space-md rounded-lg bg-surface-container-low text-on-surface-variant font-body-md text-body-md">
-<p className="flex items-start gap-space-sm">
-  <span className="material-symbols-outlined text-[20px] text-outline mt-0.5">info</span>
-  <span>
-    This source is defined as a production contract (<code className="font-code-sm bg-surface-container px-1 rounded">APIDataSource</code>) that requires an authenticated enterprise HTTP client injected at runtime. Without live ERP credentials, this connector will raise a <code className="font-code-sm bg-surface-container px-1 rounded">NotImplementedError</code>.
-    <br /><br />
-    To activate: configure <code className="font-code-sm bg-surface-container px-1 rounded">ENTERPRISE_API_ENDPOINT</code> and <code className="font-code-sm bg-surface-container px-1 rounded">ENTERPRISE_API_KEY</code> environment variables and redeploy the backend.
-  </span>
-</p>
-</div>
-</div>
-)}
 
 {/* ===== DEMO DATASET TAB ===== */}
 {activeTab === 'demo' && (

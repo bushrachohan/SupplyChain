@@ -4,18 +4,15 @@ import { api } from '../api/client';
 
 export default function CommandCenterPage() {
   const navigate = useNavigate();
-  const [kpis, setKpis] = useState({
-    active_risks_count: 0,
-    inventory_risk_count: 0,
-    avg_delivery_risk: 0,
-    pending_approvals: 0,
-  });
+  const [kpis, setKpis] = useState(null);
+  const [priorityRisks, setPriorityRisks] = useState({ inventory: null, delivery: null });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     api.getDashboard()
       .then(data => {
-        if (data?.kpis) setKpis(data.kpis);
+        if (data?.metrics) setKpis(data.metrics);
+        if (data?.priority_risks) setPriorityRisks(data.priority_risks);
       })
       .catch(err => console.error('Dashboard error:', err))
       .finally(() => setLoading(false));
@@ -48,18 +45,18 @@ export default function CommandCenterPage() {
 <div className="bg-surface-container-lowest p-space-lg rounded-xl shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between">
 <div className="flex items-center justify-between mb-space-sm">
 <span className="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Active Risks</span>
-<span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-error-container/60 text-on-error-container font-label-sm text-label-sm">
-<span className="w-1.5 h-1.5 rounded-full bg-error animate-pulse"></span>
-          Elevated
+<span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full ${kpis?.active_risks?.count > 0 ? 'bg-error-container/60 text-on-error-container' : 'bg-tertiary-container/60 text-tertiary'} font-label-sm text-label-sm`}>
+<span className={`w-1.5 h-1.5 rounded-full ${kpis?.active_risks?.count > 0 ? 'bg-error animate-pulse' : 'bg-tertiary'}`}></span>
+          {kpis?.active_risks?.status || 'Optimal'}
         </span>
 </div>
 <div className="flex items-baseline gap-space-xs mb-space-xs">
-<span className="font-tabular-metric-lg text-tabular-metric-lg text-on-surface font-bold">{kpis.active_risks_count ?? 8}</span>
+<span className="font-tabular-metric-lg text-tabular-metric-lg text-on-surface font-bold">{kpis?.active_risks?.count ?? 0}</span>
 <span className="font-label-sm text-label-sm text-on-surface-variant">total surfaced</span>
 </div>
-<div className="pt-space-xs flex items-center gap-1.5 text-error font-body-sm text-body-sm font-medium">
-<span className="material-symbols-outlined text-[16px]">warning</span>
-<span>3 Critical • 5 Moderate</span>
+<div className="pt-space-xs flex items-center gap-1.5 text-on-surface-variant font-body-sm text-body-sm font-medium">
+<span className="material-symbols-outlined text-[16px]">info</span>
+<span>{kpis?.active_risks?.detail || 'No immediate action required'}</span>
 </div>
 </div>
 {/* Card 2: Inventory at Risk */}
@@ -67,16 +64,16 @@ export default function CommandCenterPage() {
 <div className="flex items-center justify-between mb-space-sm">
 <span className="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Inventory at Risk</span>
 <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-error-container/40 text-error font-label-sm text-label-sm font-semibold">
-          Stockout Alert
+          {kpis?.inventory_at_risk?.alert || 'Normal'}
         </span>
 </div>
 <div className="flex items-baseline gap-space-xs mb-space-xs">
-<span className="font-tabular-metric-lg text-tabular-metric-lg text-on-surface font-bold">{kpis.inventory_risk_count ?? 4}</span>
-<span className="font-body-md text-body-md text-on-surface font-semibold">SKUs</span>
+<span className="font-tabular-metric-lg text-tabular-metric-lg text-on-surface font-bold">{kpis?.inventory_at_risk?.exposure_formatted ?? '₹0'}</span>
+<span className="font-body-md text-body-md text-on-surface font-semibold">Exposure</span>
 </div>
 <div className="pt-space-xs flex items-center gap-1.5 text-error font-body-sm text-body-sm font-medium">
 <span className="material-symbols-outlined text-[16px]">schedule</span>
-<span>Stockout projected &lt; 7 days</span>
+<span>{kpis?.inventory_at_risk?.detail || 'Buffer Healthy'}</span>
 </div>
 </div>
 {/* Card 3: Delivery Risk */}
@@ -88,12 +85,12 @@ export default function CommandCenterPage() {
         </span>
 </div>
 <div className="flex items-baseline gap-space-xs mb-space-xs">
-<span className="font-tabular-metric-lg text-tabular-metric-lg text-on-surface font-bold">{Math.round((kpis.avg_delivery_risk ?? 0.12) * 100)}%</span>
+<span className="font-tabular-metric-lg text-tabular-metric-lg text-on-surface font-bold">{kpis?.delivery_risk?.exposure_percentage ?? 0}%</span>
 <span className="font-label-sm text-label-sm text-on-surface-variant font-medium">transit exposure</span>
 </div>
 <div className="pt-space-xs flex items-center gap-1.5 text-on-surface-variant font-body-sm text-body-sm font-medium">
 <span className="material-symbols-outlined text-[16px] text-error">local_shipping</span>
-<span className="text-on-surface">2 high-probability transit delays</span>
+<span className="text-on-surface">{kpis?.delivery_risk?.detail || 'All On-Time'}</span>
 </div>
 </div>
 {/* Card 4: AI Decisions */}
@@ -105,12 +102,12 @@ export default function CommandCenterPage() {
         </span>
 </div>
 <div className="flex items-baseline gap-space-xs mb-space-xs">
-<span className="font-tabular-metric-lg text-tabular-metric-lg text-on-surface font-bold">6</span>
+<span className="font-tabular-metric-lg text-tabular-metric-lg text-on-surface font-bold">{kpis?.ai_decisions?.pending_approval_count ?? 0}</span>
 <span className="font-body-md text-body-md text-on-surface-variant">Pending</span>
 </div>
 <div className="pt-space-xs flex items-center gap-1.5 text-secondary font-body-sm text-body-sm font-medium">
 <span className="material-symbols-outlined text-[16px]">how_to_reg</span>
-<span className="font-semibold text-primary">3 Require Human Approval</span>
+<span className="font-semibold text-primary">{kpis?.ai_decisions?.total_count ?? 0} Total Evaluated</span>
 </div>
 </div>
 </div>
@@ -127,17 +124,18 @@ export default function CommandCenterPage() {
 <span className="material-symbols-outlined text-[16px]">arrow_drop_down</span>
 </div>
 </div>
-<div className="grid grid-cols-1 lg:grid-cols-3 gap-space-md">
-{/* Card 1: High Severity */}
+<div className="grid grid-cols-1 lg:grid-cols-2 gap-space-md">
+{/* Inventory Risk Card */}
+{priorityRisks.inventory ? (
 <div className="bg-surface-container-lowest rounded-xl p-space-lg shadow-sm flex flex-col justify-between hover:shadow-md transition-all">
 <div>
 <div className="flex items-center justify-between mb-space-sm">
 <span className="bg-error-container text-on-error-container font-label-sm text-label-sm px-2.5 py-1 rounded font-bold uppercase tracking-wider">
               HIGH SEVERITY
             </span>
-<span className="font-code-sm text-code-sm text-on-surface-variant bg-surface-container-low px-2 py-0.5 rounded">ID #R-4109</span>
+<span className="font-code-sm text-code-sm text-on-surface-variant bg-surface-container-low px-2 py-0.5 rounded">ID #{priorityRisks.inventory.sku_id}</span>
 </div>
-<h3 className="font-headline-sm text-headline-sm text-on-surface font-bold leading-tight">Inventory Risk — SKU_104</h3>
+<h3 className="font-headline-sm text-headline-sm text-on-surface font-bold leading-tight">Inventory Risk — {priorityRisks.inventory.sku_id}</h3>
 <p className="font-label-md text-label-md text-error font-semibold mt-0.5 mb-space-md flex items-center gap-1">
 <span className="material-symbols-outlined text-[14px]">report_problem</span>
             Stockout Warning
@@ -146,25 +144,25 @@ export default function CommandCenterPage() {
 <div className="bg-surface-container-low p-space-md rounded-lg mb-space-md space-y-space-xs text-on-surface font-body-sm text-body-sm">
 <div className="flex justify-between items-center pb-1">
 <span className="text-on-surface-variant font-medium">Days of Supply:</span>
-<span className="font-tabular-metric-md text-tabular-metric-md text-error font-bold">2.8 Days</span>
+<span className="font-tabular-metric-md text-tabular-metric-md text-error font-bold">{priorityRisks.inventory.days_of_supply} Days</span>
 </div>
 <div className="grid grid-cols-3 gap-1 pt-1 text-center font-code-sm text-code-sm bg-surface-container-lowest p-2 rounded">
 <div>
 <span className="block text-on-surface-variant text-[10px] uppercase">Current</span>
-<span className="font-bold text-on-surface">140 u</span>
+<span className="font-bold text-on-surface">{priorityRisks.inventory.current_stock} u</span>
 </div>
 <div>
 <span className="block text-on-surface-variant text-[10px] uppercase">Safety</span>
-<span className="font-bold text-on-surface">350 u</span>
+<span className="font-bold text-on-surface">{priorityRisks.inventory.safety_stock} u</span>
 </div>
 <div>
 <span className="block text-on-surface-variant text-[10px] uppercase">Reorder</span>
-<span className="font-bold text-on-surface">420 u</span>
+<span className="font-bold text-on-surface">{priorityRisks.inventory.reorder_point} u</span>
 </div>
 </div>
 </div>
 <p className="font-body-sm text-body-sm text-on-surface-variant leading-relaxed mb-space-lg">
-            Projected stock is below the reorder point. Compounding lead time delay from primary supplier. Production threshold breach expected within 48 hours.
+            {priorityRisks.inventory.detail}
           </p>
 </div>
 <div className="pt-space-md flex items-center justify-between bg-surface-container-lowest">
@@ -172,23 +170,30 @@ export default function CommandCenterPage() {
 <span className="material-symbols-outlined text-[15px] text-tertiary">psychology</span>
 <span>Policy RAG Evaluated</span>
 </div>
-<button className="bg-primary hover:bg-primary-container text-on-primary px-space-md py-space-sm rounded-lg font-label-md text-label-md font-semibold transition-colors flex items-center gap-1 shadow-sm">
+<button onClick={() => navigate('/app/create-decision', { state: { sku_id: priorityRisks.inventory.sku_id } })} className="bg-primary hover:bg-primary-container text-on-primary px-space-md py-space-sm rounded-lg font-label-md text-label-md font-semibold transition-colors flex items-center gap-1 shadow-sm">
 <span>Evaluate Decision</span>
 <span className="material-symbols-outlined text-[16px]">chevron_right</span>
 </button>
 </div>
 </div>
-{/* Card 2: Critical Severity */}
+) : (
+<div className="bg-surface-container-lowest rounded-xl p-space-lg shadow-sm flex items-center justify-center text-on-surface-variant">
+  No high-priority inventory risks detected.
+</div>
+)}
+
+{/* Delivery Risk Card */}
+{priorityRisks.delivery ? (
 <div className="bg-surface-container-lowest rounded-xl p-space-lg shadow-sm flex flex-col justify-between hover:shadow-md transition-all">
 <div>
 <div className="flex items-center justify-between mb-space-sm">
 <span className="bg-error text-on-error font-label-sm text-label-sm px-2.5 py-1 rounded font-bold uppercase tracking-wider flex items-center gap-1">
 <span className="w-1.5 h-1.5 rounded-full bg-on-error animate-ping"></span>
-              CRITICAL
+              {priorityRisks.delivery.risk_label}
             </span>
-<span className="font-code-sm text-code-sm text-on-surface-variant bg-surface-container-low px-2 py-0.5 rounded">ID #TR-8921</span>
+<span className="font-code-sm text-code-sm text-on-surface-variant bg-surface-container-low px-2 py-0.5 rounded">ID #{priorityRisks.delivery.delivery_id}</span>
 </div>
-<h3 className="font-headline-sm text-headline-sm text-on-surface font-bold leading-tight">Delivery Risk — DEL-8921</h3>
+<h3 className="font-headline-sm text-headline-sm text-on-surface font-bold leading-tight">Delivery Risk — {priorityRisks.delivery.delivery_id}</h3>
 <p className="font-label-md text-label-md text-error font-semibold mt-0.5 mb-space-md flex items-center gap-1">
 <span className="material-symbols-outlined text-[14px]">departure_board</span>
             Transit Delay Warning
@@ -197,22 +202,22 @@ export default function CommandCenterPage() {
 <div className="bg-surface-container-low p-space-md rounded-lg mb-space-md space-y-space-xs text-on-surface font-body-sm text-body-sm">
 <div className="flex justify-between items-center pb-1">
 <span className="text-on-surface-variant font-medium">Late Probability:</span>
-<span className="font-tabular-metric-md text-tabular-metric-md text-error font-bold">84%</span>
+<span className="font-tabular-metric-md text-tabular-metric-md text-error font-bold">{Math.round(priorityRisks.delivery.late_probability * 100)}%</span>
 </div>
 <div className="bg-surface-container-lowest p-2 rounded space-y-1 font-body-sm text-body-sm">
 <div className="flex justify-between">
 <span className="text-on-surface-variant text-label-sm font-label-sm">Carrier</span>
-<span className="font-semibold text-on-surface">FreightX Logistics</span>
+<span className="font-semibold text-on-surface">{priorityRisks.delivery.carrier_id}</span>
 </div>
 <div className="flex justify-between items-center text-code-sm font-code-sm pt-1">
-<span className="text-primary font-semibold">Chicago Hub</span>
+<span className="text-primary font-semibold">{priorityRisks.delivery.origin}</span>
 <span className="material-symbols-outlined text-[14px] text-on-surface-variant">arrow_forward</span>
-<span className="text-on-surface font-semibold">Dallas DC</span>
+<span className="text-on-surface font-semibold">{priorityRisks.delivery.destination}</span>
 </div>
 </div>
 </div>
 <p className="font-body-sm text-body-sm text-on-surface-variant leading-relaxed mb-space-lg">
-            Weather disruption and carrier bottleneck along Midwest corridor. Risk of assembly line stoppage at Dallas DC if delivery slips beyond 18:00 CT.
+            Traffic delay of {priorityRisks.delivery.traffic_delay_hrs} hrs. Weather condition: {priorityRisks.delivery.weather_condition}. Distance: {priorityRisks.delivery.distance_km} km.
           </p>
 </div>
 <div className="pt-space-md flex items-center justify-between bg-surface-container-lowest">
@@ -220,54 +225,17 @@ export default function CommandCenterPage() {
 <span className="material-symbols-outlined text-[15px] text-secondary">alt_route</span>
 <span>Reroute Action Available</span>
 </div>
-<button className="bg-primary hover:bg-primary-container text-on-primary px-space-md py-space-sm rounded-lg font-label-md text-label-md font-semibold transition-colors flex items-center gap-1 shadow-sm">
+<button onClick={() => navigate('/app/create-decision', { state: { delivery_id: priorityRisks.delivery.delivery_id } })} className="bg-primary hover:bg-primary-container text-on-primary px-space-md py-space-sm rounded-lg font-label-md text-label-md font-semibold transition-colors flex items-center gap-1 shadow-sm">
 <span>Evaluate Decision</span>
 <span className="material-symbols-outlined text-[16px]">chevron_right</span>
 </button>
 </div>
 </div>
-{/* Card 3: Medium Severity */}
-<div className="bg-surface-container-lowest rounded-xl p-space-lg shadow-sm flex flex-col justify-between hover:shadow-md transition-all">
-<div>
-<div className="flex items-center justify-between mb-space-sm">
-<span className="bg-surface-container-highest text-on-surface font-label-sm text-label-sm px-2.5 py-1 rounded font-bold uppercase tracking-wider">
-              MEDIUM
-            </span>
-<span className="font-code-sm text-code-sm text-on-surface-variant bg-surface-container-low px-2 py-0.5 rounded">ID #R-3184</span>
+) : (
+<div className="bg-surface-container-lowest rounded-xl p-space-lg shadow-sm flex items-center justify-center text-on-surface-variant">
+  No high-priority delivery risks detected.
 </div>
-<h3 className="font-headline-sm text-headline-sm text-on-surface font-bold leading-tight">Inventory Risk — SKU_208</h3>
-<p className="font-label-md text-label-md text-secondary font-semibold mt-0.5 mb-space-md flex items-center gap-1">
-<span className="material-symbols-outlined text-[14px]">balance</span>
-            Imbalance Warning
-          </p>
-{/* Structured Metadata */}
-<div className="bg-surface-container-low p-space-md rounded-lg mb-space-md space-y-space-xs text-on-surface font-body-sm text-body-sm">
-<div className="flex justify-between items-center pb-1">
-<span className="text-on-surface-variant font-medium">Days of Supply (Central):</span>
-<span className="font-tabular-metric-md text-tabular-metric-md text-on-surface font-bold">5.1 Days</span>
-</div>
-<div className="bg-surface-container-lowest p-2 rounded font-body-sm text-body-sm">
-<span className="text-on-surface-variant text-label-sm font-label-sm block mb-1">Regional Offset Node</span>
-<div className="flex justify-between items-center">
-<span className="font-medium text-on-surface">Hub East</span>
-<span className="text-primary font-semibold font-code-sm text-code-sm bg-primary-fixed/40 px-1.5 py-0.5 rounded">Excess: 42 days DOS</span>
-</div>
-</div>
-</div>
-<p className="font-body-sm text-body-sm text-on-surface-variant leading-relaxed mb-space-lg">
-            Regional distribution imbalance between Hub East and Hub Central. Inter-facility transfer can normalize safety thresholds without external vendor procurement.
-          </p>
-</div>
-<div className="pt-space-md flex items-center justify-between bg-surface-container-lowest">
-<div className="flex items-center gap-1 text-on-surface-variant font-label-sm text-label-sm">
-<span className="material-symbols-outlined text-[15px] text-tertiary">swap_horiz</span>
-<span>Balancing Candidate #1</span>
-</div>
-<button className="bg-primary hover:bg-primary-container text-on-primary px-space-md py-space-sm rounded-lg font-label-md text-label-md font-semibold transition-colors flex items-center gap-1 shadow-sm">
-<span>Evaluate Decision</span>
-<span className="material-symbols-outlined text-[16px]">chevron_right</span>
-</button>
-</div>
+)}
 </div>
 </div>
 </div>

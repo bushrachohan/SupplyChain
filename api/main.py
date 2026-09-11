@@ -431,16 +431,23 @@ async def upload_data_files(files: List[UploadFile] = File(...)):
             if summary["file_type"] == "excel":
                 xl = pd.ExcelFile(target_path)
                 summary["sheets"] = xl.sheet_names
+                summary["sheet_previews"] = {}
+                for sheet in xl.sheet_names:
+                    sdf = pd.read_excel(target_path, sheet_name=sheet, nrows=5)
+                    summary["sheet_previews"][sheet] = {
+                        "columns": list(sdf.columns),
+                        "preview_rows": sdf.head(3).fillna("").to_dict(orient="records")
+                    }
                 if xl.sheet_names:
                     first_df = pd.read_excel(target_path, sheet_name=xl.sheet_names[0], nrows=5)
                     summary["columns"] = list(first_df.columns)
-                    summary["preview_rows"] = first_df.head(3).to_dict(orient="records")
+                    summary["preview_rows"] = first_df.head(3).fillna("").to_dict(orient="records")
             else:
                 df = pd.read_csv(target_path, nrows=5)
                 full_df = pd.read_csv(target_path)
                 summary["row_count"] = len(full_df)
                 summary["columns"] = list(df.columns)
-                summary["preview_rows"] = df.head(3).to_dict(orient="records")
+                summary["preview_rows"] = df.head(3).fillna("").to_dict(orient="records")
         except Exception as e:
             summary["error"] = str(e)
 
@@ -486,6 +493,17 @@ def validate_uploaded_dataset(request: ValidateDatasetRequest):
         raise HTTPException(status_code=400, detail=f"Failed to read file: {str(e)}")
 
     val_res = validate_dataset(df, schema_type=request.schema_type, explicit_mapping=request.column_mapping)
+
+    if val_res.is_valid and val_res.normalized_df is not None:
+        target_filename_map = {
+            "demand": "historical_demand.csv",
+            "inventory": "inventory_snapshot.csv",
+            "deliveries": "deliveries.csv"
+        }
+        out_name = target_filename_map.get(request.schema_type, f"{request.schema_type}.csv")
+        out_path = os.path.join(upload_dir, out_name)
+        val_res.normalized_df.to_csv(out_path, index=False)
+
     return {
         "is_valid": val_res.is_valid,
         "errors": val_res.errors,

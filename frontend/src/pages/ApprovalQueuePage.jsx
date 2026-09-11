@@ -17,7 +17,7 @@ export default function ApprovalQueuePage() {
 
   const handleApprove = async (traceId) => {
     try {
-      await api.submitApproval(traceId, { decision: 'approved', reviewer: 'Ops Lead' });
+      await api.submitApproval(traceId, 'approved', 'Ops Lead', null);
       setApprovals(prev => prev.filter(a => a.trace_id !== traceId));
     } catch (err) {
       setError(err.message);
@@ -200,6 +200,10 @@ export default function ApprovalQueuePage() {
               </div>
             </div>
             <div className="flex items-center gap-space-sm w-full md:w-auto mt-2 xl:mt-0">
+              <button onClick={() => handleApprove(item.trace_id)} className="w-full md:w-auto px-space-md py-2.5 rounded-lg bg-surface-container-high hover:bg-surface-container text-on-surface font-headline-sm text-body-md font-semibold transition-all shadow-sm flex items-center justify-center gap-space-xs">
+                <span className="material-symbols-outlined text-[18px]">check</span>
+                <span>Fast Approve</span>
+              </button>
               <button onClick={() => navigate(`/app/decision/${item.trace_id}`)} className="w-full md:w-auto px-space-lg py-2.5 rounded-lg bg-primary hover:bg-secondary text-on-primary font-headline-sm text-body-md font-semibold transition-all shadow-sm flex items-center justify-center gap-space-xs">
                 <span>Review Decision</span>
                 <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
@@ -238,14 +242,14 @@ export default function ApprovalQueuePage() {
       </span>
 </div>
 <div className="flex items-center gap-space-xs">
-<button className="px-space-md py-1.5 rounded-lg text-on-surface-variant/40 bg-surface-container-low font-body-sm text-body-sm cursor-not-allowed flex items-center gap-1" disabled="">
+<button className="px-space-md py-1.5 rounded-lg text-on-surface-variant/40 bg-surface-container-low font-body-sm text-body-sm cursor-not-allowed flex items-center gap-1" disabled={true}>
 <span className="material-symbols-outlined text-[16px]">chevron_left</span>
 <span>Previous</span>
 </button>
 <div className="px-space-md py-1.5 rounded-lg bg-primary text-on-primary font-label-md text-label-md">
         1
       </div>
-<button className="px-space-md py-1.5 rounded-lg text-on-surface-variant/40 bg-surface-container-low font-body-sm text-body-sm cursor-not-allowed flex items-center gap-1" disabled="">
+<button className="px-space-md py-1.5 rounded-lg text-on-surface-variant/40 bg-surface-container-low font-body-sm text-body-sm cursor-not-allowed flex items-center gap-1" disabled={true}>
 <span>Next</span>
 <span className="material-symbols-outlined text-[16px]">chevron_right</span>
 </button>

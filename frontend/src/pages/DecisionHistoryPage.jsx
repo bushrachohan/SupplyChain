@@ -20,6 +20,39 @@ export default function DecisionHistoryPage() {
     window.location.href = api.exportHistoryCsvUrl();
   };
 
+  const downloadCSVReport = () => {
+    if (api.exportHistoryCsvUrl) {
+      window.location.href = api.exportHistoryCsvUrl();
+    } else {
+      window.location.href = '/api/history/export';
+    }
+  };
+
+  const toggleDetails = (id) => {
+    const el = document.getElementById(id);
+    const icon = document.getElementById(`icon-${id}`);
+    if (el) {
+      if (el.classList.contains('hidden')) {
+        el.classList.remove('hidden');
+        if (icon) icon.textContent = 'expand_less';
+      } else {
+        el.classList.add('hidden');
+        if (icon) icon.textContent = 'expand_more';
+      }
+    }
+  };
+
+  const filterStatus = (status) => {
+    const cards = document.querySelectorAll('.audit-card');
+    cards.forEach(card => {
+      if (status === 'ALL' || card.dataset.status === status) {
+        card.style.display = 'block';
+      } else {
+        card.style.display = 'none';
+      }
+    });
+  };
+
   return (
 <div className="flex flex-col w-full">
 <div className="flex flex-col md:flex-row md:items-center justify-between gap-space-md mb-space-lg">
@@ -32,7 +65,7 @@ export default function DecisionHistoryPage() {
 <p className="font-body-md text-body-md text-on-surface-variant mt-0.5">Comprehensive audit log of human-approved and rejected AI decision recommendations with full policy traces.</p>
 </div>
 <div className="flex items-center gap-space-sm shrink-0">
-<button className="flex items-center gap-space-xs px-space-md py-2 bg-surface-container-lowest text-on-surface font-body-sm text-body-sm font-semibold rounded shadow-sm hover:bg-surface-container transition-all" onclick="downloadCSVReport()">
+<button className="flex items-center gap-space-xs px-space-md py-2 bg-surface-container-lowest text-on-surface font-body-sm text-body-sm font-semibold rounded shadow-sm hover:bg-surface-container transition-all" onClick={downloadCSVReport}>
 <span className="material-symbols-outlined text-[18px] text-secondary">download</span>
         Export Audit Log (CSV)
       </button>
@@ -119,7 +152,7 @@ export default function DecisionHistoryPage() {
 {/* Decision Status */}
 <div className="md:col-span-2 flex items-center gap-2 bg-surface-container-low px-3 py-2 rounded">
 <span className="material-symbols-outlined text-on-surface-variant text-[18px]">tune</span>
-<select className="w-full bg-transparent font-body-sm text-body-sm text-on-surface outline-none cursor-pointer" id="status-filter" onchange="filterStatus(this.value)">
+<select className="w-full bg-transparent font-body-sm text-body-sm text-on-surface outline-none cursor-pointer" id="status-filter" onChange={(e) => filterStatus(e.target.value)}>
 <option value="ALL">Status: All</option>
 <option value="APPROVED">Approved Only</option>
 <option value="REJECTED">Rejected Only</option>
@@ -139,251 +172,61 @@ export default function DecisionHistoryPage() {
 </div>
 {/* Audit Records List */}
 <div className="flex flex-col gap-space-md" id="records-container">
-{/* Record 1 (Expanded Detail) */}
-<div className="audit-card bg-surface-container-lowest rounded shadow-sm overflow-hidden" data-status="APPROVED">
-<div className="p-space-md bg-surface-container-low/50 flex flex-col xl:flex-row xl:items-center justify-between gap-space-sm cursor-pointer hover:bg-surface-container-low transition-colors" onclick="toggleDetails('trace-1')">
-<div className="flex flex-wrap items-center gap-space-sm">
-<span className="font-code-sm text-code-sm font-semibold bg-surface-container px-2 py-1 rounded text-primary">DEC-88012-A</span>
-<span className="font-label-sm text-label-sm uppercase font-bold text-tertiary-container bg-tertiary-fixed/40 px-2 py-0.5 rounded flex items-center gap-1">
-<span className="material-symbols-outlined text-[14px]">check_circle</span> APPROVED
-          </span>
-<span className="text-outline-variant">•</span>
-<span className="font-body-sm text-body-sm font-semibold text-on-surface">SKU_104 (Micro-controller)</span>
-<span className="text-outline-variant">•</span>
-<span className="font-body-sm text-body-sm text-on-surface-variant">Recommended Action: <strong className="text-on-surface">Expedite Shipment via TransLogix Air</strong></span>
-</div>
-<div className="flex items-center gap-space-md justify-between xl:justify-end">
-<div className="flex items-center gap-2 text-on-surface-variant font-code-sm text-code-sm">
-<span className="material-symbols-outlined text-[16px]">schedule</span> Approved Yesterday, 16:42 UTC
-          </div>
-<span className="font-label-sm text-label-sm bg-primary-container text-on-primary px-2 py-0.5 rounded font-medium">Consensus Passed</span>
-<span className="material-symbols-outlined text-on-surface-variant text-[20px] transition-transform duration-200" id="icon-trace-1">expand_less</span>
-</div>
-</div>
-<div className="p-space-lg flex flex-col gap-space-md" id="trace-1">
-{/* Reviewer Governance Callout */}
-<div className="p-space-md bg-surface-container-lowest rounded shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-space-md">
-<div className="flex items-start gap-space-sm">
-<div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center shrink-0">
-<span className="material-symbols-outlined text-on-primary text-[18px]">verified_user</span>
-</div>
-<div>
-<div className="flex items-center gap-space-xs">
-<span className="font-body-sm text-body-sm font-semibold text-on-surface">Ops Lead</span>
-<span className="font-label-sm text-label-sm text-on-surface-variant">(Reviewer Authorization)</span>
-<span className="text-outline-variant">•</span>
-<span className="font-code-sm text-code-sm text-on-surface-variant">Action Timestamp: 16:45 UTC (Turnaround: 3 mins)</span>
-</div>
-<p className="font-body-md text-body-md text-on-surface mt-1 italic">
-                “Approved. Line-down risk verified with plant manager. Expedite cost $4,850 authorized under budget code OPEX-441.”
-              </p>
-</div>
-</div>
-<div className="shrink-0 flex items-center gap-2 bg-surface-container-low px-3 py-1.5 rounded">
-<span className="font-code-sm text-code-sm text-on-surface-variant">Signed Auth Token:</span>
-<span className="font-code-sm text-code-sm font-bold text-primary">0x9d4a...e12a</span>
-</div>
-</div>
-{/* Pipeline Consensus Trace */}
-<div>
-<div className="flex items-center justify-between mb-2">
-<span className="font-label-md text-label-md uppercase tracking-wider text-on-surface-variant font-semibold">Consensus Pipeline Verification Audit</span>
-<span className="font-code-sm text-code-sm text-on-surface-variant">Deterministic Model Run #88012-A</span>
-</div>
-<div className="grid grid-cols-1 md:grid-cols-4 gap-space-sm">
-<div className="p-space-sm bg-surface-container-low rounded flex flex-col justify-between">
-<div className="flex items-center justify-between mb-1">
-<span className="font-label-sm text-label-sm font-bold text-on-surface">Primary AI Proposal</span>
-<span className="material-symbols-outlined text-tertiary text-[16px]">check</span>
-</div>
-<span className="font-code-sm text-code-sm text-on-surface-variant">Model: DeepRoute-v4.1</span>
-<span className="font-code-sm text-code-sm font-semibold text-primary mt-1">Confidence: 98.4%</span>
-</div>
-<div className="p-space-sm bg-surface-container-low rounded flex flex-col justify-between">
-<div className="flex items-center justify-between mb-1">
-<span className="font-label-sm text-label-sm font-bold text-on-surface">Policy Critic</span>
-<span className="material-symbols-outlined text-tertiary text-[16px]">check</span>
-</div>
-<span className="font-code-sm text-code-sm text-on-surface-variant">Rule POL-AIR-09</span>
-<span className="font-code-sm text-code-sm font-semibold text-primary mt-1">Status: Passed (Within Cap)</span>
-</div>
-<div className="p-space-sm bg-surface-container-low rounded flex flex-col justify-between">
-<div className="flex items-center justify-between mb-1">
-<span className="font-label-sm text-label-sm font-bold text-on-surface">Business Critic</span>
-<span className="material-symbols-outlined text-tertiary text-[16px]">check</span>
-</div>
-<span className="font-code-sm text-code-sm text-on-surface-variant">ROI Impact Analysis</span>
-<span className="font-code-sm text-code-sm font-semibold text-primary mt-1">Avoided: $42,000 idle cost</span>
-</div>
-<div className="p-space-sm bg-surface-container-low rounded flex flex-col justify-between">
-<div className="flex items-center justify-between mb-1">
-<span className="font-label-sm text-label-sm font-bold text-on-surface">Draft PO Generator</span>
-<span className="material-symbols-outlined text-secondary text-[16px]">description</span>
-</div>
-<span className="font-code-sm text-code-sm text-on-surface-variant">Procurement Workflow Reference</span>
-<span className="font-code-sm text-code-sm font-semibold text-secondary mt-1">#PO-DRAFT-2024-9972</span>
-</div>
-</div>
-</div>
-{/* Audit Trace Code Payload Section */}
-<div className="p-space-md bg-surface-container-low rounded">
-<div className="flex items-center justify-between mb-2">
-<span className="font-code-sm text-code-sm font-semibold text-on-surface flex items-center gap-1.5">
-<span className="material-symbols-outlined text-[16px] text-primary">terminal</span>
-              Cryptographic Policy Trace &amp; Critic Hashes
+  {history.length === 0 && !loading && (
+    <div className="bg-surface-container-lowest rounded-xl p-space-xl text-center text-on-surface-variant">
+      No decision history found.
+    </div>
+  )}
+  {history.map((item, index) => {
+    const isApproved = item.status === 'APPROVED';
+    return (
+      <div key={item.trace_id} className="audit-card bg-surface-container-lowest rounded shadow-sm overflow-hidden" data-status={item.status}>
+        <div className="p-space-md bg-surface-container-low/50 flex flex-col xl:flex-row xl:items-center justify-between gap-space-sm cursor-pointer hover:bg-surface-container-low transition-colors" onClick={() => toggleDetails(item.trace_id)}>
+          <div className="flex flex-wrap items-center gap-space-sm">
+            <span className="font-code-sm text-code-sm font-semibold bg-surface-container px-2 py-1 rounded text-primary">{item.trace_id}</span>
+            <span className={`font-label-sm text-label-sm uppercase font-bold px-2 py-0.5 rounded flex items-center gap-1 ${isApproved ? 'text-tertiary-container bg-tertiary-fixed/40' : 'text-error-container bg-error/20'}`}>
+              <span className="material-symbols-outlined text-[14px]">
+                {isApproved ? 'check_circle' : 'cancel'}
+              </span> {item.status}
             </span>
-<span className="font-code-sm text-code-sm text-on-surface-variant">SHA-256 Digest Signature</span>
-</div>
-<div className="bg-surface-container-lowest p-space-sm rounded font-code-sm text-code-sm text-on-surface-variant leading-relaxed">
-<div className="text-on-surface font-semibold">[PROPOSAL_HASH]: c3a9f0298a01f78df31100b48a733e8b091f09c25f778a87b12d5d85ec1</div>
-<div>[POLICY_CRITIC_HASH]: 71b0ea12b489ef23c10978df3e8a45b10e976ac9918d36f78a104cb310aef7</div>
-<div>[BUSINESS_CRITIC_HASH]: 5f201bba2901a64f331908bc100ea740118bc98d41e7801a4bc88a709b1fec</div>
-<div className="text-primary font-medium">[PROCUREMENT_DRAFT]: Purchase-order recommendation retained for human review.</div>
-</div>
-</div>
-</div>
-</div>
-{/* Record 2 (Rejected) */}
-<div className="audit-card bg-surface-container-lowest rounded shadow-sm overflow-hidden" data-status="REJECTED">
-<div className="p-space-md bg-surface-container-low/50 flex flex-col xl:flex-row xl:items-center justify-between gap-space-sm cursor-pointer hover:bg-surface-container-low transition-colors" onclick="toggleDetails('trace-2')">
-<div className="flex flex-wrap items-center gap-space-sm">
-<span className="font-code-sm text-code-sm font-semibold bg-surface-container px-2 py-1 rounded text-primary">DEC-87985-F</span>
-<span className="font-label-sm text-label-sm uppercase font-bold text-error bg-error-container/40 px-2 py-0.5 rounded flex items-center gap-1">
-<span className="material-symbols-outlined text-[14px]">cancel</span> REJECTED
-          </span>
-<span className="text-outline-variant">•</span>
-<span className="font-body-sm text-body-sm font-semibold text-on-surface">SKU_512 (Fastener Kit B)</span>
-<span className="text-outline-variant">•</span>
-<span className="font-body-sm text-body-sm text-on-surface-variant">Recommended Action: <strong className="text-on-surface">Expedite Inbound PO via Air Charter ($14,200)</strong></span>
-</div>
-<div className="flex items-center gap-space-md justify-between xl:justify-end">
-<div className="flex items-center gap-2 text-on-surface-variant font-code-sm text-code-sm">
-<span className="material-symbols-outlined text-[16px]">schedule</span> Decision recorded 2 days ago, 09:15 UTC
+            <span className="text-outline-variant">•</span>
+            <span className="font-body-sm text-body-sm font-semibold text-on-surface">{item.situation}</span>
+            <span className="text-outline-variant">•</span>
+            <span className="font-body-sm text-body-sm text-on-surface-variant">Recommended Action: <strong className="text-on-surface">{item.recommended_action}</strong></span>
           </div>
-<span className="font-label-sm text-label-sm bg-error-container text-error px-2 py-0.5 rounded font-medium">Consensus: 3/4 Warning</span>
-<span className="material-symbols-outlined text-on-surface-variant text-[20px] transition-transform duration-200" id="icon-trace-2">expand_more</span>
-</div>
-</div>
-<div className="p-space-lg flex flex-col gap-space-md hidden" id="trace-2">
-<div className="p-space-md bg-error-container/10 rounded shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-space-md">
-<div className="flex items-start gap-space-sm">
-<div className="w-8 h-8 rounded-full bg-error flex items-center justify-center shrink-0">
-<span className="material-symbols-outlined text-on-error text-[18px]">block</span>
-</div>
-<div>
-<div className="flex items-center gap-space-xs">
-<span className="font-body-sm text-body-sm font-semibold text-on-surface">Ops Lead</span>
-<span className="font-label-sm text-label-sm text-on-surface-variant">(Manual Review Recorded)</span>
-</div>
-<p className="font-body-md text-body-md text-on-surface mt-1 italic">
-                “Rejected. Alternative inventory identified in secondary storage buffer at Milwaukee. Ground transfer initiated manually.”
-              </p>
-</div>
-</div>
-<div className="shrink-0 flex items-center gap-2 bg-surface-container-lowest px-3 py-1.5 rounded">
-<span className="font-code-sm text-code-sm text-on-surface-variant">Reason Flag:</span>
-<span className="font-code-sm text-code-sm font-bold text-error">Budget Ceiling Breach ($10k max)</span>
-</div>
-</div>
-<div className="p-space-md bg-surface-container-low rounded">
-<div className="flex items-center justify-between mb-2">
-<span className="font-code-sm text-code-sm font-semibold text-on-surface">Audit Trail Metadata</span>
-<span className="font-code-sm text-code-sm text-on-surface-variant">Policy Critic Evaluation</span>
-</div>
-<p className="font-code-sm text-code-sm text-on-surface-variant leading-relaxed">
-            Policy Critic Rule <span className="font-semibold text-on-surface">POL-EXP-02</span> flagged breach: Recommended expedite action exceeded the configured approval threshold. The decision was escalated for human review before operational commitment.
-          </p>
-</div>
-</div>
-</div>
-{/* Record 3 */}
-<div className="audit-card bg-surface-container-lowest rounded shadow-sm overflow-hidden" data-status="APPROVED">
-<div className="p-space-md bg-surface-container-low/50 flex flex-col xl:flex-row xl:items-center justify-between gap-space-sm cursor-pointer hover:bg-surface-container-low transition-colors" onclick="toggleDetails('trace-3')">
-<div className="flex flex-wrap items-center gap-space-sm">
-<span className="font-code-sm text-code-sm font-semibold bg-surface-container px-2 py-1 rounded text-primary">DEC-87950-C</span>
-<span className="font-label-sm text-label-sm uppercase font-bold text-tertiary-container bg-tertiary-fixed/40 px-2 py-0.5 rounded flex items-center gap-1">
-<span className="material-symbols-outlined text-[14px]">check_circle</span> APPROVED
-          </span>
-<span className="text-outline-variant">•</span>
-<span className="font-body-sm text-body-sm font-semibold text-on-surface">DEL-8890 (FreightX Intermodal)</span>
-<span className="text-outline-variant">•</span>
-<span className="font-body-sm text-body-sm text-on-surface-variant">Recommended Action: <strong className="text-on-surface">Route Divert to bypass Interstate construction delay</strong></span>
-</div>
-<div className="flex items-center gap-space-md justify-between xl:justify-end">
-<div className="flex items-center gap-2 text-on-surface-variant font-code-sm text-code-sm">
-<span className="material-symbols-outlined text-[16px]">schedule</span> Decision recorded 3 days ago, 14:20 UTC
+          <div className="flex items-center gap-space-md justify-between xl:justify-end">
+            <div className="flex items-center gap-2 text-on-surface-variant font-code-sm text-code-sm">
+              <span className="material-symbols-outlined text-[16px]">schedule</span> {new Date(item.timestamp).toLocaleString()}
+            </div>
+            <span className="font-label-sm text-label-sm bg-primary-container text-on-primary px-2 py-0.5 rounded font-medium">{item.consensus_status || 'Consensus Passed'}</span>
+            <span className="material-symbols-outlined text-on-surface-variant text-[20px] transition-transform duration-200" id={`icon-${item.trace_id}`}>expand_more</span>
           </div>
-<span className="font-label-sm text-label-sm bg-primary-container text-on-primary px-2 py-0.5 rounded font-medium">Consensus Passed</span>
-<span className="material-symbols-outlined text-on-surface-variant text-[20px] transition-transform duration-200" id="icon-trace-3">expand_more</span>
-</div>
-</div>
-<div className="p-space-lg flex flex-col gap-space-md hidden" id="trace-3">
-<div className="p-space-md bg-surface-container-lowest rounded shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-space-md">
-<div className="flex items-start gap-space-sm">
-<div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center shrink-0">
-<span className="material-symbols-outlined text-on-primary text-[18px]">verified_user</span>
-</div>
-<div>
-<div className="flex items-center gap-space-xs">
-<span className="font-body-sm text-body-sm font-semibold text-on-surface">Logistics Coordinator</span>
-<span className="font-label-sm text-label-sm text-on-surface-variant">(Reviewer)</span>
-</div>
-<p className="font-body-md text-body-md text-on-surface mt-1 italic">
-                “Approved. Carrier confirmed route divert without rate penalty.”
-              </p>
-</div>
-</div>
-<div className="shrink-0 flex items-center gap-2 bg-surface-container-low px-3 py-1.5 rounded">
-<span className="font-code-sm text-code-sm text-on-surface-variant">ETA Preservation:</span>
-<span className="font-code-sm text-code-sm font-bold text-tertiary-container">+18 hrs on-time improvement</span>
-</div>
-</div>
-</div>
-</div>
-{/* Record 4 */}
-<div className="audit-card bg-surface-container-lowest rounded shadow-sm overflow-hidden" data-status="APPROVED">
-<div className="p-space-md bg-surface-container-low/50 flex flex-col xl:flex-row xl:items-center justify-between gap-space-sm cursor-pointer hover:bg-surface-container-low transition-colors" onclick="toggleDetails('trace-4')">
-<div className="flex flex-wrap items-center gap-space-sm">
-<span className="font-code-sm text-code-sm font-semibold bg-surface-container px-2 py-1 rounded text-primary">DEC-87910-K</span>
-<span className="font-label-sm text-label-sm uppercase font-bold text-tertiary-container bg-tertiary-fixed/40 px-2 py-0.5 rounded flex items-center gap-1">
-<span className="material-symbols-outlined text-[14px]">check_circle</span> APPROVED
-          </span>
-<span className="text-outline-variant">•</span>
-<span className="font-body-sm text-body-sm font-semibold text-on-surface">SKU_208 (Sub-Assembly Frame)</span>
-<span className="text-outline-variant">•</span>
-<span className="font-body-sm text-body-sm text-on-surface-variant">Recommended Action: <strong className="text-on-surface">Inter-Facility Transfer (150 units from Hub East)</strong></span>
-</div>
-<div className="flex items-center gap-space-md justify-between xl:justify-end">
-<div className="flex items-center gap-2 text-on-surface-variant font-code-sm text-code-sm">
-<span className="material-symbols-outlined text-[16px]">schedule</span> Decision recorded 5 days ago, 11:05 UTC
+        </div>
+        <div className="p-space-lg flex flex-col gap-space-md hidden" id={item.trace_id}>
+          <div className={`p-space-md ${isApproved ? 'bg-surface-container-lowest' : 'bg-error-container/10'} rounded shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-space-md`}>
+            <div className="flex items-start gap-space-sm">
+              <div className={`w-8 h-8 rounded-full ${isApproved ? 'bg-primary' : 'bg-error'} flex items-center justify-center shrink-0`}>
+                <span className={`material-symbols-outlined ${isApproved ? 'text-on-primary' : 'text-on-error'} text-[18px]`}>
+                  {isApproved ? 'verified_user' : 'block'}
+                </span>
+              </div>
+              <div>
+                <div className="flex items-center gap-space-xs">
+                  <span className="font-body-sm text-body-sm font-semibold text-on-surface">{item.approver}</span>
+                  <span className="font-label-sm text-label-sm text-on-surface-variant">(Reviewer Authorization)</span>
+                  <span className="text-outline-variant">•</span>
+                  <span className="font-code-sm text-code-sm text-on-surface-variant">Action Timestamp: {new Date(item.approval_timestamp).toLocaleString()}</span>
+                </div>
+                <p className="font-body-md text-body-md text-on-surface mt-1 italic">
+                  "{item.notes || (isApproved ? 'Approved by Reviewer' : 'Rejected by Reviewer')}"
+                </p>
+              </div>
+            </div>
           </div>
-<span className="font-label-sm text-label-sm bg-primary-container text-on-primary px-2 py-0.5 rounded font-medium">Consensus Passed</span>
-<span className="material-symbols-outlined text-on-surface-variant text-[20px] transition-transform duration-200" id="icon-trace-4">expand_more</span>
-</div>
-</div>
-<div className="p-space-lg flex flex-col gap-space-md hidden" id="trace-4">
-<div className="p-space-md bg-surface-container-lowest rounded shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-space-md">
-<div className="flex items-start gap-space-sm">
-<div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center shrink-0">
-<span className="material-symbols-outlined text-on-primary text-[18px]">verified_user</span>
-</div>
-<div>
-<div className="flex items-center gap-space-xs">
-<span className="font-body-sm text-body-sm font-semibold text-on-surface">Ops Lead</span>
-<span className="font-label-sm text-label-sm text-on-surface-variant">(Reviewer)</span>
-</div>
-<p className="font-body-md text-body-md text-on-surface mt-1 italic">
-                “Approved transfer. Hub East excess verified.”
-              </p>
-</div>
-</div>
-<div className="shrink-0 flex items-center gap-2 bg-surface-container-low px-3 py-1.5 rounded">
-<span className="font-code-sm text-code-sm text-on-surface-variant">Transfer Order:</span>
-<span className="font-code-sm text-code-sm font-bold text-primary">#TO-902-EAST</span>
-</div>
-</div>
-</div>
-</div>
+        </div>
+      </div>
+    );
+  })}
 </div>
 {/* Pagination & Ledger Summary Controls */}
 <div className="mt-space-lg bg-surface-container-lowest rounded shadow-sm p-space-md flex flex-col sm:flex-row items-center justify-between gap-space-md">

@@ -67,9 +67,9 @@ export default function DataHubPage() {
 
   // File upload handler — supports CSV and Excel
   const handleFileUpload = async (e) => {
-    const f = e.target.files?.[0];
-    if (!f) return;
-    setFile(f);
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+    setFile(files[0]);
     setUploadLoading(true);
     setActionError(null);
     setActionSuccess(null);
@@ -82,7 +82,7 @@ export default function DataHubPage() {
 
     try {
       // POST /api/data/upload — backend param is "files" (List[UploadFile])
-      const res = await api.uploadData(f);
+      const res = await api.uploadData(files);
       // res = { file_token, files: [{filename, columns, sheets, row_count, preview_rows, file_type, error?}], schemas }
       setUploadResult(res);
       setFileToken(res.file_token);
@@ -93,13 +93,19 @@ export default function DataHubPage() {
         const cols = fileSummary.columns || [];
         setDetectedColumns(cols);
 
-        // Auto-select first sheet for Excel
+        // Auto-select first sheet for Excel (skipping README if possible)
         if (fileSummary.file_type === 'excel' && fileSummary.sheets?.length > 0) {
-          setSelectedSheet(fileSummary.sheets[0]);
-        }
-
-        // Auto-suggest mapping if columns were detected
-        if (cols.length > 0) {
+          const defaultSheet = fileSummary.sheets.find(s => s.toLowerCase() !== 'readme') || fileSummary.sheets[0];
+          setSelectedSheet(defaultSheet);
+          if (fileSummary.sheet_previews?.[defaultSheet]) {
+            const sheetCols = fileSummary.sheet_previews[defaultSheet].columns || [];
+            setDetectedColumns(sheetCols);
+            if (sheetCols.length > 0) await fetchSuggestedMapping(sheetCols, schemaType);
+          } else if (cols.length > 0) {
+            await fetchSuggestedMapping(cols, schemaType);
+          }
+        } else if (cols.length > 0) {
+          // Auto-suggest mapping if columns were detected
           await fetchSuggestedMapping(cols, schemaType);
         }
       }
@@ -136,11 +142,32 @@ export default function DataHubPage() {
 
   const handleSheetChange = async (sheetName) => {
     setSelectedSheet(sheetName);
-    // Sheet selection requires re-fetching columns from that sheet
-    // The backend doesn't have a separate "get sheet columns" endpoint.
-    // The upload already returns columns from the FIRST sheet only.
-    // For now, columns from other sheets are unknown until validate is called.
-    // We keep the same column list and let validation handle it.
+    if (uploadedFileSummary?.sheet_previews?.[sheetName]) {
+      const cols = uploadedFileSummary.sheet_previews[sheetName].columns || [];
+      setDetectedColumns(cols);
+      if (cols.length > 0) {
+        await fetchSuggestedMapping(cols, schemaType);
+      }
+    }
+  };
+
+  const handleSelectFile = async (idx) => {
+    const fileSummary = uploadResult.files[idx];
+    if (fileSummary) {
+      setUploadedFileSummary(fileSummary);
+      setMapping({});
+      setValidationResult(null);
+      const cols = fileSummary.columns || [];
+      setDetectedColumns(cols);
+      if (cols.length > 0) {
+        // Auto-guess schema from filename
+        let guess = 'inventory';
+        if (fileSummary.filename.toLowerCase().includes('demand')) guess = 'demand';
+        if (fileSummary.filename.toLowerCase().includes('deliver')) guess = 'deliveries';
+        setSchemaType(guess);
+        await fetchSuggestedMapping(cols, guess);
+      }
+    }
   };
 
   const handleValidate = async () => {
@@ -233,8 +260,8 @@ export default function DataHubPage() {
   // Derived display values
   const fileInfo = uploadedFileSummary || {};
   const sheets = fileInfo.sheets || [];
-  const previewRows = fileInfo.preview_rows || [];
-  const previewCols = fileInfo.columns || [];
+  const previewRows = (fileInfo.file_type === 'excel' && selectedSheet && fileInfo.sheet_previews?.[selectedSheet]?.preview_rows) ? fileInfo.sheet_previews[selectedSheet].preview_rows : (fileInfo.preview_rows || []);
+  const previewCols = (fileInfo.file_type === 'excel' && selectedSheet && fileInfo.sheet_previews?.[selectedSheet]?.columns) ? fileInfo.sheet_previews[selectedSheet].columns : (fileInfo.columns || []);
 
   return (
 <div className="flex flex-col w-full">
@@ -351,13 +378,14 @@ export default function DataHubPage() {
 <span className="font-label-sm text-label-sm text-on-surface-variant mt-1">
   {uploadLoading ? 'Uploading…' : `Drop ${activeTab === 'excel' ? '.xlsx / .xls' : '.csv'} file here or click`}
 </span>
-<input
-  type="file"
-  accept={activeTab === 'excel' ? '.xlsx,.xls' : '.csv'}
-  onChange={handleFileUpload}
-  className="hidden"
-  disabled={uploadLoading}
-/>
+  <input
+    type="file"
+    accept={activeTab === 'excel' ? '.xlsx,.xls' : '.csv'}
+    multiple={activeTab === 'csv'}
+    onChange={handleFileUpload}
+    className="hidden"
+    disabled={uploadLoading}
+  />
 </label>
 </div>
 
@@ -388,12 +416,28 @@ export default function DataHubPage() {
 <span className="font-label-sm text-label-sm uppercase tracking-wider text-on-surface-variant font-semibold">
   {sheets.length > 0 ? 'Detected Sheets in Workbook' : 'File Ready for Upload'}
 </span>
-{sheets.length > 0 && <span className="font-body-sm text-body-sm text-on-surface-variant">Click to select sheet for schema mapping</span>}
+  {sheets.length > 0 && <span className="font-body-sm text-body-sm text-on-surface-variant">Click to select sheet for schema mapping</span>}
 </div>
 {sheets.length === 0 && !fileToken && (
-<p className="font-body-sm text-body-sm text-on-surface-variant mt-space-md">
-  Upload a file to see its structure. The backend will detect columns, sheets, and row counts automatically.
-</p>
+  <p className="font-body-sm text-body-sm text-on-surface-variant mt-space-md">
+    Upload a file to see its structure. The backend will detect columns, sheets, and row counts automatically.
+  </p>
+)}
+{uploadResult?.files?.length > 1 && (
+  <div className="mt-space-md bg-surface-container p-space-md rounded-lg">
+    <label className="font-label-sm text-label-sm uppercase text-on-surface-variant mb-space-xs block">Select File to Map & Validate</label>
+    <select
+      onChange={e => handleSelectFile(Number(e.target.value))}
+      className="w-full bg-surface-container-low text-on-surface rounded p-2 font-code-sm text-code-sm focus:outline-none"
+    >
+      {uploadResult.files.map((f, i) => (
+        <option key={i} value={i}>{f.filename}</option>
+      ))}
+    </select>
+    <p className="text-on-surface-variant font-body-sm text-body-sm mt-2">
+      Select each file, map it to the target schema, and click "Validate Schema" to save it. Activate when all 3 files are validated.
+    </p>
+  </div>
 )}
 </div>
 

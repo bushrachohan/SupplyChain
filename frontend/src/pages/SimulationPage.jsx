@@ -4,10 +4,10 @@ import { api } from '../api/client';
 export default function SimulationPage() {
   const [simType, setSimType] = useState('inventory');
   const [params, setParams] = useState({
-    order_qty: 150,
-    reorder_point: 50,
-    safety_stock: 30,
-    lead_time_days: 5,
+    sku_id: 'SKU_104',
+    demand_multiplier: 1.35,
+    stock_override: 260,
+    lead_time_override: 4,
   });
   const [result, setResult] = useState(null);
   const [running, setRunning] = useState(false);
@@ -82,7 +82,7 @@ export default function SimulationPage() {
 </div>
 <span className="font-code-sm text-code-sm text-on-surface-variant bg-surface-container-low px-space-xs py-0.5 rounded">N=5,000 Iterations</span>
 </div>
-<form className="flex flex-col gap-space-lg" onsubmit="event.preventDefault();">
+<form className="flex flex-col gap-space-lg" onSubmit={(e) => e.preventDefault()}>
 {/* Target SKU Selector */}
 <div className="flex flex-col gap-space-xs">
 <label className="font-label-md text-label-md text-on-surface uppercase tracking-wider flex items-center justify-between">
@@ -90,10 +90,13 @@ export default function SimulationPage() {
 <span className="text-on-surface-variant font-normal">DC Code: ORD-04</span>
 </label>
 <div className="relative">
-<select className="w-full bg-surface-container-lowest border border-outline-variant/40 rounded-lg py-space-sm px-space-md font-body-md text-body-md text-on-surface appearance-none focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary">
-<option defaultChecked>SKU_104 (Micro-controller Chipset — Chicago DC)</option>
-<option>SKU_208 (Lithium Cell Module — Dallas Hub)</option>
-<option>SKU_312 (Fiber Optic Transceiver — Newark DC)</option>
+<select 
+  value={params.sku_id} 
+  onChange={(e) => setParams({...params, sku_id: e.target.value})} 
+  className="w-full bg-surface-container-lowest border border-outline-variant/40 rounded-lg py-space-sm px-space-md font-body-md text-body-md text-on-surface appearance-none focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary">
+<option value="SKU_104">SKU_104 (Micro-controller Chipset — Chicago DC)</option>
+<option value="SKU_208">SKU_208 (Lithium Cell Module — Dallas Hub)</option>
+<option value="SKU_312">SKU_312 (Fiber Optic Transceiver — Newark DC)</option>
 </select>
 <span className="material-symbols-outlined absolute right-space-md top-1/2 -translate-y-1/2 pointer-events-none text-on-surface-variant text-[18px]">unfold_more</span>
 </div>
@@ -103,10 +106,15 @@ export default function SimulationPage() {
 <div className="flex flex-col gap-space-xs bg-surface-container-low/60 p-space-md rounded-lg border border-outline-variant/20">
 <div className="flex items-center justify-between">
 <label className="font-label-md text-label-md text-on-surface uppercase tracking-wider">Demand Surge Multiplier</label>
-<span className="font-tabular-metric-md text-tabular-metric-md text-primary font-bold">1.35x</span>
+<span className="font-tabular-metric-md text-tabular-metric-md text-primary font-bold">{params.demand_multiplier}x</span>
 </div>
-<p className="font-body-sm text-body-sm text-on-surface-variant">+35% spike over 30-day baseline historical burn</p>
-<input className="w-full h-1.5 bg-surface-container-high rounded-lg appearance-none cursor-pointer accent-primary mt-space-xs" max="2.50" min="1.00" step="0.05" type="range" value="1.35" />
+<p className="font-body-sm text-body-sm text-on-surface-variant">+{(params.demand_multiplier - 1) * 100}% spike over 30-day baseline historical burn</p>
+<input 
+  className="w-full h-1.5 bg-surface-container-high rounded-lg appearance-none cursor-pointer accent-primary mt-space-xs" 
+  max="2.50" min="1.00" step="0.05" type="range" 
+  value={params.demand_multiplier}
+  onChange={(e) => setParams({...params, demand_multiplier: parseFloat(e.target.value)})}
+/>
 <div className="flex justify-between font-code-sm text-code-sm text-on-surface-variant">
 <span>1.00x (Baseline)</span>
 <span>1.50x</span>
@@ -122,25 +130,35 @@ export default function SimulationPage() {
 </div>
 <div className="flex items-center gap-space-sm">
 <div className="flex-1 flex items-center border border-outline-variant/40 rounded-lg overflow-hidden bg-surface-container-lowest">
-<button className="px-space-md py-space-sm text-on-surface hover:bg-surface-container transition-colors text-headline-sm" type="button">−</button>
-<input className="w-full text-center py-space-sm font-tabular-metric-md text-tabular-metric-md font-semibold text-on-surface bg-transparent focus:outline-none" type="number" value="260" />
-<button className="px-space-md py-space-sm text-on-surface hover:bg-surface-container transition-colors text-headline-sm" type="button">+</button>
+<button onClick={() => setParams({...params, stock_override: Math.max(0, params.stock_override - 10)})} className="px-space-md py-space-sm text-on-surface hover:bg-surface-container transition-colors text-headline-sm" type="button">−</button>
+<input 
+  className="w-full text-center py-space-sm font-tabular-metric-md text-tabular-metric-md font-semibold text-on-surface bg-transparent focus:outline-none" 
+  type="number" 
+  value={params.stock_override}
+  onChange={(e) => setParams({...params, stock_override: parseInt(e.target.value) || 0})}
+/>
+<button onClick={() => setParams({...params, stock_override: params.stock_override + 10})} className="px-space-md py-space-sm text-on-surface hover:bg-surface-container transition-colors text-headline-sm" type="button">+</button>
 </div>
 <span className="font-body-sm text-body-sm text-on-surface font-medium whitespace-nowrap">Tested Units</span>
 </div>
-<p className="font-body-sm text-body-sm text-on-surface-variant">Simulating temporary cross-dock replenishment injection (+120 units).</p>
+<p className="font-body-sm text-body-sm text-on-surface-variant">Simulating temporary cross-dock replenishment injection.</p>
 </div>
 {/* Lead Time Drift Override */}
 <div className="flex flex-col gap-space-xs bg-surface-container-low/60 p-space-md rounded-lg border border-outline-variant/20">
 <div className="flex items-center justify-between">
 <label className="font-label-md text-label-md text-on-surface uppercase tracking-wider">Inbound Lead Time Drift</label>
-<span className="font-tabular-metric-md text-tabular-metric-md text-error font-semibold">+4 Days</span>
+<span className="font-tabular-metric-md text-tabular-metric-md text-error font-semibold">+{params.lead_time_override} Days</span>
 </div>
-<p className="font-body-sm text-body-sm text-on-surface-variant">Calculated Total Lead Window: 10 Days (Baseline: 6 Days)</p>
-<input className="w-full h-1.5 bg-surface-container-high rounded-lg appearance-none cursor-pointer accent-primary mt-space-xs" max="14" min="0" step="1" type="range" value="4" />
+<p className="font-body-sm text-body-sm text-on-surface-variant">Calculated Total Lead Window: {6 + params.lead_time_override} Days (Baseline: 6 Days)</p>
+<input 
+  className="w-full h-1.5 bg-surface-container-high rounded-lg appearance-none cursor-pointer accent-primary mt-space-xs" 
+  max="14" min="0" step="1" type="range" 
+  value={params.lead_time_override}
+  onChange={(e) => setParams({...params, lead_time_override: parseInt(e.target.value)})}
+/>
 <div className="flex justify-between font-code-sm text-code-sm text-on-surface-variant">
 <span>+0d (Nominal)</span>
-<span>+4d (Selected)</span>
+<span>+4d</span>
 <span>+8d</span>
 <span>+14d (Port Congestion)</span>
 </div>
@@ -158,9 +176,9 @@ export default function SimulationPage() {
 </div>
 {/* Action Buttons */}
 <div className="flex items-center gap-space-md pt-space-xs">
-<button className="flex-1 bg-primary text-on-primary hover:bg-primary-container px-space-md py-space-sm rounded-lg font-body-md text-body-md font-semibold flex items-center justify-center gap-space-sm transition-all shadow-sm" type="button">
-<span className="material-symbols-outlined text-[18px]">play_arrow</span>
-<span>Run Monte Carlo Simulation</span>
+<button onClick={handleRunSimulation} className="flex-1 bg-primary text-on-primary hover:bg-primary-container px-space-md py-space-sm rounded-lg font-body-md text-body-md font-semibold flex items-center justify-center gap-space-sm transition-all shadow-sm" type="button">
+<span className="material-symbols-outlined text-[18px]">{running ? 'refresh' : 'play_arrow'}</span>
+<span>{running ? 'Running Simulation...' : 'Run Monte Carlo Simulation'}</span>
 </button>
 <button className="bg-surface-container-lowest border border-outline-variant/40 hover:bg-surface-container-low text-on-surface px-space-md py-space-sm rounded-lg font-body-md text-body-md font-medium flex items-center gap-space-xs transition-colors" type="button">
 <span className="material-symbols-outlined text-[16px]">restart_alt</span>
@@ -189,9 +207,9 @@ export default function SimulationPage() {
 <div className="flex flex-col">
 <span className="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider font-semibold">DECISION DELTA STATUS</span>
 <div className="flex items-center gap-space-sm">
-<span className="font-headline-sm text-headline-sm text-error line-through decoration-1 opacity-70">HIGH RISK</span>
+<span className="font-headline-sm text-headline-sm text-error line-through decoration-1 opacity-70">{result ? result.before?.risk_level : 'HIGH RISK'}</span>
 <span className="material-symbols-outlined text-[16px] text-on-surface-variant">arrow_forward</span>
-<span className="font-headline-sm text-headline-sm text-tertiary font-bold">MITIGATED</span>
+<span className="font-headline-sm text-headline-sm text-tertiary font-bold">{result ? result.after?.risk_level : 'MITIGATED'}</span>
 </div>
 </div>
 </div>
@@ -209,13 +227,13 @@ export default function SimulationPage() {
 <span className="w-2 h-2 rounded-full bg-tertiary-fixed-dim"></span>
 </div>
 <div className="flex items-baseline gap-space-xs my-space-xs">
-<span className="font-tabular-metric-lg text-tabular-metric-lg text-on-surface font-bold">5.4</span>
+<span className="font-tabular-metric-lg text-tabular-metric-lg text-on-surface font-bold">{result ? result.after?.days_of_supply?.toFixed(1) : '5.4'}</span>
 <span className="font-body-sm text-body-sm text-on-surface-variant">Days</span>
 </div>
 <div className="flex flex-col gap-0.5 border-t border-outline-variant/20 pt-space-xs mt-space-xs">
 <div className="flex justify-between font-code-sm text-code-sm">
 <span className="text-on-surface-variant">Baseline:</span>
-<span className="text-error font-medium">2.8 Days (68h)</span>
+<span className="text-error font-medium">{result ? result.before?.days_of_supply?.toFixed(1) : '2.8'} Days</span>
 </div>
 <div className="flex justify-between font-code-sm text-code-sm">
 <span className="text-on-surface-variant">Threshold:</span>
@@ -223,7 +241,7 @@ export default function SimulationPage() {
 </div>
 <div className="flex items-center justify-between font-label-sm text-label-sm font-semibold text-tertiary mt-0.5">
 <span>Net Delta:</span>
-<span>▲ +2.6 Days (+92%)</span>
+<span>{result ? (result.deltas?.days_of_supply_delta > 0 ? '▲ +' : '▼ ') + result.deltas?.days_of_supply_delta?.toFixed(1) + ' Days' : '▲ +2.6 Days'}</span>
 </div>
 </div>
 </div>
@@ -234,13 +252,13 @@ export default function SimulationPage() {
 <span className="w-2 h-2 rounded-full bg-tertiary-fixed-dim"></span>
 </div>
 <div className="flex items-baseline gap-space-xs my-space-xs">
-<span className="font-tabular-metric-lg text-tabular-metric-lg text-on-surface font-bold">18%</span>
-<span className="font-body-sm text-body-sm text-tertiary font-semibold">Low Risk</span>
+<span className="font-tabular-metric-lg text-tabular-metric-lg text-on-surface font-bold">{result ? Math.round(result.after?.stockout_probability * 100) : '18'}%</span>
+<span className="font-body-sm text-body-sm text-tertiary font-semibold">{result ? (result.after?.stockout_probability < 0.2 ? 'Low Risk' : 'High Risk') : 'Low Risk'}</span>
 </div>
 <div className="flex flex-col gap-0.5 border-t border-outline-variant/20 pt-space-xs mt-space-xs">
 <div className="flex justify-between font-code-sm text-code-sm">
 <span className="text-on-surface-variant">Baseline:</span>
-<span className="text-error font-medium">87% (Critical)</span>
+<span className="text-error font-medium">{result ? Math.round(result.before?.stockout_probability * 100) : '87'}%</span>
 </div>
 <div className="flex justify-between font-code-sm text-code-sm">
 <span className="text-on-surface-variant">Target SLA:</span>
@@ -248,7 +266,7 @@ export default function SimulationPage() {
 </div>
 <div className="flex items-center justify-between font-label-sm text-label-sm font-semibold text-tertiary mt-0.5">
 <span>Net Delta:</span>
-<span>▼ -69% Risk</span>
+<span>{result ? (result.deltas?.stockout_probability_delta > 0 ? '▲ +' : '▼ ') + Math.round(result.deltas?.stockout_probability_delta * 100) + '%' : '▼ -69% Risk'}</span>
 </div>
 </div>
 </div>
@@ -259,21 +277,21 @@ export default function SimulationPage() {
 <span className="w-2 h-2 rounded-full bg-secondary-container"></span>
 </div>
 <div className="flex items-baseline gap-space-xs my-space-xs">
-<span className="font-tabular-metric-lg text-tabular-metric-lg text-on-surface font-bold">560</span>
+<span className="font-tabular-metric-lg text-tabular-metric-lg text-on-surface font-bold">{result ? Math.round(result.after?.reorder_point_units) : '560'}</span>
 <span className="font-body-sm text-body-sm text-on-surface-variant">Units</span>
 </div>
 <div className="flex flex-col gap-0.5 border-t border-outline-variant/20 pt-space-xs mt-space-xs">
 <div className="flex justify-between font-code-sm text-code-sm">
 <span className="text-on-surface-variant">Baseline:</span>
-<span className="text-on-surface">420 Units</span>
+<span className="text-on-surface">{result ? Math.round(result.before?.reorder_point_units) : '420'} Units</span>
 </div>
 <div className="flex justify-between font-code-sm text-code-sm">
 <span className="text-on-surface-variant">Drift Offset:</span>
-<span className="text-on-surface">+4d Vendor Drift</span>
+<span className="text-on-surface">+{params.lead_time_override}d Vendor Drift</span>
 </div>
 <div className="flex items-center justify-between font-label-sm text-label-sm font-semibold text-primary mt-0.5">
 <span>Net Delta:</span>
-<span>▲ +140 Units Buffer</span>
+<span>{result ? (result.deltas?.reorder_point_delta > 0 ? '▲ +' : '▼ ') + Math.round(result.deltas?.reorder_point_delta) + ' Units' : '▲ +140 Units Buffer'}</span>
 </div>
 </div>
 </div>

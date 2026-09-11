@@ -1,5 +1,5 @@
 import React from 'react';
-import { NavLink } from 'react-router-dom';
+import { NavLink, Link } from 'react-router-dom';
 
 const NAV_BASE = "flex items-center gap-space-md px-space-md py-space-sm rounded-lg transition-all";
 const NAV_INACTIVE = "text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface";
@@ -14,12 +14,12 @@ export default function Sidebar() {
     <aside className="fixed left-0 top-0 h-full w-72 bg-surface-container-lowest border-r border-outline-variant/30 z-50 flex flex-col justify-between shadow-[0_1px_8px_rgba(0,0,0,0.02)]">
       <div className="flex flex-col">
         <div className="px-space-xl pt-space-xl pb-space-lg border-b border-outline-variant/20">
-          <div className="flex items-center gap-space-sm mb-space-xs">
+          <Link to="/" className="flex items-center gap-space-sm mb-space-xs hover:opacity-80 transition-opacity">
             <div className="w-7 h-7 rounded-lg bg-primary flex items-center justify-center">
               <span className="material-symbols-outlined text-on-primary text-[18px]">shield_with_house</span>
             </div>
             <span className="font-headline-sm text-headline-sm text-primary font-bold tracking-tight">SupplyChain Sentinel AI</span>
-          </div>
+          </Link>
           <p className="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider pl-9">AI Decision Intelligence</p>
         </div>
         <div className="px-space-lg py-space-sm m-space-md rounded-lg bg-surface-container-low border border-outline-variant/30 flex items-center gap-space-sm">

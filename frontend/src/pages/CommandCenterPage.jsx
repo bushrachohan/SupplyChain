@@ -112,134 +112,174 @@ export default function CommandCenterPage() {
 </div>
 </div>
 {/* Priority Risks Section */}
-<div className="flex flex-col gap-space-md">
-<div className="flex items-center justify-between">
-<div className="flex items-center gap-space-sm">
-<span className="material-symbols-outlined text-error text-[22px]">crisis_alert</span>
-<h2 className="font-headline-lg text-headline-lg text-on-surface font-bold">Priority Risks</h2>
-<span className="bg-surface-container-high text-on-surface-variant font-label-sm text-label-sm px-2 py-0.5 rounded-full font-semibold">3 Filtered by Severity</span>
-</div>
-<div className="flex items-center gap-space-xs text-on-surface-variant font-label-md text-label-md">
-<span>Sort by: Risk Delta</span>
-<span className="material-symbols-outlined text-[16px]">arrow_drop_down</span>
-</div>
-</div>
-<div className="grid grid-cols-1 lg:grid-cols-2 gap-space-md">
-{/* Inventory Risk Card */}
-{priorityRisks.inventory ? (
-<div className="bg-surface-container-lowest rounded-xl p-space-lg shadow-sm flex flex-col justify-between hover:shadow-md transition-all">
-<div>
-<div className="flex items-center justify-between mb-space-sm">
-<span className="bg-error-container text-on-error-container font-label-sm text-label-sm px-2.5 py-1 rounded font-bold uppercase tracking-wider">
-              HIGH SEVERITY
+      <div className="flex flex-col gap-space-md">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-space-sm">
+            <span className="material-symbols-outlined text-error text-[22px]">crisis_alert</span>
+            <h2 className="font-headline-lg text-headline-lg text-on-surface font-bold">Priority Risks</h2>
+            <span className="bg-surface-container-high text-on-surface-variant font-label-sm text-label-sm px-2 py-0.5 rounded-full font-semibold">
+              3 Filtered by Severity
             </span>
-<span className="font-code-sm text-code-sm text-on-surface-variant bg-surface-container-low px-2 py-0.5 rounded">ID #{priorityRisks.inventory.sku_id}</span>
-</div>
-<h3 className="font-headline-sm text-headline-sm text-on-surface font-bold leading-tight">Inventory Risk — {priorityRisks.inventory.sku_id}</h3>
-<p className="font-label-md text-label-md text-error font-semibold mt-0.5 mb-space-md flex items-center gap-1">
-<span className="material-symbols-outlined text-[14px]">report_problem</span>
-            Stockout Warning
-          </p>
-{/* Structured Quantitative Metadata Grid */}
-<div className="bg-surface-container-low p-space-md rounded-lg mb-space-md space-y-space-xs text-on-surface font-body-sm text-body-sm">
-<div className="flex justify-between items-center pb-1">
-<span className="text-on-surface-variant font-medium">Days of Supply:</span>
-<span className="font-tabular-metric-md text-tabular-metric-md text-error font-bold">{priorityRisks.inventory.days_of_supply} Days</span>
-</div>
-<div className="grid grid-cols-3 gap-1 pt-1 text-center font-code-sm text-code-sm bg-surface-container-lowest p-2 rounded">
-<div>
-<span className="block text-on-surface-variant text-[10px] uppercase">Current</span>
-<span className="font-bold text-on-surface">{priorityRisks.inventory.current_stock} u</span>
-</div>
-<div>
-<span className="block text-on-surface-variant text-[10px] uppercase">Safety</span>
-<span className="font-bold text-on-surface">{priorityRisks.inventory.safety_stock} u</span>
-</div>
-<div>
-<span className="block text-on-surface-variant text-[10px] uppercase">Reorder</span>
-<span className="font-bold text-on-surface">{priorityRisks.inventory.reorder_point} u</span>
-</div>
-</div>
-</div>
-<p className="font-body-sm text-body-sm text-on-surface-variant leading-relaxed mb-space-lg">
-            {priorityRisks.inventory.detail}
-          </p>
-</div>
-<div className="pt-space-md flex items-center justify-between bg-surface-container-lowest">
-<div className="flex items-center gap-1 text-on-surface-variant font-label-sm text-label-sm">
-<span className="material-symbols-outlined text-[15px] text-tertiary">psychology</span>
-<span>Policy RAG Evaluated</span>
-</div>
-<button onClick={() => navigate('/app/create-decision', { state: { sku_id: priorityRisks.inventory.sku_id } })} className="bg-primary hover:bg-primary-container text-on-primary px-space-md py-space-sm rounded-lg font-label-md text-label-md font-semibold transition-colors flex items-center gap-1 shadow-sm">
-<span>Evaluate Decision</span>
-<span className="material-symbols-outlined text-[16px]">chevron_right</span>
-</button>
-</div>
-</div>
-) : (
-<div className="bg-surface-container-lowest rounded-xl p-space-lg shadow-sm flex items-center justify-center text-on-surface-variant">
-  No high-priority inventory risks detected.
-</div>
-)}
+          </div>
+          <div className="flex items-center gap-space-xs text-on-surface-variant font-label-md text-label-md">
+            <span>Sort by: Risk Delta</span>
+            <span className="material-symbols-outlined text-[16px]">arrow_drop_down</span>
+          </div>
+        </div>
 
-{/* Delivery Risk Card */}
-{priorityRisks.delivery ? (
-<div className="bg-surface-container-lowest rounded-xl p-space-lg shadow-sm flex flex-col justify-between hover:shadow-md transition-all">
-<div>
-<div className="flex items-center justify-between mb-space-sm">
-<span className="bg-error text-on-error font-label-sm text-label-sm px-2.5 py-1 rounded font-bold uppercase tracking-wider flex items-center gap-1">
-<span className="w-1.5 h-1.5 rounded-full bg-on-error animate-ping"></span>
-              {priorityRisks.delivery.risk_label}
-            </span>
-<span className="font-code-sm text-code-sm text-on-surface-variant bg-surface-container-low px-2 py-0.5 rounded">ID #{priorityRisks.delivery.delivery_id}</span>
-</div>
-<h3 className="font-headline-sm text-headline-sm text-on-surface font-bold leading-tight">Delivery Risk — {priorityRisks.delivery.delivery_id}</h3>
-<p className="font-label-md text-label-md text-error font-semibold mt-0.5 mb-space-md flex items-center gap-1">
-<span className="material-symbols-outlined text-[14px]">departure_board</span>
-            Transit Delay Warning
-          </p>
-{/* Structured Metadata */}
-<div className="bg-surface-container-low p-space-md rounded-lg mb-space-md space-y-space-xs text-on-surface font-body-sm text-body-sm">
-<div className="flex justify-between items-center pb-1">
-<span className="text-on-surface-variant font-medium">Late Probability:</span>
-<span className="font-tabular-metric-md text-tabular-metric-md text-error font-bold">{Math.round(priorityRisks.delivery.late_probability * 100)}%</span>
-</div>
-<div className="bg-surface-container-lowest p-2 rounded space-y-1 font-body-sm text-body-sm">
-<div className="flex justify-between">
-<span className="text-on-surface-variant text-label-sm font-label-sm">Carrier</span>
-<span className="font-semibold text-on-surface">{priorityRisks.delivery.carrier_id}</span>
-</div>
-<div className="flex justify-between items-center text-code-sm font-code-sm pt-1">
-<span className="text-primary font-semibold">{priorityRisks.delivery.origin}</span>
-<span className="material-symbols-outlined text-[14px] text-on-surface-variant">arrow_forward</span>
-<span className="text-on-surface font-semibold">{priorityRisks.delivery.destination}</span>
-</div>
-</div>
-</div>
-<p className="font-body-sm text-body-sm text-on-surface-variant leading-relaxed mb-space-lg">
-            Traffic delay of {priorityRisks.delivery.traffic_delay_hrs} hrs. Weather condition: {priorityRisks.delivery.weather_condition}. Distance: {priorityRisks.delivery.distance_km} km.
-          </p>
-</div>
-<div className="pt-space-md flex items-center justify-between bg-surface-container-lowest">
-<div className="flex items-center gap-1 text-on-surface-variant font-label-sm text-label-sm">
-<span className="material-symbols-outlined text-[15px] text-secondary">alt_route</span>
-<span>Reroute Action Available</span>
-</div>
-<button onClick={() => navigate('/app/create-decision', { state: { delivery_id: priorityRisks.delivery.delivery_id } })} className="bg-primary hover:bg-primary-container text-on-primary px-space-md py-space-sm rounded-lg font-label-md text-label-md font-semibold transition-colors flex items-center gap-1 shadow-sm">
-<span>Evaluate Decision</span>
-<span className="material-symbols-outlined text-[16px]">chevron_right</span>
-</button>
-</div>
-</div>
-) : (
-<div className="bg-surface-container-lowest rounded-xl p-space-lg shadow-sm flex items-center justify-center text-on-surface-variant">
-  No high-priority delivery risks detected.
-</div>
-)}
-</div>
-</div>
-</div>
-{/* Demand Forecast vs Actual Section (High Analytical Rigor) */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-space-md">
+          {/* Inventory Risk Card */}
+          {priorityRisks.inventory ? (
+            <div className="bg-surface-container-lowest rounded-xl p-space-lg shadow-sm flex flex-col justify-between hover:shadow-md transition-all">
+              <div>
+                <div className="flex items-center justify-between mb-space-sm">
+                  <span className="bg-error-container text-on-error-container font-label-sm text-label-sm px-2.5 py-1 rounded font-bold uppercase tracking-wider">
+                    HIGH SEVERITY
+                  </span>
+                  <span className="font-code-sm text-code-sm text-on-surface-variant bg-surface-container-low px-2 py-0.5 rounded">
+                    ID #{priorityRisks.inventory.sku_id}
+                  </span>
+                </div>
+
+                <h3 className="font-headline-sm text-headline-sm text-on-surface font-bold leading-tight">
+                  Inventory Risk — {priorityRisks.inventory.sku_id}
+                </h3>
+
+                <p className="font-label-md text-label-md text-error font-semibold mt-0.5 mb-space-md flex items-center gap-1">
+                  <span className="material-symbols-outlined text-[14px]">report_problem</span>
+                  Stockout Warning
+                </p>
+
+                <div className="bg-surface-container-low p-space-md rounded-lg mb-space-md space-y-space-xs text-on-surface font-body-sm text-body-sm">
+                  <div className="flex justify-between items-center pb-1">
+                    <span className="text-on-surface-variant font-medium">Days of Supply:</span>
+                    <span className="font-tabular-metric-md text-tabular-metric-md text-error font-bold">
+                      {priorityRisks.inventory.days_of_supply} Days
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-1 pt-1 text-center font-code-sm text-code-sm bg-surface-container-lowest p-2 rounded">
+                    <div>
+                      <span className="block text-on-surface-variant text-[10px] uppercase">Current</span>
+                      <span className="font-bold text-on-surface">{priorityRisks.inventory.current_stock} u</span>
+                    </div>
+                    <div>
+                      <span className="block text-on-surface-variant text-[10px] uppercase">Safety</span>
+                      <span className="font-bold text-on-surface">{priorityRisks.inventory.safety_stock} u</span>
+                    </div>
+                    <div>
+                      <span className="block text-on-surface-variant text-[10px] uppercase">Reorder</span>
+                      <span className="font-bold text-on-surface">{priorityRisks.inventory.reorder_point} u</span>
+                    </div>
+                  </div>
+                </div>
+
+                <p className="font-body-sm text-body-sm text-on-surface-variant leading-relaxed mb-space-lg">
+                  {priorityRisks.inventory.detail}
+                </p>
+              </div>
+
+              <div className="pt-space-md flex items-center justify-between bg-surface-container-lowest">
+                <div className="flex items-center gap-1 text-on-surface-variant font-label-sm text-label-sm">
+                  <span className="material-symbols-outlined text-[15px] text-tertiary">psychology</span>
+                  <span>Policy RAG Evaluated</span>
+                </div>
+                <button
+                  onClick={() =>
+                    navigate('/app/create-decision', {
+                      state: { sku_id: priorityRisks.inventory.sku_id },
+                    })
+                  }
+                  className="bg-primary hover:bg-primary-container text-on-primary px-space-md py-space-sm rounded-lg font-label-md text-label-md font-semibold transition-colors flex items-center gap-1 shadow-sm"
+                >
+                  <span>Evaluate Decision</span>
+                  <span className="material-symbols-outlined text-[16px]">chevron_right</span>
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="bg-surface-container-lowest rounded-xl p-space-lg shadow-sm flex items-center justify-center text-on-surface-variant">
+              No high-priority inventory risks detected.
+            </div>
+          )}
+
+          {/* Delivery Risk Card */}
+          {priorityRisks.delivery ? (
+            <div className="bg-surface-container-lowest rounded-xl p-space-lg shadow-sm flex flex-col justify-between hover:shadow-md transition-all">
+              <div>
+                <div className="flex items-center justify-between mb-space-sm">
+                  <span className="bg-error text-on-error font-label-sm text-label-sm px-2.5 py-1 rounded font-bold uppercase tracking-wider flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-on-error animate-ping"></span>
+                    {priorityRisks.delivery.risk_label}
+                  </span>
+                  <span className="font-code-sm text-code-sm text-on-surface-variant bg-surface-container-low px-2 py-0.5 rounded">
+                    ID #{priorityRisks.delivery.delivery_id}
+                  </span>
+                </div>
+
+                <h3 className="font-headline-sm text-headline-sm text-on-surface font-bold leading-tight">
+                  Delivery Risk — {priorityRisks.delivery.delivery_id}
+                </h3>
+
+                <p className="font-label-md text-label-md text-error font-semibold mt-0.5 mb-space-md flex items-center gap-1">
+                  <span className="material-symbols-outlined text-[14px]">departure_board</span>
+                  Transit Delay Warning
+                </p>
+
+                <div className="bg-surface-container-low p-space-md rounded-lg mb-space-md space-y-space-xs text-on-surface font-body-sm text-body-sm">
+                  <div className="flex justify-between items-center pb-1">
+                    <span className="text-on-surface-variant font-medium">Late Probability:</span>
+                    <span className="font-tabular-metric-md text-tabular-metric-md text-error font-bold">
+                      {Math.round(priorityRisks.delivery.late_probability * 100)}%
+                    </span>
+                  </div>
+
+                  <div className="bg-surface-container-lowest p-2 rounded space-y-1 font-body-sm text-body-sm">
+                    <div className="flex justify-between">
+                      <span className="text-on-surface-variant text-label-sm font-label-sm">Carrier</span>
+                      <span className="font-semibold text-on-surface">{priorityRisks.delivery.carrier_id}</span>
+                    </div>
+                    <div className="flex justify-between items-center text-code-sm font-code-sm pt-1">
+                      <span className="text-primary font-semibold">{priorityRisks.delivery.origin}</span>
+                      <span className="material-symbols-outlined text-[14px] text-on-surface-variant">arrow_forward</span>
+                      <span className="text-on-surface font-semibold">{priorityRisks.delivery.destination}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <p className="font-body-sm text-body-sm text-on-surface-variant leading-relaxed mb-space-lg">
+                  Traffic delay of {priorityRisks.delivery.traffic_delay_hrs} hrs. Weather condition: {priorityRisks.delivery.weather_condition}. Distance: {priorityRisks.delivery.distance_km} km.
+                </p>
+              </div>
+
+              <div className="pt-space-md flex items-center justify-between bg-surface-container-lowest">
+                <div className="flex items-center gap-1 text-on-surface-variant font-label-sm text-label-sm">
+                  <span className="material-symbols-outlined text-[15px] text-secondary">alt_route</span>
+                  <span>Reroute Action Available</span>
+                </div>
+                <button
+                  onClick={() =>
+                    navigate('/app/create-decision', {
+                      state: { delivery_id: priorityRisks.delivery.delivery_id },
+                    })
+                  }
+                  className="bg-primary hover:bg-primary-container text-on-primary px-space-md py-space-sm rounded-lg font-label-md text-label-md font-semibold transition-colors flex items-center gap-1 shadow-sm"
+                >
+                  <span>Evaluate Decision</span>
+                  <span className="material-symbols-outlined text-[16px]">chevron_right</span>
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="bg-surface-container-lowest rounded-xl p-space-lg shadow-sm flex items-center justify-center text-on-surface-variant">
+              No high-priority delivery risks detected.
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Demand Forecast vs Actual Section (High Analytical Rigor) */}
+
 <div className="bg-surface-container-lowest rounded-xl p-space-xl shadow-sm flex flex-col gap-space-lg">
 <div className="flex flex-col md:flex-row md:items-center justify-between gap-space-md pb-space-xs">
 <div className="flex flex-col gap-space-xs">
@@ -299,20 +339,20 @@ export default function CommandCenterPage() {
 <div className="relative w-full h-72">
 <svg className="w-full h-full overflow-visible font-code-sm text-[11px]" preserveAspectRatio="none" viewBox="0 0 960 260">
 <defs>
-<lineargradient id="forecastBand" x1="0%" x2="0%" y1="0%" y2="100%">
+<linearGradient id="forecastBand" x1="0%" x2="0%" y1="0%" y2="100%">
 <stop offset="0%" stopColor="#316bf3" stopOpacity="0.14"></stop>
 <stop offset="100%" stopColor="#316bf3" stopOpacity="0.01"></stop>
-</lineargradient>
+</linearGradient>
 </defs>
 {/* Horizontal Grid Lines */}
-<line opacity="0.6" stroke="#c5c5d3" stroke-dasharray="3,3" strokeWidth="1" x1="40" x2="940" y1="20" y2="20"></line>
-<text fill="#757682" text-anchor="end" x="32" y="24">500</text>
-<line opacity="0.6" stroke="#c5c5d3" stroke-dasharray="3,3" strokeWidth="1" x1="40" x2="940" y1="80" y2="80"></line>
-<text fill="#757682" text-anchor="end" x="32" y="84">450</text>
-<line opacity="0.6" stroke="#c5c5d3" stroke-dasharray="3,3" strokeWidth="1" x1="40" x2="940" y1="140" y2="140"></line>
-<text fill="#757682" text-anchor="end" x="32" y="144">400</text>
+<line opacity="0.6" stroke="#c5c5d3" strokeDasharray="3,3" strokeWidth="1" x1="40" x2="940" y1="20" y2="20"></line>
+<text fill="#757682" textAnchor="end" x="32" y="24">500</text>
+<line opacity="0.6" stroke="#c5c5d3" strokeDasharray="3,3" strokeWidth="1" x1="40" x2="940" y1="80" y2="80"></line>
+<text fill="#757682" textAnchor="end" x="32" y="84">450</text>
+<line opacity="0.6" stroke="#c5c5d3" strokeDasharray="3,3" strokeWidth="1" x1="40" x2="940" y1="140" y2="140"></line>
+<text fill="#757682" textAnchor="end" x="32" y="144">400</text>
 <line opacity="0.8" stroke="#c5c5d3" strokeWidth="1" x1="40" x2="940" y1="200" y2="200"></line>
-<text fill="#757682" text-anchor="end" x="32" y="204">350</text>
+<text fill="#757682" textAnchor="end" x="32" y="204">350</text>
 {/* Forecast Range Band */}
 <polygon fill="url(#forecastBand)" points="
             50,150  118,135  186,145  254,120  322,105  390,115  458,95  526,90  594,80  662,70  730,75  798,60  866,55  934,50
@@ -321,7 +361,7 @@ export default function CommandCenterPage() {
 {/* Forecast Line (Dashed Navy) */}
 <polyline fill="none" points="
               50,175 118,160 186,170 254,150 322,135 390,145 458,125 526,120 594,110 662,100 730,105 798,92 866,85 934,78
-            " stroke="#1e3a8a" stroke-dasharray="5,4" strokeWidth="2.5"></polyline>
+            " stroke="#1e3a8a" strokeDasharray="5,4" strokeWidth="2.5"></polyline>
 {/* Actual Demand Line (Solid Cobalt with Nodes) */}
 <polyline fill="none" points="
               50,180 118,155 186,165 254,142 322,148 390,138 458,130 526,115 594,118 662,94 730,112 798,88 866,82 934,70
@@ -342,20 +382,20 @@ export default function CommandCenterPage() {
 <circle className="hover:r-6 cursor-pointer transition-all" cx="866" cy="82" fill="#0051d5" r="4.5"></circle>
 <circle className="hover:r-6 cursor-pointer transition-all" cx="934" cy="70" fill="#0051d5" r="4.5"></circle>
 {/* X-Axis Day Labels */}
-<text fill="#444651" text-anchor="middle" x="50" y="228">Day 1</text>
-<text fill="#444651" text-anchor="middle" x="118" y="228">Day 2</text>
-<text fill="#444651" text-anchor="middle" x="186" y="228">Day 3</text>
-<text fill="#444651" text-anchor="middle" x="254" y="228">Day 4</text>
-<text fill="#444651" text-anchor="middle" x="322" y="228">Day 5</text>
-<text fill="#444651" text-anchor="middle" x="390" y="228">Day 6</text>
-<text fill="#444651" text-anchor="middle" x="458" y="228">Day 7</text>
-<text fill="#444651" text-anchor="middle" x="526" y="228">Day 8</text>
-<text fill="#444651" text-anchor="middle" x="594" y="228">Day 9</text>
-<text fill="#444651" text-anchor="middle" x="662" y="228">Day 10</text>
-<text fill="#444651" text-anchor="middle" x="730" y="228">Day 11</text>
-<text fill="#444651" text-anchor="middle" x="798" y="228">Day 12</text>
-<text fill="#444651" text-anchor="middle" x="866" y="228">Day 13</text>
-<text fill="#444651" text-anchor="middle" x="934" y="228">Day 14</text>
+<text fill="#444651" textAnchor="middle" x="50" y="228">Day 1</text>
+<text fill="#444651" textAnchor="middle" x="118" y="228">Day 2</text>
+<text fill="#444651" textAnchor="middle" x="186" y="228">Day 3</text>
+<text fill="#444651" textAnchor="middle" x="254" y="228">Day 4</text>
+<text fill="#444651" textAnchor="middle" x="322" y="228">Day 5</text>
+<text fill="#444651" textAnchor="middle" x="390" y="228">Day 6</text>
+<text fill="#444651" textAnchor="middle" x="458" y="228">Day 7</text>
+<text fill="#444651" textAnchor="middle" x="526" y="228">Day 8</text>
+<text fill="#444651" textAnchor="middle" x="594" y="228">Day 9</text>
+<text fill="#444651" textAnchor="middle" x="662" y="228">Day 10</text>
+<text fill="#444651" textAnchor="middle" x="730" y="228">Day 11</text>
+<text fill="#444651" textAnchor="middle" x="798" y="228">Day 12</text>
+<text fill="#444651" textAnchor="middle" x="866" y="228">Day 13</text>
+<text fill="#444651" textAnchor="middle" x="934" y="228">Day 14</text>
 </svg>
 </div>
 {/* Footer Micro-Insights */}
@@ -392,7 +432,6 @@ export default function CommandCenterPage() {
 </a>
 </div>
 </div>
-</div>
-
+  </div>
   );
 }

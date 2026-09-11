@@ -1,359 +1,739 @@
 # 🛡️ SupplyChain Sentinel AI
 
-> **Autonomous Supply Chain Risk Intelligence & Multi-Agent Decision Platform**  
-> An end-to-end system that forecasts demand, detects compounding inventory & delivery risks, optimizes routes, retrieves enterprise policies via RAG, and runs multi-agent deliberation before surfacing recommendations for human approval.
+> ### AI-Powered Supply Chain Decision Intelligence Platform
+> **Predict. Detect. Explain. Simulate. Decide.**
 
-[![Live Demo](https://img.shields.io/badge/Live-SupplyChain%20Sentinel-FF4B4B?style=flat&logo=streamlit)](https://supplychain-m6ormyh8hus3tvuep4b5st.streamlit.app/)
-[![Database](https://img.shields.io/badge/Database-Neon%20PostgreSQL-00E599?style=flat&logo=postgresql)](https://neon.tech)
-[![LLM](https://img.shields.io/badge/LLM-Groq%20API-f55036?style=flat)](https://groq.com)
-[![Tests](https://img.shields.io/badge/Tests-135%2F135%20passing-22c55e?style=flat&logo=pytest)](./tests)
-[![Python](https://img.shields.io/badge/Python-3.13%2B-3b82f6?style=flat&logo=python)](https://python.org)
-[![Branch](https://img.shields.io/badge/Branch-production--v2-8b5cf6?style=flat&logo=git)](https://github.com/bushrachohan/SupplyChain/tree/production-v2)
-[![License](https://img.shields.io/badge/License-MIT-gray?style=flat)](./LICENSE)
-
----
-
-## The Problem
-
-When modern enterprise supply chains face disruptions, conventional software fails:
-
-- **Siloed Risk Awareness**: Inventory planners and freight dispatchers work in isolation — a delayed inbound shipment is rarely cross-analyzed with warehouse stockout probability in real time.
-- **Black-Box Alerts**: Legacy ERP systems flag alerts with zero attribution — operators can't tell if an order is late due to traffic, rain, carrier capacity, or routing.
-- **Hallucinatory AI Assistants**: Generic LLM chatbots invent operational numbers and suggest actions that break corporate compliance rules.
-- **Unverified Autonomous Execution**: Automated systems risk costly failures when executing without critic consensus and human governance.
-
-**SupplyChain Sentinel AI solves all four.**
-
----
-
-## Live Product
-
-🌐 **[Launch Live Demo on Streamlit Cloud](https://supplychain-m6ormyh8hus3tvuep4b5st.streamlit.app/)**  
-*(Connected live to Neon PostgreSQL serverless database and Groq LLM inference).*
-
----
-
-## Architecture
+SupplyChain Sentinel AI is an end-to-end decision intelligence platform that combines **machine learning, explainable AI, policy-aware RAG, optimization, and multi-agent deliberation** to help supply-chain teams identify operational risks and make validated decisions with human oversight.
 
 <p align="center">
-  <img src="https://github.com/user-attachments/assets/54d7b715-72e6-4c83-a794-ab4f4c31ee47"
-       alt="SupplyChain Sentinel AI Architecture"
-       width="720">
+  <a href="https://supply-chain-pied-eight.vercel.app/"><strong>🚀 Launch Live Demo</strong></a>
+  &nbsp; • &nbsp;
+  <a href="https://github.com/bushrachohan/SupplyChain"><strong>💻 Source Code</strong></a>
 </p>
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│               DATA INGESTION & LIFECYCLE LAYER                  │
-│   Active Dataset Manager ◄── CSV / Excel / Neon DB / Kaggle     │
-│   (Schema Validation ──► Alias Auto-Mapping ──► Live Profiler)  │
-└───────────────────────────────┬─────────────────────────────────┘
-                                │ Normalized DataFrames
-                                ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                    ANALYTICS & ML ENGINE                        │
-│   LightGBM Demand Forecast ──► SHAP Delivery Risk Classifier    │
-│   Inventory Safety Buffer  ──► OR-Tools VRP Logistics Optimizer │
-└───────────────────────────────┬─────────────────────────────────┘
-                                │ Predictions & Metrics
-                                ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                  POLICY RAG & UNIFIED STATE                     │
-│   ChromaDB Vector Store (all-MiniLM-L6-v2) ◄── policies/*.md    │
-│   Cross-Risk Compounding ──► Enterprise Severity Calculation    │
-└───────────────────────────────┬─────────────────────────────────┘
-                                │ Grounded Context
-                                ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                MULTI-AGENT DELIBERATION SWARM                   │
-│   Orchestrator (Groq) ◄──► Policy Critic ◄──► Business Critic   │
-│   (Consensus Guardrails ──► Deterministic Feature Attribution)  │
-└───────────────────────────────┬─────────────────────────────────┘
-                                │ Immutable Trace Record
-                                ▼
-┌─────────────────────────────────────────────────────────────────┐
-│               PERSISTENCE & HUMAN-IN-THE-LOOP                   │
-│   Neon PostgreSQL (15 Tables) ──► Streamlit Command Center UI   │
-│   One-Click Human Approval / Rejection ──► Status Ledger        │
-└─────────────────────────────────────────────────────────────────┘
+<p align="center">
+  <img src="https://img.shields.io/badge/Frontend-React%20%2B%20TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white" alt="Frontend">
+  <img src="https://img.shields.io/badge/Backend-FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white" alt="Backend">
+  <img src="https://img.shields.io/badge/Database-Neon%20PostgreSQL-00E599?style=for-the-badge&logo=postgresql&logoColor=white" alt="Database">
+  <img src="https://img.shields.io/badge/LLM-Groq-f55036?style=for-the-badge" alt="LLM">
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/Python-3.13%2B-3776AB?style=flat&logo=python&logoColor=white" alt="Python">
+  <img src="https://img.shields.io/badge/ML-LightGBM%20%7C%20SHAP-FF6F00?style=flat" alt="ML">
+  <img src="https://img.shields.io/badge/RAG-ChromaDB-5B21B6?style=flat" alt="RAG">
+  <img src="https://img.shields.io/badge/Optimization-Google%20OR--Tools-4285F4?style=flat" alt="Optimization">
+  <img src="https://img.shields.io/badge/Tests-135%2F135%20passing-22C55E?style=flat&logo=pytest" alt="Tests">
+  <img src="https://img.shields.io/badge/License-MIT-gray?style=flat" alt="License">
+</p>
+
+---
+
+## 🌐 Live Application
+
+### [🚀 Launch SupplyChain Sentinel AI](https://supply-chain-pied-eight.vercel.app/)
+
+**Current web application:** React + TypeScript frontend deployed on **Vercel**.
+
+**Backend:** FastAPI service deployed on **Render**.
+
+**Backend URL:** [https://supplychainsupplychain-sentinel-ai.onrender.com](https://supplychainsupplychain-sentinel-ai.onrender.com)
+
+**API Documentation:** [https://supplychainsupplychain-sentinel-ai.onrender.com/docs](https://supplychainsupplychain-sentinel-ai.onrender.com/docs)
+
+**Database:** Neon PostgreSQL.
+
+**LLM:** Groq API.
+
+> **Demo note:** The backend uses Render's free instance, which can spin down after inactivity. The first request after a period of inactivity may therefore take longer than subsequent requests.
+
+---
+
+# 🎯 The Problem
+
+Modern supply chains generate large amounts of operational data, but conventional systems often struggle to turn that data into connected, explainable decisions.
+
+### Common challenges
+
+- **Siloed Risk Awareness** — Inventory, delivery, and logistics risks are often analyzed separately.
+- **Black-Box Alerts** — Traditional alerts may identify a problem without explaining the operational factors behind it.
+- **Ungrounded AI** — Generic LLM assistants can generate unsupported numbers or recommendations.
+- **Unverified Actions** — Automated recommendations need policy and business validation before high-impact decisions are made.
+
+### Sentinel's approach
+
+**SupplyChain Sentinel AI connects the full decision lifecycle:**
+
+```text
+DATA
+  ↓
+PREDICT
+  ↓
+DETECT
+  ↓
+EXPLAIN
+  ↓
+RECOMMEND
+  ↓
+CRITIQUE
+  ↓
+SIMULATE
+  ↓
+HUMAN APPROVAL
+  ↓
+AUDIT TRACE
 ```
 
 ---
 
-## Key Features
+# 🖥️ Product Experience
 
-### 📈 Dynamic Demand Forecasting & Inventory Risk
-LightGBM quantile regression models future SKU demand by warehouse. The inventory engine cross-references lead times and current stock levels to compute stockout risks, safety-stock deficits, and holding penalties.
+The application provides a modern light-mode enterprise interface built with React and TypeScript while preserving the analytical functionality of the original Streamlit implementation.
 
-### 📊 Demand Forecast vs Actual Visualization
-Provides clear business-facing validation comparing what the business actually experienced against Sentinel's LightGBM predictions on matching out-of-sample validation dates. Displays non-fabricated metrics (Horizon, Actual Avg, Forecast Avg, MAE, and MAPE) with interactive line charts and daily variance audit tables.
+### 🏠 Landing Page
 
-### ⚙️ Deterministic Candidate Action Engine & PO Recommendation (P3)
-Evaluates 4 structured options (`do_nothing`, `reorder`, `expedite`, `transfer_inventory`) enforcing authoritative policy constraints: 60-day holding cap (`POL-INV-001`), safety stock minimums, and Director escalation above $10,000 (`POL-PRO-003`). Automatically synthesizes internal Purchase Order draft recommendations for human review.
+The product entry point introduces Sentinel's decision-intelligence approach and provides direct access to the Command Center.
 
-### 🚚 Delivery Delay Classification with SHAP TreeExplainer
-Predicts delivery failure probabilities across 300+ shipments based on distance, traffic delay, carrier performance, and weather conditions. TreeExplainer provides local SHAP attribution scores (`+5.24 SHAP traffic delay`, `-0.57 carrier efficiency`) so operators know precisely *why* risk is elevated.
+### 📊 Command Center
 
-### 🌐 Cross-Risk Compounding & Unified Intelligence
-Combines warehouse inventory deficits and transit carrier delays into a single enterprise state. Automatically identifies compounding bottlenecks (e.g., SKU stockout compounded by delayed inbound delivery `DEL_037`) and calculates multi-dimensional severity scores (CRITICAL / HIGH / MEDIUM / LOW).
+The central operational view for monitoring supply-chain conditions, demand, inventory, delivery risk, and decision intelligence.
 
-### 📚 Policy RAG Knowledge Retrieval
-ChromaDB vector database indexed with corporate logistics policies (`policies/*.md`) using `all-MiniLM-L6-v2` embeddings. Informs the agent of expediting cost limits, carrier SLAs, and penalty thresholds. Automatically rebuilds missing indices on cloud cold starts.
+### 📦 Data Hub
 
-### 🤖 Multi-Agent Deliberation & Dual-Critic Verification
-- **Orchestrator Agent (Groq)**: Analyzes the operational situation and formulates proposed resolutions using deterministic tool calls.
-- **Policy Critic**: Validates the recommendation against strict regulatory boundaries and budget caps.
-- **Business Critic**: Evaluates cost trade-offs, holding costs, and implementation feasibility.
-- **Consensus Guardrail**: Requires unanimous approval before presenting actionable recommendations.
+Upload and work with supply-chain datasets through:
 
-### 📦 Universal Data Ingestion & Kaggle Auto-Aliasing
-Supports CSV, Excel (.xlsx), and PostgreSQL/SQLite sources. Automatically detects and aliases Kaggle Supply Chain dataset headers (`order_date`, `shipping_status`, `inventory_quantity`), presents an interactive schema mapper, and generates a live Dataset Understanding Profile card.
+- CSV ingestion
+- Excel `.xlsx` ingestion
+- Database connections
+- Demo datasets
+- Multiple-file workflows
+- Dataset preview
+- Dataset-type assignment
+- Interactive column-to-schema mapping
+- Validation
+- Dataset understanding/profile information
 
-### 🛡️ Immutable Audit Trails & Human-in-the-Loop Governance
-Every deliberation produces a complete JSON decision trace stored in Neon PostgreSQL. Operational actions require explicit human sign-off with permanent approval ledgers.
+### 🧠 Create a Decision
+
+Generate explainable operational decisions using the existing ML, deterministic tools, policy context, and agent reasoning pipeline.
+
+### ✅ Approval Queue
+
+Review proposed actions and provide explicit human approval or rejection before operational commitment.
+
+### 🕘 Decision History
+
+Review previous decision traces, recommendations, critic evaluations, and approval status.
+
+### 🔬 What-if Simulation
+
+Evaluate alternative operational scenarios before committing to a decision.
 
 ---
 
-## Tech Stack
+# 🧩 Core Intelligence
 
-| Layer | Technology | Purpose & Rationale |
+## 📈 1. Dynamic Demand Forecasting & Inventory Risk
+
+LightGBM quantile regression models future SKU demand by warehouse. The inventory engine cross-references lead times and current stock levels to calculate stockout risks, safety-stock deficits, and holding penalties.
+
+## 📊 2. Demand Forecast vs Actual
+
+The platform compares business actuals against Sentinel's out-of-sample LightGBM predictions on matching validation dates.
+
+It provides:
+
+- Forecast horizon
+- Actual average
+- Forecast average
+- MAE
+- MAPE
+- Interactive visualizations
+- Daily variance audit information
+
+## ⚙️ 3. Deterministic Candidate Action Engine
+
+The decision engine evaluates structured actions including:
+
+```text
+do_nothing
+reorder
+expedite
+transfer_inventory
+```
+
+Candidate actions are evaluated against authoritative policy constraints and can produce purchase-order draft recommendations for human review.
+
+## 🚚 4. Delivery Delay Risk + SHAP
+
+The delivery-risk model evaluates shipment failure probability using operational features such as:
+
+- Distance
+- Traffic delay
+- Carrier performance
+- Weather conditions
+
+SHAP TreeExplainer provides feature-level attribution so users can understand why a shipment is considered risky.
+
+## 🌐 5. Cross-Risk Compounding
+
+Sentinel combines inventory and delivery conditions into a unified operational state.
+
+For example:
+
+```text
+Inventory shortage
+       +
+Delayed inbound shipment
+       ↓
+Compounding operational risk
+       ↓
+Higher enterprise severity
+```
+
+## 📚 6. Policy-Aware RAG
+
+Corporate policy documents are indexed using ChromaDB and `all-MiniLM-L6-v2` embeddings.
+
+Retrieved policy context can inform:
+
+- Expediting limits
+- Carrier SLAs
+- Budget thresholds
+- Inventory constraints
+- Escalation requirements
+
+## 🤖 7. Multi-Agent Deliberation
+
+The decision workflow uses multiple reasoning roles:
+
+### Orchestrator Agent
+Analyzes the verified operational situation and formulates candidate resolutions.
+
+### Policy Critic
+Checks recommendations against policy, compliance boundaries, and budget constraints.
+
+### Business Critic
+Evaluates cost, feasibility, operational trade-offs, and business impact.
+
+### Consensus Guardrail
+Requires critic agreement before presenting an actionable recommendation.
+
+## 🛡️ 8. Human-in-the-Loop Governance
+
+Sentinel does not treat an AI recommendation as an automatic operational command.
+
+The workflow is:
+
+```text
+AI Analysis
+    ↓
+Candidate Recommendation
+    ↓
+Policy Critic
+    ↓
+Business Critic
+    ↓
+Consensus
+    ↓
+Human Approval / Rejection
+    ↓
+Decision Ledger
+```
+
+---
+
+# 🏗️ System Architecture
+
+
+### High-Level Architecture
+
+```text
+                         ┌──────────────────────┐
+                         │       USER           │
+                         │  React + TypeScript  │
+                         └──────────┬───────────┘
+                                    │
+                                    ▼
+                         ┌──────────────────────┐
+                         │       VERCEL         │
+                         │   Frontend / Vite    │
+                         └──────────┬───────────┘
+                                    │ HTTPS API
+                                    ▼
+                         ┌──────────────────────┐
+                         │       RENDER         │
+                         │   FastAPI Backend    │
+                         └──────────┬───────────┘
+                                    │
+              ┌─────────────────────┼─────────────────────┐
+              │                     │                     │
+              ▼                     ▼                     ▼
+       ┌─────────────┐       ┌─────────────┐       ┌─────────────┐
+       │ ML / Risk   │       │ Agent + RAG │       │ Optimization│
+       │ Forecasting │       │ + Critics   │       │  OR-Tools   │
+       └─────────────┘       └──────┬──────┘       └─────────────┘
+                                    │
+                       ┌────────────┴────────────┐
+                       ▼                         ▼
+                ┌─────────────┐           ┌─────────────┐
+                │    GROQ     │           │    NEON     │
+                │     LLM     │           │ PostgreSQL  │
+                └─────────────┘           └─────────────┘
+```
+
+---
+
+# 🔄 Decision Intelligence Pipeline
+
+```text
+CSV / Excel / Database / Demo Dataset
+                  ↓
+          Dataset Preview
+                  ↓
+        Dataset Type Assignment
+                  ↓
+        Column-to-Schema Mapping
+                  ↓
+           Schema Validation
+                  ↓
+          Data Normalization
+                  ↓
+     ┌────────────┼─────────────┐
+     ▼            ▼             ▼
+ Demand        Inventory      Delivery
+Forecasting      Risk           Risk
+     └────────────┼─────────────┘
+                  ↓
+         Unified Intelligence
+                  ↓
+        Cross-Risk Assessment
+                  ↓
+        Policy RAG Retrieval
+                  ↓
+       Candidate Action Engine
+                  ↓
+        Multi-Agent Deliberation
+             ↙          ↘
+      Policy Critic   Business Critic
+             ↘          ↙
+              Consensus
+                  ↓
+         What-if Simulation
+                  ↓
+        Explainable Decision
+                  ↓
+          Human Approval
+                  ↓
+        Immutable Decision Trace
+```
+
+---
+
+# 🧠 Technology Stack
+
+| Layer | Technology | Role |
 |---|---|---|
-| **Frontend & UI** | Streamlit 1.63 | Rapid enterprise dashboard with interactive mapping and live analytics |
-| **LLM & Reasoning** | Groq (`openai/gpt-oss-120b`) | Sub-second inference for multi-turn agent tool deliberation |
-| **ML & Explainability** | LightGBM + scikit-learn + SHAP | Fast gradient-boosted trees + exact TreeExplainer feature attribution |
-| **Route Optimisation** | Google OR-Tools | Industrial-grade Capacitated Vehicle Routing Problem (CVRP) solver |
-| **Vector Database & RAG** | ChromaDB + sentence-transformers | In-memory semantic policy search using `all-MiniLM-L6-v2` |
-| **Relational Database** | Neon PostgreSQL (15 tables) | Serverless PostgreSQL with connection pooling for immutable traces |
-| **Data Ingestion** | Pandas + OpenPyXL + SQLAlchemy | Multi-source ingestion (CSV, Excel, DB) with schema validation |
-| **Packaging & Dev Tools**| `uv` + `pytest` | Deterministic dependency management and automated test runner |
+| **Frontend** | React + TypeScript | Production web interface |
+| **Build Tool** | Vite | Frontend development and production build |
+| **Styling** | Tailwind CSS | Responsive light-mode UI |
+| **Routing** | React Router | Landing page and application navigation |
+| **Backend** | FastAPI | REST API and application services |
+| **Language** | Python 3.13+ | ML, backend, data and agent services |
+| **ML** | LightGBM + scikit-learn | Forecasting and predictive models |
+| **Explainability** | SHAP | Feature-level risk attribution |
+| **Optimization** | Google OR-Tools | Capacitated Vehicle Routing |
+| **RAG** | ChromaDB + Sentence Transformers | Semantic policy retrieval |
+| **LLM** | Groq | Agent reasoning and narrative synthesis |
+| **Database** | Neon PostgreSQL | Persistent application and decision data |
+| **Data** | Pandas + OpenPyXL + SQLAlchemy | CSV, Excel and database ingestion |
+| **Testing** | pytest | Unit and integration testing |
+| **Deployment** | Vercel + Render + Neon | Cloud deployment |
 
 ---
 
-## Why Sentinel AI vs Alternatives
+# 🔌 Data Ingestion
 
-| Capability | Traditional ERP (SAP/Oracle) | Generic LLM Chatbots | Standalone ML Scripts | SupplyChain Sentinel AI |
+Sentinel supports multiple operational data sources:
+
+```text
+CSV
+ │
+ ├── Upload one or multiple files
+ │
+ ▼
+Preview + Column Detection
+ │
+ ▼
+Dataset Type
+ │
+ ▼
+Schema Mapping
+ │
+ ▼
+Validation
+ │
+ ▼
+Dataset Profile
+ │
+ ▼
+Active Dataset
+```
+
+The same workflow is available for Excel data, while database ingestion provides a path for relational operational sources.
+
+The ingestion layer supports schema validation and dataset-specific column mapping rather than assuming that every external dataset uses identical column names.
+
+---
+
+# 🛡️ Explainability & Governance
+
+Sentinel is designed around five core principles:
+
+### 1. Grounded AI
+
+The LLM operates on verified operational values and deterministic tool outputs rather than inventing business metrics.
+
+### 2. Policy Awareness
+
+Recommendations are checked against retrieved enterprise policy context.
+
+### 3. Multi-Agent Verification
+
+Separate policy and business critics evaluate proposed actions.
+
+### 4. Human Authority
+
+High-impact operational actions require explicit human approval.
+
+### 5. Auditability
+
+Decision traces preserve the reasoning context, recommendations, critic evaluations, policies, and approval status.
+
+---
+
+# 📊 Why Sentinel AI?
+
+| Capability | Traditional ERP | Generic LLM | Standalone ML | Sentinel AI |
 |---|:---:|:---:|:---:|:---:|
-| **Grounded LLM Reasoning (Zero Hallucinations)** | ❌ | ⚠️ High Risk | ❌ | ✅ **100% Tool-Grounded** |
-| **Multi-Agent Dual-Critic Verification** | ❌ | ❌ | ❌ | ✅ **Policy + Business Critics** |
-| **SHAP Feature-Level Attribution** | ❌ | ❌ | ✅ | ✅ **Interactive SHAP Visuals** |
-| **Dynamic Kaggle/CSV Column Auto-Mapping** | ❌ Complex ETL | ❌ | ❌ | ✅ **Live Alias Profiler** |
-| **Cross-Risk Compounding Assessment** | ❌ Siloed | ⚠️ Unreliable | ❌ | ✅ **Unified State Engine** |
-| **Capacitated Vehicle Routing (CVRP)** | ⚠️ Expensive Add-on | ❌ | ⚠️ Standalone | ✅ **Built-in Google OR-Tools** |
-| **Policy RAG Vector Retrieval** | ❌ | ⚠️ Ad-hoc | ❌ | ✅ **ChromaDB + MiniLM** |
-| **Immutable Decision Audit Trails** | ⚠️ Complex Logs | ❌ | ❌ | ✅ **Neon Postgres Traces** |
-| **Human-in-the-Loop Approval Gate** | ⚠️ Manual | ❌ | ❌ | ✅ **One-Click Ledger UI** |
+| Cross-risk intelligence | ⚠️ | ⚠️ | ❌ | ✅ |
+| Explainable risk attribution | ⚠️ | ❌ | ✅ | ✅ |
+| Policy-aware RAG | ⚠️ | ⚠️ | ❌ | ✅ |
+| Multi-agent verification | ❌ | ❌ | ❌ | ✅ |
+| Candidate action evaluation | ⚠️ | ⚠️ | ⚠️ | ✅ |
+| What-if simulation | ⚠️ | ⚠️ | ⚠️ | ✅ |
+| Human approval gate | ⚠️ | ❌ | ❌ | ✅ |
+| Immutable decision traces | ⚠️ | ❌ | ❌ | ✅ |
+| CSV / Excel / DB ingestion | ✅ | ❌ | ⚠️ | ✅ |
 
 ---
 
-## Database Schema (Core Tables)
+# 🗄️ Database
 
-```sql
--- Comprehensive agent decision trace audit log
-CREATE TABLE decision_traces (
-    trace_id             VARCHAR(64) PRIMARY KEY,
-    timestamp            TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    situation_assessment TEXT,
-    recommendations      JSONB,
-    critic_evaluations   JSONB,
-    policies_retrieved   JSONB,
-    status               VARCHAR(30) -- PENDING_APPROVAL | APPROVED | REJECTED
-);
+The system uses **Neon PostgreSQL** for persistent operational and decision data.
 
--- Human-in-the-loop executive approvals ledger
-CREATE TABLE approvals (
-    approval_id VARCHAR(64) PRIMARY KEY,
-    trace_id    VARCHAR(64) REFERENCES decision_traces(trace_id),
-    decision    VARCHAR(20), -- APPROVED | REJECTED
-    notes       TEXT,
-    created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
+Core persisted information includes:
 
--- Real-time delivery risk scores and SHAP explanations
-CREATE TABLE delivery_risk_predictions (
-    delivery_id          VARCHAR(64) PRIMARY KEY,
-    risk_score           FLOAT,
-    risk_category        VARCHAR(20), -- LOW | MEDIUM | HIGH
-    top_shap_factors     JSONB,
-    prediction_timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
+- Decision traces
+- Human approvals
+- Delivery-risk predictions
+- Recommendations
+- Critic evaluations
+- Retrieved policies
+- Operational records
+
+Example decision lifecycle:
+
+```text
+PENDING_APPROVAL
+       │
+       ├──── APPROVED
+       │
+       └──── REJECTED
 ```
 
 ---
 
-## Quick Start (Local)
+# 📁 Project Structure
 
-### Prerequisites
-- Python 3.13+ (or 3.12)
-- [uv](https://docs.astral.sh/uv/getting-started/installation/) installed
+```text
+SupplyChain/
+├── agent/
+│   ├── orchestrator.py
+│   ├── tools.py
+│   ├── critics/
+│   │   ├── policy_critic.py
+│   │   └── business_critic.py
+│   ├── consensus.py
+│   └── decision_trace.py
+│
+├── api/
+│   └── main.py
+│
+├── core/
+│   ├── candidate_actions.py
+│   ├── forecasting.py
+│   ├── inventory_risk.py
+│   ├── delivery_risk.py
+│   ├── logistics_optimizer.py
+│   ├── rag.py
+│   ├── simulation.py
+│   └── unified_intelligence.py
+│
+├── data_ingestion/
+│   ├── base.py
+│   ├── active_dataset.py
+│   ├── validation.py
+│   ├── csv_source.py
+│   ├── excel_source.py
+│   ├── db_source.py
+│   └── api_source.py
+│
+├── data/
+├── data_pipeline/
+├── db/
+├── llm/
+├── ml/
+├── policies/
+├── tests/
+│
+├── frontend/
+│   ├── src/
+│   │   ├── components/
+│   │   └── pages/
+│   ├── package.json
+│   └── vite.config.ts
+│
+├── requirements.txt
+├── pyproject.toml
+├── .env.example
+└── README.md
+```
 
-### Setup
+---
+
+# ⚙️ Local Development
+
+## Prerequisites
+
+- Python 3.13+
+- Node.js 18+
+- npm
+- Git
+- Groq API key
+- Neon PostgreSQL database
+
+## 1. Clone
 
 ```bash
-# 1. Clone the repository
 git clone https://github.com/bushrachohan/SupplyChain.git
 cd SupplyChain
-
-# 2. Install all dependencies (including dev and test suites)
-uv sync
-
-# 3. Create your environment configuration
-cp .env.example .env
-# Edit .env with your real GROQ_API_KEY and NEON_DATABASE_URL
-
-# 4. Launch the Streamlit application
-uv run streamlit run app.py
 ```
 
-### Run Tests
+## 2. Backend setup
 
 ```bash
-uv run pytest
-# Expected: 135 passed in ~100s (100% passing)
+uv sync
 ```
 
-### Run FastAPI (Dev / API Mode)
+Create your environment file:
+
+```bash
+cp .env.example .env
+```
+
+Add:
+
+```env
+GROQ_API_KEY=your_groq_api_key
+NEON_DATABASE_URL=your_neon_database_url
+```
+
+Run FastAPI:
 
 ```bash
 uv run uvicorn api.main:app --reload
-# Interactive API documentation: http://localhost:8000/docs
 ```
 
----
+API documentation:
 
-## Secrets Required
-
-| Key | Where to get it | Purpose |
-|---|---|---|
-| `GROQ_API_KEY` | [console.groq.com](https://console.groq.com) | Powers multi-agent deliberation and reasoning |
-| `NEON_DATABASE_URL` | [neon.tech](https://neon.tech) | Connects to serverless PostgreSQL database (15 tables) |
-
-For local development, store these in `.env` (automatically ignored by git).
-
----
-
-## Deployment — Streamlit Cloud
-
-1. **Push your code to GitHub** on the **`Bushra`** branch.
-2. Go to [share.streamlit.io](https://share.streamlit.io) → **New app**.
-3. Select your repository: `bushrachohan/SupplyChain`.
-4. Set **Branch** to: `Bushra`.
-5. Set **Main file path** to: `app.py`.
-6. Set **Python version** to: `3.13` (or `3.12`).
-7. Click **Advanced settings → Secrets** and paste using TOML double-quote syntax:
-
-```toml
-GROQ_API_KEY = "gsk_..."
-NEON_DATABASE_URL = "postgresql://neondb_owner:password@ep-host.aws.neon.tech/neondb?sslmode=require"
+```text
+http://localhost:8000/docs
 ```
 
-8. Click **Deploy!**
+## 3. Frontend setup
 
-### ChromaDB on Cloud
-The `chroma_db/` folder is git-ignored. On cold starts, `core/rag.py` automatically detects missing indices and re-indexes all documents in `policies/*.md`.
-
-### Dependency Export Rule
-Streamlit Community Cloud installs dependencies via `pip install -r requirements.txt`. To regenerate the requirements file from `uv.lock`, **always include `--no-emit-project`** so editable root packages (`-e .`) are excluded:
 ```bash
-uv export --format requirements-txt --no-hashes --no-dev --no-emit-project -o requirements.txt
+cd frontend
+npm install
+npm run dev
 ```
 
-> [!NOTE]
-> Do not add `packages.txt` with `apt-get` packages; pre-compiled manylinux wheels already bundle required C++ runtimes, avoiding Debian archive expiration errors during cloud builds.
+The local frontend will be available through the Vite development server.
 
 ---
 
-## Roadmap
+# 🧪 Testing
+
+The project contains unit and integration tests covering major intelligence and application components.
+
+```bash
+uv run pytest
+```
+
+Current project test status:
+
+```text
+135 / 135 tests passing
+```
+
+---
+
+# ☁️ Deployment
+
+## Frontend — Vercel
+
+The React + TypeScript frontend is deployed on Vercel.
+
+```text
+https://supply-chain-pied-eight.vercel.app/
+```
+
+Vercel configuration:
+
+```text
+Root Directory: frontend
+Framework: Vite
+Build Command: npm run build
+Output Directory: dist
+```
+
+Frontend environment variable:
+
+```env
+VITE_API_URL=https://supplychainsupplychain-sentinel-ai.onrender.com
+```
+
+## Backend — Render
+
+The FastAPI backend is deployed as a Render Web Service.
+
+**Live Backend:** [https://supplychainsupplychain-sentinel-ai.onrender.com](https://supplychainsupplychain-sentinel-ai.onrender.com)  
+**FastAPI Docs:** [https://supplychainsupplychain-sentinel-ai.onrender.com/docs](https://supplychainsupplychain-sentinel-ai.onrender.com/docs)
+
+Build command:
+
+```bash
+pip install -r requirements.txt
+```
+
+Start command:
+
+```bash
+uvicorn api.main:app --host 0.0.0.0 --port $PORT
+```
+
+Required backend secrets:
+
+```env
+GROQ_API_KEY=...
+NEON_DATABASE_URL=...
+```
+
+## Database — Neon
+
+Neon PostgreSQL provides the persistent relational database used by the application.
+
+---
+
+# 🔐 Environment Variables
+
+| Variable | Purpose |
+|---|---|
+| `GROQ_API_KEY` | Powers LLM reasoning and multi-agent deliberation |
+| `NEON_DATABASE_URL` | Connects the application to Neon PostgreSQL |
+| `VITE_API_URL` | Connects the deployed frontend to the FastAPI backend |
+
+> Never commit `.env` files or API keys to GitHub.
+
+---
+
+# 🗺️ Roadmap
+
+### Completed
 
 - [x] LightGBM demand forecasting with quantile intervals
-- [x] Demand forecast vs actual visualization on matching validation dates (Project 17 requirement)
-- [x] Delivery delay binary classifier with TreeExplainer SHAP attribution
-- [x] Capacitated Vehicle Routing Problem (CVRP) via Google OR-Tools
-- [x] ChromaDB RAG with corporate policy documents (`policies/*.md`)
-- [x] Deterministic candidate action engine with 4 replenishment & transfer options (P3)
-- [x] Multi-agent deliberation with Policy and Business Critics
-- [x] Immutable decision traces stored in Neon PostgreSQL (15 tables)
-- [x] Human-in-the-loop approval & rejection ledger UI
-- [x] Multi-source ingestion (CSV, Excel `.xlsx`, Database)
-- [x] Kaggle Supply Chain schema auto-aliasing & live profiler
-- [x] Cross-risk compounding engine (`core/unified_intelligence.py`)
-- [x] 135 unit and integration tests (100% passing)
-- [ ] Enterprise ERP (SAP / Oracle WMS) live REST/GraphQL connector
-- [ ] Multi-depot, time-windowed fleet routing (VRPTW)
-- [ ] Real-time weather and traffic API webhooks
+- [x] Demand forecast vs actual visualization
+- [x] Delivery delay classifier with SHAP attribution
+- [x] Capacitated Vehicle Routing Problem via Google OR-Tools
+- [x] ChromaDB policy RAG
+- [x] Deterministic candidate action engine
+- [x] Multi-agent deliberation
+- [x] Policy and Business Critics
+- [x] Consensus guardrails
+- [x] Immutable decision traces
+- [x] Human-in-the-loop approval workflow
+- [x] CSV ingestion
+- [x] Excel ingestion
+- [x] Database ingestion
+- [x] Multiple-file dataset workflow
+- [x] Interactive schema mapping
+- [x] Dataset understanding/profile
+- [x] Kaggle schema auto-aliasing
+- [x] Cross-risk compounding
+- [x] React + TypeScript frontend
+- [x] Vercel frontend deployment
+- [x] FastAPI backend deployment
+
+### Future Scope
+
+- [ ] Enterprise ERP integrations such as SAP / Oracle WMS
+- [ ] Real-time supply-chain telemetry
+- [ ] Real-time weather and traffic integrations
+- [ ] Multi-depot, time-windowed routing
+- [ ] Enterprise role-based access control
+- [ ] Multi-tenant architecture
+- [ ] Real-time alerting and notifications
+- [ ] Advanced scenario optimization
+- [ ] Cloud-native model serving and observability
 
 ---
 
-## Project Structure
+# 👥 Team
 
-```
-SupplyChain/
-├── app.py                     # Streamlit production application entry point
-├── api/main.py                # FastAPI endpoints (local dev / testing)
-├── agent/
-│   ├── orchestrator.py        # Primary decision agent (Groq tool-calling)
-│   ├── tools.py               # Tool wrappers + Groq function schemas
-│   ├── critics/
-│   │   ├── policy_critic.py   # Policy compliance & safety verification
-│   │   └── business_critic.py # Cost-benefit & feasibility verification
-│   ├── consensus.py           # Multi-agent consensus protocol
-│   └── decision_trace.py      # Trace builder & DB persistence
-├── core/
-│   ├── candidate_actions.py   # Deterministic 4-action replenishment engine & PO drafting
-│   ├── forecasting.py         # LightGBM demand forecast & Forecast vs Actual alignment
-│   ├── inventory_risk.py      # Rule-based stockout & safety stock analysis
-│   ├── delivery_risk.py       # Delay classifier with SHAP attribution
-│   ├── logistics_optimizer.py # Google OR-Tools Capacitated VRP solver
-│   ├── rag.py                 # ChromaDB vector store over business policies
-│   ├── simulation.py          # What-if scenario simulation engine
-│   └── unified_intelligence.py# Cross-risk compounding & bottleneck detection
-├── ml/
-│   ├── evaluation.py          # Time-based train/test splits & baselines
-│   └── explainability.py      # SHAP tree explainer feature attribution
-├── llm/
-│   └── explainer.py           # Grounded Groq narrative synthesis
-├── db/
-│   ├── models.py              # SQLAlchemy models (15 relational tables)
-│   └── connection.py          # Neon Postgres engine & connection pool
-├── data_ingestion/
-│   ├── base.py                # Abstract DataSource interface
-│   ├── active_dataset.py      # Dynamic dataset manager & cache invalidation
-│   ├── validation.py          # Schema validator, Kaggle auto-mapping, profiler
-│   ├── csv_source.py          # CSV source (300 shipments, Kaggle compatibility)
-│   ├── excel_source.py        # Excel (.xlsx) data ingestion
-│   ├── db_source.py           # Neon DB & SQLite relational source
-│   └── api_source.py          # REST API ingestion stub
-├── policies/                  # Corporate policy markdown files for RAG
-├── data/                      # Standard synthetic supply chain datasets (300 deliveries)
-├── data_pipeline/             # Seed data generator & Neon DB loader
-├── tests/                     # 135 unit & integration tests (100% passing)
-│   ├── test_candidate_actions.py # 9 candidate action engine & PO drafting tests
-│   ├── test_forecasting.py    # 15 LightGBM & Forecast vs Actual tests
-│   └── ...                    # Active dataset, critics, simulation, RAG, agent tests
-├── .streamlit/config.toml     # Theme styling & 200MB file upload limits
-├── pyproject.toml             # uv package and dependency configuration
-├── requirements.txt           # pip-compatible manifest for Streamlit Cloud
-└── .env.example               # Environment variable secrets template
-```
+**Bushra** — Team Leader  
+**Maryam**  
+**Shreeya**  
+**Samiya**
 
 ---
 
-## Team
+# 🧭 Design Principles
 
-**Bushra** (Team Leader) · **Maryam** · **Shreeya** · **Samiya**
+### 01 — Grounded Intelligence
+The LLM narrates and reasons over verified operational values and deterministic tool outputs.
 
-See [`progress.md`](progress.md) for the complete task board, sprint milestones, and session log.
+### 02 — Human-in-the-Loop
+High-impact interventions require human sign-off before operational commitment.
+
+### 03 — True Agentic Deliberation
+The orchestrator can select appropriate tools based on the operational situation rather than relying only on a rigid linear workflow.
+
+### 04 — Transparent Explainability
+Risk predictions are accompanied by feature-level attribution where supported by the underlying model.
+
+### 05 — Data Integrity
+Synthetic datasets are clearly treated as testing/demo data and are not represented as proprietary production records.
 
 ---
 
-## Key Design Rules
+# 📄 License
 
-1. **LLM Grounding Constraint**: The LLM only narrates and reasons over verified numbers. Every figure traces back to a deterministic `core/*` tool calculation — never hallucinated.
-2. **Human-in-the-Loop**: High-impact supply chain interventions require executive sign-off before downstream execution.
-3. **True Agentic Deliberation**: The orchestrator dynamically chooses tools based on situational context rather than a rigid linear pipeline.
-4. **Transparent Explainability**: Operational risk is always accompanied by exact SHAP factor contributions (traffic, distance, weather, carrier).
-5. **Data Integrity**: All synthetic sample datasets (`data/*.csv`) are labeled for testing and never misrepresented as proprietary production records.
+MIT License — see [`LICENSE`](./LICENSE).
 
 ---
 
-## License
-
-MIT License — see [LICENSE](./LICENSE) for details.
+<p align="center">
+  <strong>SupplyChain Sentinel AI</strong><br>
+  AI-powered decision intelligence for resilient supply chains.
+</p>

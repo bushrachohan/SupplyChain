@@ -1,4 +1,9 @@
-from fastapi import FastAPI, Depends, HTTPException, BackgroundTasks
+from fastapi import FastAPI, Depends, HTTPException, BackgroundTasks, UploadFile, File, Form
+import tempfile
+import os
+import shutil
+import uuid
+import json
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
@@ -20,6 +25,9 @@ from core.simulation import (
     simulate_logistics_scenario
 )
 from data_ingestion.csv_source import CSVDataSource
+from data_ingestion.excel_source import ExcelDataSource
+from data_ingestion.db_source import DBDataSource
+from data_ingestion.validation import validate_dataset, suggest_and_normalize_columns, CANONICAL_SCHEMAS
 
 app = FastAPI(title="SupplyChain Sentinel AI API")
 
@@ -318,6 +326,120 @@ def get_data_status():
 def use_demo_data():
     agent_tools.set_active_datasource(CSVDataSource(data_dir="data"))
     return {"status": "success"}
+
+# Global dict to store temp file paths for mapping
+_UPLOADED_FILES = {}
+
+@app.post("/api/data/upload_csv")
+async def upload_csv(files: List[UploadFile] = File(...)):
+    res = []
+    for file in files:
+        file_id = str(uuid.uuid4())
+        temp_path = os.path.join(tempfile.gettempdir(), f"{file_id}_{file.filename}")
+        with open(temp_path, "wb") as f:
+            f.write(await file.read())
+        
+        try:
+            df = pd.read_csv(temp_path)
+            cols = list(df.columns)
+            preview_data = clean_floats(df.head(3).to_dict(orient="records"))
+            _UPLOADED_FILES[file_id] = {"path": temp_path, "filename": file.filename, "columns": cols}
+            res.append({"file_id": file_id, "filename": file.filename, "columns": cols, "preview": preview_data})
+        except Exception as e:
+            pass
+    return {"uploaded": res}
+
+class ValidateMapRequest(BaseModel):
+    # Dict mapping file_id to mapping data
+    # mapping data: {"schema_type": "demand", "mapping": {"sku_id": "col1", ...}}
+    files_mapping: Dict[str, Dict[str, Any]]
+
+@app.post("/api/data/validate_map")
+def validate_map(req: ValidateMapRequest):
+    all_valid = True
+    results = {}
+    processed_dfs = {}
+    
+    for file_id, map_data in req.files_mapping.items():
+        if file_id not in _UPLOADED_FILES:
+            continue
+            
+        file_info = _UPLOADED_FILES[file_id]
+        schema_type = map_data["schema_type"]
+        explicit_mapping = map_data["mapping"]
+        
+        df = pd.read_csv(file_info["path"])
+        val_res = validate_dataset(df, schema_type=schema_type, explicit_mapping=explicit_mapping)
+        
+        res_data = {
+            "is_valid": val_res.is_valid,
+            "errors": val_res.errors,
+            "warnings": val_res.warnings,
+            "profiling": val_res.profiling,
+            "filename": file_info["filename"]
+        }
+        
+        if val_res.is_valid:
+            processed_dfs[schema_type] = val_res.normalized_df
+        else:
+            all_valid = False
+            
+        results[file_id] = res_data
+        
+    if all_valid and len(processed_dfs) == 3:
+        temp_dir = os.path.join(tempfile.gettempdir(), "supplychain_sentinel_sessions", str(uuid.uuid4()))
+        os.makedirs(temp_dir, exist_ok=True)
+        
+        filename_map = {
+            "demand": "historical_demand.csv",
+            "inventory": "inventory_snapshot.csv",
+            "deliveries": "deliveries.csv"
+        }
+        for s_type, pdf in processed_dfs.items():
+            pdf.to_csv(os.path.join(temp_dir, filename_map[s_type]), index=False)
+            
+        agent_tools.set_active_datasource(CSVDataSource(data_dir=temp_dir))
+        return {"status": "success", "results": results, "activated": True}
+        
+    return {"status": "validation_failed" if not all_valid else "incomplete", "results": results, "activated": False}
+
+@app.post("/api/data/upload_excel")
+async def upload_excel(file: UploadFile = File(...)):
+    temp_path = os.path.join(tempfile.gettempdir(), f"upload_{uuid.uuid4()}.xlsx")
+    with open(temp_path, "wb") as f:
+        f.write(await file.read())
+        
+    try:
+        xl = pd.ExcelFile(temp_path)
+        res = []
+        for sheet in xl.sheet_names:
+            df = xl.parse(sheet)
+            file_id = str(uuid.uuid4())
+            sheet_csv_path = os.path.join(tempfile.gettempdir(), f"{file_id}_{sheet}.csv")
+            df.to_csv(sheet_csv_path, index=False)
+            cols = list(df.columns)
+            preview_data = clean_floats(df.head(3).to_dict(orient="records"))
+            _UPLOADED_FILES[file_id] = {"path": sheet_csv_path, "filename": f"{file.filename} - {sheet}", "columns": cols}
+            res.append({"file_id": file_id, "filename": f"{file.filename} - {sheet}", "columns": cols, "preview": preview_data})
+            
+        return {"uploaded": res}
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
+
+class DBConnectRequest(BaseModel):
+    db_url: str
+
+@app.post("/api/data/connect_db")
+def connect_db(req: DBConnectRequest):
+    try:
+        from sqlalchemy import create_engine
+        engine = create_engine(req.db_url)
+        with engine.connect() as conn:
+            pass
+        agent_tools.set_active_datasource(DBDataSource(db_url=req.db_url))
+        return {"status": "success"}
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
 
 @app.get("/api/options")
 def get_options():
